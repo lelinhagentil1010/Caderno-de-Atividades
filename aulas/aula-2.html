@@ -599,17 +599,28 @@ async function loadVault(){
     console.error('Não foi possível carregar as respostas salvas', error);
     state.vault = [];
   } else {
-    state.vault = data.map(r => ({ text: r.dados.texto, gatilhos: r.dados.gatilhos, ts: r.created_at }));
+    state.vault = data.map(r => ({ id: r.id, text: r.dados.texto, gatilhos: r.dados.gatilhos, ts: r.created_at }));
   }
   renderVault();
 }
 
 async function persistEntry(entry){
-  const { error } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from('respostas')
-    .insert({ aula_id: AULA_ID, user_id: currentUserId, dados: { texto: entry.text, gatilhos: entry.gatilhos } });
+    .insert({ aula_id: AULA_ID, user_id: currentUserId, dados: { texto: entry.text, gatilhos: entry.gatilhos } })
+    .select('id')
+    .single();
   if(error){
     console.error('Não foi possível gravar a resposta', error);
+    return null;
+  }
+  return data.id;
+}
+
+async function deleteEntry(id){
+  const { error } = await supabaseClient.from('respostas').delete().eq('id', id);
+  if(error){
+    console.error('Não foi possível excluir a resposta', error);
     return false;
   }
   return true;
@@ -805,10 +816,10 @@ async function saveHeadline(){
 
   const entry = { text: headline, gatilhos: gatilhosUsados, ts: Date.now() };
   status.textContent = 'Salvando...';
-  const ok = await persistEntry(entry);
-  if(ok) state.vault.push(entry);
+  const id = await persistEntry(entry);
+  if(id){ entry.id = id; state.vault.push(entry); }
   renderVault();
-  status.textContent = ok ? 'Salva — não some mesmo trocando de aparelho.' : 'Não foi possível salvar. Tente novamente.';
+  status.textContent = id ? 'Salva — não some mesmo trocando de aparelho.' : 'Não foi possível salvar. Tente novamente.';
   setTimeout(() => { status.textContent = ''; }, 3000);
 }
 
@@ -836,8 +847,18 @@ function renderVault(){
         <div class="txt">${item.text}</div>
         <div class="meta">${item.gatilhos}</div>
       </div>
-      <button class="remove-btn" data-i="${i}">remover da lista</button>`;
-    row.querySelector('.remove-btn').onclick = () => {
+      <button class="remove-btn" data-i="${i}">excluir</button>`;
+    row.querySelector('.remove-btn').onclick = async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'excluindo...';
+      const ok = item.id ? await deleteEntry(item.id) : true;
+      if(!ok){
+        btn.disabled = false;
+        btn.textContent = 'excluir';
+        alert('Não foi possível excluir. Tente novamente.');
+        return;
+      }
       state.vault.splice(i,1);
       renderVault();
     };
