@@ -143,10 +143,23 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
 .status{ font-size: 13.5px; color: var(--cream-dim); margin-top: 12px; }
 .status.error{ color: var(--red); }
 
-table{ width:100%; border-collapse: collapse; }
-th, td{ text-align:left; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
-th{ color: var(--gold-light); font-weight:600; font-family:'Poppins', sans-serif; font-size: 11.5px; text-transform:uppercase; letter-spacing:.05em; }
-td.headline{ font-family:'Poppins', sans-serif; font-style: italic; color: var(--cream); }
+.resp-group{ border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-2); box-shadow: var(--shadow-card); margin-bottom: 14px; overflow: hidden; }
+.resp-group-header{ display:flex; justify-content:space-between; align-items:center; gap: 12px; padding: 16px 20px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.resp-group-header .nome{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 15px; color: var(--cream); }
+.resp-group-header .email{ font-size: 12.5px; color: var(--cream-dim); margin-top: 2px; }
+.resp-count{ font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--navy); background: var(--gold); border-radius: var(--radius-pill); padding: 4px 12px; white-space: nowrap; }
+.resp-items{ padding: 4px 20px; }
+.resp-item{ padding: 14px 0; border-bottom: 1px solid var(--line); }
+.resp-item:last-child{ border-bottom: none; }
+.resp-item .texto{ font-family:'Poppins', sans-serif; font-style: italic; color: var(--cream); font-size: 14.5px; line-height: 1.5; word-wrap: break-word; }
+.resp-item .quando{ font-size: 11.5px; color: var(--cream-dim); margin-top: 6px; }
+
+@media (max-width: 640px){
+  .app{ padding: 28px 16px 60px; }
+  .card .row{ align-items: flex-start; }
+  .actions{ width: 100%; }
+  .card .actions button{ flex: 1; }
+}
 </style>
 </head>
 <body>
@@ -352,24 +365,40 @@ async function carregarRespostas(){
   const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
   const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
 
-  const table = document.createElement('table');
-  table.innerHTML = `
-    <thead><tr><th>Aluno</th><th>Resposta</th><th>Quando</th></tr></thead>
-    <tbody></tbody>
-  `;
-  const tbody = table.querySelector('tbody');
+  // agrupa as respostas por aluno (respostas já vêm ordenadas da mais recente pra mais antiga)
+  const groups = new Map();
   respostas.forEach(r => {
-    const perfil = perfilMap[r.user_id] || {};
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${perfil.nome || perfil.email || '(desconhecido)'}</td>
-      <td class="headline">${r.dados.texto || JSON.stringify(r.dados)}</td>
-      <td>${formatDate(r.created_at)}</td>
-    `;
-    tbody.appendChild(tr);
+    if(!groups.has(r.user_id)) groups.set(r.user_id, []);
+    groups.get(r.user_id).push(r);
   });
+
+  // ordena os alunos pela resposta mais recente de cada um
+  const orderedGroups = [...groups.entries()].sort((a, b) => new Date(b[1][0].created_at) - new Date(a[1][0].created_at));
+
   el.innerHTML = '';
-  el.appendChild(table);
+  orderedGroups.forEach(([userId, items]) => {
+    const perfil = perfilMap[userId] || {};
+    const group = document.createElement('div');
+    group.className = 'resp-group';
+    group.innerHTML = `
+      <div class="resp-group-header">
+        <div>
+          <div class="nome">${perfil.nome || perfil.email || '(desconhecido)'}</div>
+          ${perfil.nome ? `<div class="email">${perfil.email || ''}</div>` : ''}
+        </div>
+        <div class="resp-count">${items.length} resposta${items.length > 1 ? 's' : ''}</div>
+      </div>
+      <div class="resp-items">
+        ${items.map(r => `
+          <div class="resp-item">
+            <div class="texto">${r.dados.texto || JSON.stringify(r.dados)}</div>
+            <div class="quando">${formatDate(r.created_at)}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    el.appendChild(group);
+  });
 }
 
 // ---------------------------------------------------------------
