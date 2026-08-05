@@ -1,6 +1,6 @@
 {
-  "name": "Caderno de Gatilhos — ÊNFASE",
-  "short_name": "Caderno ÊNFASE",
+  "name": "Caderno de Atividades",
+  "short_name": "Caderno",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0F1F3D",

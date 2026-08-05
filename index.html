@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal ÊNFASE</title>
+<title>Caderno de Atividades</title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0F1F3D">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Portal ÊNFASE">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
 <link rel="icon" href="icon-192.png">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Parisienne&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
 
 :root{
   --navy: #0F1F3D;
@@ -27,8 +27,14 @@
   --gold-dim: rgba(201,162,39,0.35);
   --cream: #F4EFE3;
   --cream-dim: rgba(244,239,227,0.82);
-  --line: rgba(201,162,39,0.22);
+  --line: rgba(201,162,39,0.16);
   --red: #C24444;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
 }
 
 *{ box-sizing: border-box; }
@@ -37,8 +43,8 @@ html,body{
   margin:0; padding:0;
   background: #0F1F3D;
   color: var(--cream);
-  font-family: 'EB Garamond', serif;
-  font-size: 17px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
   min-height:100vh;
   width: 100%;
 }
@@ -46,7 +52,7 @@ html,body{
 .app{
   max-width: 460px;
   margin: 0 auto;
-  padding: 64px 24px 80px;
+  padding: 56px 24px 80px;
   min-height: 100vh;
   width: 100%;
   display:flex;
@@ -58,52 +64,43 @@ html,body{
 }
 
 .masthead{ text-align:center; margin-bottom: 40px; }
-.eyebrow{
-  font-family:'EB Garamond', serif;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  font-size: 12px;
-  color: var(--gold-light);
-  margin-bottom: 14px;
-}
-.masthead h1{
-  font-family:'Playfair Display', serif;
-  font-weight:600;
-  font-size: clamp(26px, 6vw, 34px);
-  margin: 0 0 10px;
-}
+.logo{ max-width: 220px; width: 100%; height: auto; margin: 0 auto 18px; display:block; }
 .masthead .quote{
-  font-family:'Parisienne', cursive;
+  font-family:'Poppins', sans-serif;
+  font-style: italic;
+  font-weight: 500;
   color: var(--gold-light);
-  font-size: clamp(20px, 4vw, 24px);
-  margin-top: 8px;
+  font-size: 15px;
+  margin-top: 4px;
+  letter-spacing: 0.02em;
 }
 .rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
 
-.tabs{ display:flex; margin-bottom: 32px; border-bottom: 1px solid var(--line); }
+.tabs{ display:flex; gap: 4px; margin-bottom: 32px; background: var(--navy-2); padding: 5px; border-radius: var(--radius-pill); border: 1px solid var(--line); }
 .tab{
   flex:1;
   text-align:center;
-  padding: 12px 8px;
+  padding: 10px 8px;
   cursor:pointer;
-  font-family:'Playfair Display', serif;
-  font-size: 15px;
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
   color: var(--cream-dim);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
+  border-radius: var(--radius-pill);
   transition: all .18s ease;
 }
-.tab.active{ color: var(--gold-light); border-color: var(--gold); }
+.tab.active{ color: var(--navy); background: var(--gold); font-weight: 600; }
 
 .panel{ display:none; }
 .panel.active{ display:block; animation: fadeUp .3s ease; }
 @keyframes fadeUp{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform: translateY(0); } }
 
-.field{ margin-bottom: 22px; }
+.field{ margin-bottom: 20px; }
 .field label{
   display:block;
-  font-family:'Playfair Display', serif;
-  font-size: 15px;
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
   color: var(--gold-light);
   margin-bottom: 8px;
 }
@@ -111,39 +108,39 @@ input[type=text], input[type=email], input[type=password]{
   width:100%;
   background: var(--navy-2);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 14px 16px;
   color: var(--cream);
-  font-family:'EB Garamond', serif;
-  font-size: 18px;
+  font-family:'Poppins', sans-serif;
+  font-size: 15px;
 }
 input:focus{
   outline: none;
   border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(201,162,39,0.15);
+  box-shadow: var(--shadow-glow);
 }
 input::placeholder{ color: rgba(244,239,227,0.32); }
 
 button{
   width: 100%;
-  font-family:'EB Garamond', serif;
-  font-size: 17px;
-  letter-spacing: 0.03em;
-  padding: 14px 28px;
-  border-radius: 4px;
+  font-family:'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  padding: 15px 28px;
+  border-radius: var(--radius-pill);
   cursor:pointer;
   border: 1px solid var(--gold);
   background: var(--gold);
   color: var(--navy);
-  font-weight: 600;
   transition: all .18s ease;
   margin-top: 8px;
 }
-button:hover{ background: var(--gold-light); }
-button:disabled{ opacity: 0.45; cursor: not-allowed; }
+button:hover{ background: var(--gold-light); box-shadow: 0 8px 20px rgba(201,162,39,0.25); transform: translateY(-1px); }
+button:disabled{ opacity: 0.45; cursor: not-allowed; transform:none; box-shadow:none; }
 
 .status{
-  font-size: 14px;
+  font-size: 13px;
   color: var(--cream-dim);
   margin-top: 16px;
   min-height: 18px;
@@ -154,16 +151,28 @@ button:disabled{ opacity: 0.45; cursor: not-allowed; }
 
 .holding{
   text-align:center;
-  padding: 40px 0;
+  padding: 40px 28px;
+  background: var(--navy-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
 }
-.holding .icon{ font-size: 40px; margin-bottom: 20px; }
+.holding .icon{
+  width: 56px; height: 56px;
+  margin: 0 auto 20px;
+  border-radius: var(--radius-pill);
+  background: rgba(201,162,39,0.12);
+  display:flex; align-items:center; justify-content:center;
+  font-size: 26px;
+}
 .holding h2{
-  font-family:'Playfair Display', serif;
-  font-size: 22px;
+  font-family:'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
   color: var(--gold-light);
   margin: 0 0 12px;
 }
-.holding p{ color: var(--cream-dim); line-height: 1.6; }
+.holding p{ color: var(--cream-dim); line-height: 1.6; font-size: 14px; }
 .holding button{ margin-top: 28px; }
 </style>
 </head>
@@ -172,8 +181,7 @@ button:disabled{ opacity: 0.45; cursor: not-allowed; }
 <div class="app">
 
   <div class="masthead">
-    <div class="eyebrow">ÊNFASE</div>
-    <h1>Portal do Mentorado</h1>
+    <img src="assets/logo.svg" alt="ÊNFASE" class="logo">
     <div class="quote">percepção vale mais que talento</div>
     <div class="rule"></div>
   </div>
