@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal ÊNFASE — Painel do Professor</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.22);
+  --red: #C24444;
+  --green: #4A9D6E;
+}
+*{ box-sizing: border-box; }
+html,body{ margin:0; padding:0; background:#0F1F3D; color:var(--cream); font-family:'EB Garamond', serif; font-size:16px; min-height:100vh; }
+
+.app{ max-width: 920px; margin: 0 auto; padding: 40px 24px 80px; min-height: 100vh; }
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
+.link-btn{
+  font-family:'EB Garamond', serif;
+  font-size: 14px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  background: none;
+  text-decoration: none;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.08); }
+
+.masthead{ text-align:center; margin-bottom: 36px; }
+.eyebrow{ letter-spacing: 0.28em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Playfair Display', serif; font-weight:600; font-size: clamp(26px, 4vw, 36px); margin: 0; }
+
+.tabs{ display:flex; gap: 8px; margin-bottom: 28px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tab{
+  padding: 10px 18px;
+  cursor:pointer;
+  font-family:'Playfair Display', serif;
+  font-size: 15px;
+  color: var(--cream-dim);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tab.active{ color: var(--gold-light); border-color: var(--gold); }
+
+.panel{ display:none; }
+.panel.active{ display:block; }
+
+.card{ border: 1px solid var(--line); border-radius: 8px; padding: 20px; background: var(--navy-2); margin-bottom: 14px; }
+.card .row{ display:flex; justify-content:space-between; align-items:center; gap: 16px; flex-wrap: wrap; }
+.card .nome{ font-family:'Playfair Display', serif; font-size: 17px; color: var(--cream); }
+.card .email{ font-size: 14px; color: var(--cream-dim); }
+.card .when{ font-size: 12px; color: var(--cream-dim); margin-top: 4px; }
+.actions{ display:flex; gap: 10px; }
+button.small{
+  font-family:'EB Garamond', serif;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+}
+button.small:hover{ background: rgba(201,162,39,0.12); }
+button.small.approve{ background: var(--green); border-color: var(--green); color: #fff; }
+button.small.reject{ background: transparent; border-color: var(--red); color: var(--red); }
+.empty{ color: var(--cream-dim); font-style: italic; padding: 20px 0; }
+
+.field{ margin-bottom: 20px; max-width: 420px; }
+.field label{ display:block; font-family:'Playfair Display', serif; font-size: 15px; color: var(--gold-light); margin-bottom: 8px; }
+input[type=text], input[type=email], input[type=password], select{
+  width:100%;
+  background: var(--navy-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 12px 14px;
+  color: var(--cream);
+  font-family:'EB Garamond', serif;
+  font-size: 16px;
+}
+input:focus, select:focus{ outline:none; border-color: var(--gold); }
+
+button.primary{
+  font-family:'EB Garamond', serif;
+  font-size: 16px;
+  padding: 12px 26px;
+  border-radius: 4px;
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 600;
+}
+button.primary:hover{ background: var(--gold-light); }
+button.primary:disabled{ opacity: .45; cursor:not-allowed; }
+
+.result-box{
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 6px;
+  background: rgba(201,162,39,0.06);
+  max-width: 420px;
+  display:none;
+}
+.result-box .line{ font-size: 15px; margin-bottom: 6px; }
+.result-box .line strong{ color: var(--gold-light); }
+.copy-btn{ margin-top: 10px; }
+
+.status{ font-size: 14px; color: var(--cream-dim); margin-top: 12px; }
+.status.error{ color: var(--red); }
+
+table{ width:100%; border-collapse: collapse; }
+th, td{ text-align:left; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 14px; }
+th{ color: var(--gold-light); font-weight:600; font-family:'Playfair Display', serif; font-size: 13px; text-transform:uppercase; letter-spacing:.05em; }
+td.headline{ font-family:'Playfair Display', serif; font-style: italic; color: var(--cream); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <a class="link-btn" href="dashboard.html">◂ Voltar</a>
+    <button class="link-btn" onclick="logout('index.html')">Sair</button>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">ÊNFASE</div>
+    <h1>Painel do Professor</h1>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="pendentes" onclick="switchTab('pendentes')">Cadastros pendentes</div>
+    <div class="tab" data-tab="cadastrar" onclick="switchTab('cadastrar')">Cadastrar aluno</div>
+    <div class="tab" data-tab="respostas" onclick="switchTab('respostas')">Respostas</div>
+  </div>
+
+  <!-- PENDENTES -->
+  <div class="panel active" data-panel="pendentes">
+    <div id="pendentesList"></div>
+  </div>
+
+  <!-- CADASTRAR -->
+  <div class="panel" data-panel="cadastrar">
+    <div class="field">
+      <label for="novoNome">Nome do aluno</label>
+      <input type="text" id="novoNome" placeholder="Nome completo">
+    </div>
+    <div class="field">
+      <label for="novoEmail">Email</label>
+      <input type="email" id="novoEmail" placeholder="aluno@email.com">
+    </div>
+    <div class="field">
+      <label for="novoSenha">Senha</label>
+      <input type="password" id="novoSenha" placeholder="Defina uma senha">
+    </div>
+    <button class="primary" id="btnCriar" onclick="criarAluno()">Cadastrar aluno</button>
+    <div class="status" id="criarStatus"></div>
+
+    <div class="result-box" id="resultBox">
+      <div class="line"><strong>Email:</strong> <span id="resEmail"></span></div>
+      <div class="line"><strong>Senha:</strong> <span id="resSenha"></span></div>
+      <button class="small copy-btn" onclick="copiarCredenciais()">Copiar para enviar</button>
+    </div>
+  </div>
+
+  <!-- RESPOSTAS -->
+  <div class="panel" data-panel="respostas">
+    <div class="field">
+      <label for="aulaSelect">Aula</label>
+      <select id="aulaSelect" onchange="carregarRespostas()">
+        <option value="aula-2">Aula 2 · Caderno de Gatilhos</option>
+      </select>
+    </div>
+    <div id="respostasList"></div>
+  </div>
+
+</div>
+
+<script src="js/supabase-client.js"></script>
+<script>
+let adminProfile = null;
+let adminSession = null;
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
+  if(name === 'respostas') carregarRespostas();
+}
+
+function formatDate(iso){
+  return new Date(iso).toLocaleString('pt-BR');
+}
+
+// ---------------------------------------------------------------
+// PENDENTES
+// ---------------------------------------------------------------
+async function carregarPendentes(){
+  const el = document.getElementById('pendentesList');
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum cadastro pendente.</div>'; return; }
+
+  el.innerHTML = '';
+  data.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="row">
+        <div>
+          <div class="nome">${p.nome || '(sem nome)'}</div>
+          <div class="email">${p.email}</div>
+          <div class="when">Cadastrado em ${formatDate(p.created_at)}</div>
+        </div>
+        <div class="actions">
+          <button class="small approve">Aprovar</button>
+          <button class="small reject">Recusar</button>
+        </div>
+      </div>
+    `;
+    card.querySelector('.approve').onclick = () => atualizarStatus(p.id, 'approved');
+    card.querySelector('.reject').onclick = () => atualizarStatus(p.id, 'rejected');
+    el.appendChild(card);
+  });
+}
+
+async function atualizarStatus(id, status){
+  const { error } = await supabase.from('profiles').update({ status }).eq('id', id);
+  if(error){ alert('Erro: ' + error.message); return; }
+  carregarPendentes();
+}
+
+// ---------------------------------------------------------------
+// CADASTRAR ALUNO
+// ---------------------------------------------------------------
+async function criarAluno(){
+  const nome = document.getElementById('novoNome').value.trim();
+  const email = document.getElementById('novoEmail').value.trim();
+  const senha = document.getElementById('novoSenha').value;
+  const status = document.getElementById('criarStatus');
+  const btn = document.getElementById('btnCriar');
+  document.getElementById('resultBox').style.display = 'none';
+
+  if(!nome || !email || !senha){
+    status.textContent = 'Preencha todos os campos.';
+    status.className = 'status error';
+    return;
+  }
+  if(senha.length < 6){
+    status.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+    status.className = 'status error';
+    return;
+  }
+
+  btn.disabled = true;
+  status.textContent = 'Cadastrando...';
+  status.className = 'status';
+
+  try{
+    const res = await fetch('/.netlify/functions/create-student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: adminSession.access_token, nome, email, senha })
+    });
+    const result = await res.json();
+    if(!res.ok){
+      status.textContent = result.error || 'Não foi possível cadastrar.';
+      status.className = 'status error';
+      return;
+    }
+    status.textContent = 'Aluno cadastrado com sucesso.';
+    status.className = 'status';
+    document.getElementById('resEmail').textContent = email;
+    document.getElementById('resSenha').textContent = senha;
+    document.getElementById('resultBox').style.display = 'block';
+    document.getElementById('novoNome').value = '';
+    document.getElementById('novoEmail').value = '';
+    document.getElementById('novoSenha').value = '';
+  } catch(e){
+    status.textContent = 'Erro de conexão. Tente novamente.';
+    status.className = 'status error';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function copiarCredenciais(){
+  const email = document.getElementById('resEmail').textContent;
+  const senha = document.getElementById('resSenha').textContent;
+  const texto = `Acesso ao Portal ÊNFASE:\nLink: ${window.location.origin}\nEmail: ${email}\nSenha: ${senha}`;
+  navigator.clipboard.writeText(texto);
+}
+
+// ---------------------------------------------------------------
+// RESPOSTAS
+// ---------------------------------------------------------------
+async function carregarRespostas(){
+  const aulaId = document.getElementById('aulaSelect').value;
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data: respostas, error } = await supabase
+    .from('respostas')
+    .select('*')
+    .eq('aula_id', aulaId)
+    .order('created_at', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!respostas || respostas.length === 0){ el.innerHTML = '<div class="empty">Nenhuma resposta ainda para esta aula.</div>'; return; }
+
+  const userIds = [...new Set(respostas.map(r => r.user_id))];
+  const { data: perfis } = await supabase.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  const table = document.createElement('table');
+  table.innerHTML = `
+    <thead><tr><th>Aluno</th><th>Resposta</th><th>Quando</th></tr></thead>
+    <tbody></tbody>
+  `;
+  const tbody = table.querySelector('tbody');
+  respostas.forEach(r => {
+    const perfil = perfilMap[r.user_id] || {};
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${perfil.nome || perfil.email || '(desconhecido)'}</td>
+      <td class="headline">${r.dados.texto || JSON.stringify(r.dados)}</td>
+      <td>${formatDate(r.created_at)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  el.innerHTML = '';
+  el.appendChild(table);
+}
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+(async function init(){
+  const { session, profile } = await getSessionAndProfile();
+  if(!session || !profile || profile.status !== 'approved'){
+    window.location.href = 'index.html';
+    return;
+  }
+  if(profile.role !== 'admin'){
+    window.location.href = 'dashboard.html';
+    return;
+  }
+  adminSession = session;
+  adminProfile = profile;
+  carregarPendentes();
+})();
+</script>
+
+</body>
+</html>
