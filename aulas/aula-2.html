@@ -557,7 +557,7 @@ const STEP_LABELS = { 1:'Avatar', 2:'Gatilhos', 3:'Templates', 4:'Headline' };
 // STORAGE — Supabase (permanente, entre aparelhos, por aluno logado)
 // ---------------------------------------------------------------
 async function loadVault(){
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('respostas')
     .select('*')
     .eq('aula_id', AULA_ID)
@@ -573,7 +573,7 @@ async function loadVault(){
 }
 
 async function persistEntry(entry){
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from('respostas')
     .insert({ aula_id: AULA_ID, user_id: currentUserId, dados: { texto: entry.text, gatilhos: entry.gatilhos } });
   if(error){

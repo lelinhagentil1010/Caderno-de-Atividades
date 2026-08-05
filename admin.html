@@ -217,7 +217,7 @@ function formatDate(iso){
 // ---------------------------------------------------------------
 async function carregarPendentes(){
   const el = document.getElementById('pendentesList');
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('profiles')
     .select('*')
     .eq('status', 'pending')
@@ -250,7 +250,7 @@ async function carregarPendentes(){
 }
 
 async function atualizarStatus(id, status){
-  const { error } = await supabase.from('profiles').update({ status }).eq('id', id);
+  const { error } = await supabaseClient.from('profiles').update({ status }).eq('id', id);
   if(error){ alert('Erro: ' + error.message); return; }
   carregarPendentes();
 }
@@ -324,7 +324,7 @@ async function carregarRespostas(){
   const el = document.getElementById('respostasList');
   el.innerHTML = '<div class="empty">Carregando...</div>';
 
-  const { data: respostas, error } = await supabase
+  const { data: respostas, error } = await supabaseClient
     .from('respostas')
     .select('*')
     .eq('aula_id', aulaId)
@@ -334,7 +334,7 @@ async function carregarRespostas(){
   if(!respostas || respostas.length === 0){ el.innerHTML = '<div class="empty">Nenhuma resposta ainda para esta aula.</div>'; return; }
 
   const userIds = [...new Set(respostas.map(r => r.user_id))];
-  const { data: perfis } = await supabase.from('profiles').select('id,nome,email').in('id', userIds);
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
   const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
 
   const table = document.createElement('table');

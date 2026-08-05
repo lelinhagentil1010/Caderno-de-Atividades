@@ -280,7 +280,7 @@ async function doLogin(){
   }
   status.textContent = 'Entrando...';
   status.className = 'status';
-  const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
   if(error){
     status.textContent = 'Email ou senha incorretos.';
     status.className = 'status error';
@@ -307,7 +307,7 @@ async function doRegister(){
   }
   status.textContent = 'Cadastrando...';
   status.className = 'status';
-  const { error } = await supabase.auth.signUp({
+  const { error } = await supabaseClient.auth.signUp({
     email,
     password: senha,
     options: { data: { nome, self_registered: true } }

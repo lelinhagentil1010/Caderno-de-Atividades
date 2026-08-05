@@ -7,17 +7,19 @@ const SUPABASE_CONFIG = {
   ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50emFwbWFjaHpvb2Fla3BzeWlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NDIxMjIsImV4cCI6MjEwMTUxODEyMn0.CC_CPCI2WeMn9W0Ra0ze6Au31GrnUH8STs6lYzz5w2Q'
 };
 
+// Obs: o SDK do Supabase (CDN) já expõe um global "supabase" (var supabase = ...).
+// Por isso o client próprio usa o nome "supabaseClient", para não colidir.
 const supabaseReady = !!(SUPABASE_CONFIG.URL && SUPABASE_CONFIG.ANON_KEY);
 
-const supabase = supabaseReady
-  ? window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY)
+const supabaseClient = supabaseReady
+  ? supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY)
   : null;
 
 async function getSessionAndProfile() {
   if (!supabaseReady) return { session: null, profile: null };
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session) return { session: null, profile: null };
-  const { data: profile } = await supabase
+  const { data: profile } = await supabaseClient
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
@@ -35,6 +37,6 @@ async function requireApprovedSession(redirectTo = 'index.html') {
 }
 
 async function logout(redirectTo = 'index.html') {
-  if (supabaseReady) await supabase.auth.signOut();
+  if (supabaseReady) await supabaseClient.auth.signOut();
   window.location.href = redirectTo;
 }
