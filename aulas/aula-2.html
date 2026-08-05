@@ -352,6 +352,9 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
 .card-body{ margin-top: 26px; }
 .collapsible.collapsed .card-body{ display:none; }
 .collapsible.collapsed .collapse-toggle{ transform: rotate(-90deg); }
+.prompt-box.collapsed .card-body{ display:none; }
+.prompt-box.collapsed .collapse-toggle{ transform: rotate(-90deg); }
+.prompt-box .card-body{ margin-top: 22px; }
 
 /* ---------- saved headlines ---------- */
 .vault{ margin-top: 48px; border-top: 1px solid var(--line); padding-top: 28px; }
@@ -530,7 +533,12 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
         <li>CTA de seguir</li>
       </ol>
 
-      <div class="prompt-box">
+      <div class="prompt-box collapsed" id="promptBox">
+        <div class="card-header" onclick="toggleCard('promptBox')">
+          <div class="label" style="margin-bottom:0;">Prompt (clique para expandir)</div>
+          <button class="collapse-toggle" type="button" aria-label="Minimizar">▾</button>
+        </div>
+        <div class="card-body">
         <div class="label">Como usar esse prompt</div>
         <ol class="roteiro-steps">
           <li>Copie todo o texto abaixo (na caixa "Prompt") e cole como a primeira mensagem numa conversa nova com a sua IA (ChatGPT, Claude ou outra).</li>
@@ -664,6 +672,7 @@ COMO VOCÊ DEVE ME RESPONDER
 
 Ao receber esta mensagem, confirme que entendeu o método e pergunte meu nicho e as informações de avatar antes de criarmos a primeira headline.</div>
         <button onclick="copyPrompt()">Copiar prompt</button>
+        </div>
       </div>
 
       <div class="field" style="margin-top:26px;">
