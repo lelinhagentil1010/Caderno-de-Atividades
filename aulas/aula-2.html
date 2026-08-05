@@ -388,8 +388,8 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
   <!-- STEP 2: GATILHOS -->
   <div class="panel" data-step="2">
     <div class="step-label">Passo 2</div>
-    <h2 class="step-title">Escolha 2 ou 3 gatilhos</h2>
-    <p class="step-sub">Combinados, não sozinhos. É a combinação que sustenta a atenção do início ao fim.</p>
+    <h2 class="step-title">Escolha 1, 2 ou 3 gatilhos</h2>
+    <p class="step-sub">Quando combinados, sustentam a atenção do início ao fim — mas um só também pode funcionar.</p>
 
     <div class="gatilho-grid" id="gatilhoGrid"></div>
     <div class="limit-note" id="limitNote">0 de 3 selecionados</div>
@@ -688,8 +688,8 @@ function updateLimitNote(){
   const n = state.selectedGatilhos.length;
   const note = document.getElementById('limitNote');
   note.textContent = `${n} de 3 selecionados`;
-  note.className = 'limit-note' + (n >= 2 ? ' warn' : '');
-  document.getElementById('toStep3').disabled = n < 2;
+  note.className = 'limit-note' + (n >= 1 ? ' warn' : '');
+  document.getElementById('toStep3').disabled = n < 1;
 }
 
 // ---------------------------------------------------------------
