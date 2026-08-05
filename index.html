@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caderno de Gatilhos — ÊNFASE</title>
+
+<!-- Instalar como app na tela de início -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno ÊNFASE">
+<link rel="icon" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Parisienne&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.22);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background: #0F1F3D;
+  color: var(--cream);
+  font-family: 'EB Garamond', serif;
+  font-size: 17px;
+  min-height:100vh;
+  width: 100%;
+}
+
+body{
+  background-color: #0F1F3D;
+}
+
+.app{
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+}
+
+/* ---------- header ---------- */
+.masthead{
+  text-align:center;
+  margin-bottom: 40px;
+}
+.eyebrow{
+  font-family:'EB Garamond', serif;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--gold-light);
+  margin-bottom: 14px;
+}
+.masthead h1{
+  font-family:'Playfair Display', serif;
+  font-weight:600;
+  font-size: clamp(28px, 4.4vw, 42px);
+  margin: 0 0 10px;
+  letter-spacing: 0.01em;
+}
+.masthead .quote{
+  font-family:'Parisienne', cursive;
+  color: var(--gold-light);
+  font-size: clamp(22px, 3vw, 28px);
+  margin-top: 8px;
+}
+.rule{
+  width: 64px; height:1px;
+  background: var(--gold);
+  margin: 22px auto 0;
+  opacity: 0.6;
+}
+
+/* ---------- stepper ---------- */
+.stepper{
+  display:flex;
+  justify-content:center;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+.dot{
+  display:flex; align-items:center; gap:8px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  cursor:pointer;
+  padding: 6px 10px;
+  border-radius: 20px;
+  transition: color .2s ease;
+}
+.dot .num{
+  width:20px; height:20px;
+  border-radius:50%;
+  border:1px solid var(--gold-dim);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Playfair Display', serif;
+  font-size:11px;
+  color: var(--cream-dim);
+}
+.dot.active{ color: var(--cream); }
+.dot.active .num{ background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.dot.done .num{ background: transparent; border-color: var(--gold); color: var(--gold-light); }
+.dot:hover{ color: var(--cream); }
+
+/* ---------- panel ---------- */
+.panel{
+  flex:1;
+  display:none;
+  animation: fadeUp .35s ease;
+}
+.panel.active{ display:block; }
+@keyframes fadeUp{
+  from{ opacity:0; transform: translateY(8px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+
+.step-label{
+  font-family:'Playfair Display', serif;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 8px;
+}
+.step-title{
+  font-family:'Playfair Display', serif;
+  font-weight: 600;
+  font-size: clamp(22px, 3.4vw, 30px);
+  margin: 0 0 8px;
+}
+.step-sub{
+  color: var(--cream-dim);
+  font-size: 18px;
+  margin: 0 0 32px;
+  max-width: 560px;
+}
+
+/* ---------- avatar step ---------- */
+.field{
+  margin-bottom: 26px;
+}
+.field label{
+  display:block;
+  font-family:'Playfair Display', serif;
+  font-size: 15px;
+  color: var(--gold-light);
+  margin-bottom: 8px;
+}
+.field .hint{
+  color: var(--cream-dim);
+  font-size: 15px;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+input[type=text], textarea{
+  width:100%;
+  background: var(--navy-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 14px 16px;
+  color: var(--cream);
+  font-family:'EB Garamond', serif;
+  font-size: 18px;
+  resize: vertical;
+}
+input[type=text]:focus, textarea:focus{
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,162,39,0.15);
+}
+input[type=text]::placeholder, textarea::placeholder{
+  color: rgba(244,239,227,0.32);
+}
+
+/* ---------- gatilhos step ---------- */
+.gatilho-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px,1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.gatilho{
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px 16px;
+  cursor:pointer;
+  transition: all .18s ease;
+  background: var(--navy-2);
+}
+.gatilho:hover{ border-color: var(--gold-dim); }
+.gatilho.selected{
+  border-color: var(--gold);
+  background: linear-gradient(180deg, rgba(201,162,39,0.14), rgba(201,162,39,0.04));
+}
+.gatilho .name{
+  font-family:'Playfair Display', serif;
+  font-size: 17px;
+  color: var(--cream);
+}
+.gatilho .desc{
+  font-size: 14px;
+  color: var(--cream-dim);
+  margin-top: 4px;
+  line-height: 1.35;
+}
+.limit-note{
+  font-size: 14px;
+  color: var(--cream-dim);
+  font-style: italic;
+  margin-top: 10px;
+}
+.limit-note.warn{ color: var(--gold-light); }
+
+/* ---------- template step ---------- */
+.template-list{
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+.template-card{
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 18px 20px;
+  cursor:pointer;
+  background: var(--navy-2);
+  transition: all .18s ease;
+}
+.template-card:hover{ border-color: var(--gold-dim); transform: translateX(2px); }
+.template-card.selected{
+  border-color: var(--gold);
+  background: linear-gradient(180deg, rgba(201,162,39,0.14), rgba(201,162,39,0.04));
+}
+.template-card .tags{
+  display:flex; gap:6px; flex-wrap:wrap; margin-bottom: 8px;
+}
+.tag{
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  padding: 3px 11px;
+}
+.template-card .frase{
+  font-family:'Playfair Display', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--cream);
+  line-height: 1.4;
+}
+.no-match{
+  color: var(--cream-dim);
+  font-style: italic;
+  padding: 20px 0;
+}
+
+/* ---------- builder step ---------- */
+.builder-frase{
+  font-family:'Playfair Display', serif;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--gold-light);
+  border-left: 2px solid var(--gold);
+  padding-left: 18px;
+  margin-bottom: 30px;
+}
+.blank-field{ margin-bottom: 20px; }
+.blank-field label{
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  display:block;
+  margin-bottom: 6px;
+}
+.blank-field .blank-hint{
+  font-size: 13px;
+  color: var(--gold-light);
+  font-style: italic;
+  margin-bottom: 8px;
+}
+.result{
+  margin-top: 30px;
+  padding: 24px;
+  border: 1px solid var(--gold-dim);
+  border-radius: 6px;
+  background: rgba(201,162,39,0.06);
+}
+.result .label{
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 10px;
+}
+.result .headline{
+  font-family:'Playfair Display', serif;
+  font-size: 24px;
+  line-height: 1.4;
+  color: var(--cream);
+}
+
+/* ---------- buttons ---------- */
+.actions{
+  display:flex;
+  gap: 14px;
+  margin-top: 36px;
+  flex-wrap: wrap;
+}
+button{
+  font-family:'EB Garamond', serif;
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  padding: 13px 28px;
+  border-radius: 4px;
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 600;
+}
+button.primary:hover{ background: var(--gold-light); }
+button:disabled{
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+button:focus-visible{
+  outline: 2px solid var(--gold-light);
+  outline-offset: 2px;
+}
+
+/* ---------- saved headlines ---------- */
+.vault{
+  margin-top: 56px;
+  border-top: 1px solid var(--line);
+  padding-top: 28px;
+}
+.vault-header{
+  display:flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.vault-header h2{
+  font-family:'Playfair Display', serif;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--gold-light);
+  margin:0;
+}
+.vault-header .count{
+  font-size: 14px;
+  color: var(--cream-dim);
+}
+.vault-empty{
+  color: var(--cream-dim);
+  font-style: italic;
+}
+.vault-item{
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  gap: 16px;
+  align-items:flex-start;
+}
+.vault-item .txt{
+  font-family:'Playfair Display', serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.45;
+  color: var(--cream);
+}
+.vault-item .meta{
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold-light);
+  margin-top: 6px;
+  font-family:'EB Garamond', serif;
+  letter-spacing: 0.02em;
+}
+.remove-btn{
+  border: none;
+  background: none;
+  color: var(--cream-dim);
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+}
+.remove-btn:hover{ color: var(--gold-light); border-color: var(--gold-dim); background:none; }
+
+.status{
+  font-size: 13px;
+  color: var(--cream-dim);
+  margin-top: 10px;
+  min-height: 18px;
+}
+
+@media (max-width: 560px){
+  .app{ padding: 32px 16px 60px; }
+  .stepper{ flex-wrap: wrap; }
+  .actions{ flex-direction: column; }
+  .actions button{ width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="masthead">
+    <div class="eyebrow">Aula 7 · Anatomia Viral</div>
+    <h1>Caderno de Gatilhos</h1>
+    <div class="quote">percepção vale mais que talento</div>
+    <div class="rule"></div>
+  </div>
+
+  <div id="storageBanner" style="display:none; text-align:center; font-size:13px; color: var(--gold-light); background: rgba(201,162,39,0.1); border: 1px solid var(--gold-dim); border-radius: 4px; padding: 10px 16px; margin-bottom: 24px;"></div>
+
+  <div class="stepper" id="stepper"></div>
+
+  <!-- STEP 1: AVATAR -->
+  <div class="panel" data-step="1">
+    <div class="step-label">Passo 1</div>
+    <h2 class="step-title">Antes de escrever, lembre quem escuta</h2>
+    <p class="step-sub">Puxe o que você já escreveu na Aula 1. Toda headline boa nasce daqui.</p>
+
+    <div class="field">
+      <label for="nome">Seu nome</label>
+      <div class="hint">Usamos isso só para guardar suas headlines com seu nome, caso troque de aparelho.</div>
+      <input type="text" id="nome" placeholder="Como você quer ser identificado">
+    </div>
+
+    <div class="field">
+      <label for="medo">Medo real do seu público</label>
+      <div class="hint">O que ele teme que aconteça se não resolver isso.</div>
+      <textarea id="medo" rows="2" placeholder="Ex: ser visto como incompetente na frente dos colegas"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="desejo">Desejo real do seu público</label>
+      <div class="hint">O que ele quer, de verdade, por trás do pedido óbvio.</div>
+      <textarea id="desejo" rows="2" placeholder="Ex: ser reconhecido como referência na sua área"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="primary" onclick="continuarDoAvatar()">Continuar</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: GATILHOS -->
+  <div class="panel" data-step="2">
+    <div class="step-label">Passo 2</div>
+    <h2 class="step-title">Escolha 2 ou 3 gatilhos</h2>
+    <p class="step-sub">Combinados, não sozinhos. É a combinação que sustenta a atenção do início ao fim.</p>
+
+    <div class="gatilho-grid" id="gatilhoGrid"></div>
+    <div class="limit-note" id="limitNote">0 de 3 selecionados</div>
+
+    <div class="actions">
+      <button onclick="goTo(1)">Voltar</button>
+      <button class="primary" id="toStep3" onclick="goTo(3)" disabled>Ver templates compatíveis</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: TEMPLATES -->
+  <div class="panel" data-step="3">
+    <div class="step-label">Passo 3</div>
+    <h2 class="step-title">Templates para a sua combinação</h2>
+    <p class="step-sub" id="comboSummary"></p>
+
+    <div class="template-list" id="templateList"></div>
+
+    <div class="actions">
+      <button onclick="goTo(2)">Voltar</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: BUILDER -->
+  <div class="panel" data-step="4">
+    <div class="step-label">Passo 4</div>
+    <h2 class="step-title">Monte a headline</h2>
+    <p class="step-sub">Preencha os espaços. Seja específico — quanto mais específico, mais forte.</p>
+
+    <div class="builder-frase" id="templatePreview"></div>
+    <div id="blankFields"></div>
+
+    <div class="result" id="resultBox" style="display:none;">
+      <div class="label">Sua headline</div>
+      <div class="headline" id="finalHeadline"></div>
+    </div>
+
+    <div class="actions">
+      <button onclick="goTo(3)">Trocar template</button>
+      <button class="primary" onclick="saveHeadline()">Salvar no caderno</button>
+    </div>
+    <div class="status" id="saveStatus"></div>
+  </div>
+
+  <!-- VAULT: sempre visível abaixo -->
+  <div class="vault">
+    <div class="vault-header">
+      <h2>Suas headlines da aula</h2>
+      <span class="count" id="vaultCount"></span>
+    </div>
+    <div id="vaultList"></div>
+    <div class="actions" id="vaultActions" style="display:none; margin-top:16px;">
+      <button onclick="copyAll()">Copiar todas</button>
+    </div>
+    <div class="status" id="copyStatus"></div>
+  </div>
+
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// CONFIGURAÇÃO — Lelinha preenche isso depois de publicar o Apps Script
+// (ver arquivo "caderno-gatilhos-config-planilha.md" para o passo a passo)
+// ---------------------------------------------------------------
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbygQKMyOy26_ISouC4xC8eH3ylOAR9LiHH2wqjiESLAmUzxnvgU6SgEmeEEoOkXIwtVZA/exec',
+  AULA_ID: 'aula-7'
+};
+
+const BLANK_EXAMPLES = {
+  'grupo comum': 'médicos sem posicionamento',
+  'comportamento comum': 'postam só sobre procedimento',
+  'grupo admirado': 'médicos referência',
+  'ação': 'aparece nos primeiros 5 segundos',
+  'consequência negativa': 'afastando seus melhores clientes',
+  'perfil': 'competente, mas invisível',
+  'fato ou pessoa conhecida': 'aquele concorrente que cresceu rápido',
+  'ação esperada': 'ficou popular por sorte',
+  'motivo óbvio': 'sorte',
+  'característica': 'mais de 10 anos de experiência',
+  'resultado desejado ou indesejado': 'o que afasta clientes',
+  'opção 1': 'o preço',
+  'opção 2': 'a localização',
+  'opção 3': 'a concorrência',
+  'número': '3',
+  'efeito positivo ou negativo': 'destruindo',
+  'área da vida': 'autoridade',
+  'público específico': 'quem cobra caro e ouve "vou pensar"',
+  'crença comum': 'preço alto afasta cliente',
+  'resultado bom, ruim ou surpreendente': 'profissionais competentes ficarem invisíveis',
+  'situação difícil': 'ninguém reconhece seu trabalho',
+  'elemento': 'jeito de se apresentar',
+  'regra comum': 'nunca falar de preço',
+  'ação': 'mudar de posicionamento',
+  'área': 'autoridade',
+  'tempo longo': '15 anos',
+  'tema': 'construção de autoridade',
+  'tempo curto': '60 segundos',
+  'grupo 1': 'quem só entrega serviço',
+  'comportamento 1': 'compete por preço',
+  'grupo 2': 'quem constrói autoridade',
+  'comportamento 2': 'compete sem concorrência',
+  'problema': 'perder relevância pro mercado',
+  'cenário ruim': 'profissionais excelentes ficando invisíveis'
+};
+
+// ---------------------------------------------------------------
+// DADOS
+// ---------------------------------------------------------------
+const GATILHOS = [
+  { id: 'disrupcao', name: 'Disrupção', desc: 'Quebra o que todo mundo espera.' },
+  { id: 'atencao', name: 'Atenção Imediata', desc: 'Fala direto com quem está vendo agora.' },
+  { id: 'crenca', name: 'Crença', desc: 'Concorda primeiro, questiona depois.' },
+  { id: 'reconhecimento', name: 'Reconhecimento', desc: 'A pessoa se vê ou vê alguém na frase.' },
+  { id: 'recompensa', name: 'Recompensa', desc: 'Promete um ganho claro e aplicável.' },
+  { id: 'popularidade', name: 'Popularidade', desc: 'Usa o que já é familiar para o público.' },
+  { id: 'autoridade', name: 'Autoridade', desc: 'Empresta peso de uma fonte respeitada.' },
+  { id: 'misterio', name: 'Mistério', desc: 'Abre uma pergunta que precisa ser fechada.' },
+];
+
+const TEMPLATES = [
+  { id:'t1', gatilhos:['reconhecimento','disrupcao'],
+    text:'Enquanto {grupo comum} faz {comportamento comum}, é isso que {grupo admirado} faz.',
+    blanks:['grupo comum','comportamento comum','grupo admirado'] },
+  { id:'t2', gatilhos:['misterio','recompensa'],
+    text:'É isso que acontece quando você {ação}.',
+    blanks:['ação'] },
+  { id:'t3', gatilhos:['disrupcao','atencao'],
+    text:'Coisas que você acha normal, mas que estão {consequência negativa}.',
+    blanks:['consequência negativa'] },
+  { id:'t4', gatilhos:['reconhecimento'],
+    text:'Sinais que você é {perfil}.',
+    blanks:['perfil'] },
+  { id:'t5', gatilhos:['misterio','disrupcao','popularidade'],
+    text:'{fato ou pessoa conhecida} não {ação esperada} por {motivo óbvio} — foi por um motivo que poucos entenderam.',
+    blanks:['fato ou pessoa conhecida','ação esperada','motivo óbvio'] },
+  { id:'t6', gatilhos:['reconhecimento','autoridade'],
+    text:'Se você tem {característica}, isso é obrigatório.',
+    blanks:['característica'] },
+  { id:'t7', gatilhos:['disrupcao','misterio'],
+    text:'O que {resultado desejado ou indesejado} não é {opção 1}, não é {opção 2} e não é {opção 3}.',
+    blanks:['resultado desejado ou indesejado','opção 1','opção 2','opção 3'] },
+  { id:'t8', gatilhos:['recompensa','atencao'],
+    text:'{número} coisas que estão {efeito positivo ou negativo} sua {área da vida}.',
+    blanks:['número','efeito positivo ou negativo','área da vida'] },
+  { id:'t9', gatilhos:['reconhecimento','atencao'],
+    text:'Esse conteúdo é um alerta para {público específico}.',
+    blanks:['público específico'] },
+  { id:'t10', gatilhos:['crenca','disrupcao'],
+    text:'Todo mundo acredita que {crença comum}. Isso não é verdade.',
+    blanks:['crença comum'] },
+  { id:'t11', gatilhos:['misterio','autoridade'],
+    text:'Esse é o maior motivo de {resultado bom, ruim ou surpreendente} acontecer.',
+    blanks:['resultado bom, ruim ou surpreendente'] },
+  { id:'t12', gatilhos:['recompensa','reconhecimento'],
+    text:'O que fazer quando {situação difícil} acontece.',
+    blanks:['situação difícil'] },
+  { id:'t13', gatilhos:['misterio','recompensa'],
+    text:'O {elemento} mais subestimado tem um efeito que ninguém espera.',
+    blanks:['elemento'] },
+  { id:'t14', gatilhos:['disrupcao','autoridade'],
+    text:'Situações em que você tem permissão para quebrar a regra de {regra comum}.',
+    blanks:['regra comum'] },
+  { id:'t15', gatilhos:['recompensa','misterio'],
+    text:'Fazer {ação} muda sua {área} de {número} formas diferentes.',
+    blanks:['ação','área','número'] },
+  { id:'t16', gatilhos:['autoridade','recompensa'],
+    text:'Levei {tempo longo} para entender isso sobre {tema} — vou te ensinar em {tempo curto}.',
+    blanks:['tempo longo','tema','tempo curto'] },
+  { id:'t17', gatilhos:['reconhecimento'],
+    text:'Toda pessoa que {característica} precisa entender isso.',
+    blanks:['característica'] },
+  { id:'t18', gatilhos:['reconhecimento','misterio'],
+    text:'{grupo 1} faz {comportamento 1}. {grupo 2} faz {comportamento 2}.',
+    blanks:['grupo 1','comportamento 1','grupo 2','comportamento 2'] },
+  { id:'t19', gatilhos:['recompensa','atencao'],
+    text:'Antes que {problema} aconteça, faça isso.',
+    blanks:['problema'] },
+  { id:'t20', gatilhos:['atencao','misterio'],
+    text:'É assim que {cenário ruim} está acontecendo — e quase ninguém percebe.',
+    blanks:['cenário ruim'] },
+];
+
+const GATILHO_MAP = Object.fromEntries(GATILHOS.map(g => [g.id, g.name]));
+
+// ---------------------------------------------------------------
+// ESTADO
+// ---------------------------------------------------------------
+let state = {
+  nome: '',
+  medo: '',
+  desejo: '',
+  selectedGatilhos: [],
+  selectedTemplate: null,
+  currentStep: 1,
+  vault: []
+};
+
+const STEPS = [1,2,3,4];
+const STEP_LABELS = { 1:'Avatar', 2:'Gatilhos', 3:'Templates', 4:'Headline' };
+
+// ---------------------------------------------------------------
+// STORAGE — planilha (permanente, entre aparelhos) com fallback local
+// ---------------------------------------------------------------
+const VAULT_KEY = 'enfase-caderno-gatilhos-vault';
+const backendAtivo = () => !!CONFIG.API_URL;
+
+async function loadVault(){
+  if(backendAtivo() && state.nome){
+    try{
+      const res = await fetch(`${CONFIG.API_URL}?aula=${encodeURIComponent(CONFIG.AULA_ID)}&nome=${encodeURIComponent(state.nome)}`);
+      const rows = await res.json();
+      state.vault = rows.map(r => ({ text: r.dados.texto, gatilhos: r.dados.gatilhos, ts: r.data }));
+      renderVault();
+      return;
+    }catch(e){
+      console.error('Planilha indisponível, usando armazenamento local', e);
+    }
+  }
+  try{
+    const raw = localStorage.getItem(VAULT_KEY);
+    state.vault = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    state.vault = [];
+  }
+  renderVault();
+}
+
+async function persistEntry(entry){
+  if(backendAtivo() && state.nome){
+    try{
+      await fetch(CONFIG.API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          aula: CONFIG.AULA_ID,
+          nome: state.nome,
+          dados: { texto: entry.text, gatilhos: entry.gatilhos }
+        })
+      });
+      return true;
+    }catch(e){
+      console.error('Não foi possível gravar na planilha', e);
+    }
+  }
+  try{
+    localStorage.setItem(VAULT_KEY, JSON.stringify(state.vault));
+    return backendAtivo() ? false : true;
+  }catch(e){
+    return false;
+  }
+}
+
+function renderStorageBanner(){
+  const el = document.getElementById('storageBanner');
+  if(!el) return;
+  if(!backendAtivo()){
+    el.style.display = 'block';
+    el.textContent = 'Aviso (só visível pra você, Lelinha): planilha ainda não configurada — as headlines estão salvando só neste navegador.';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+// ---------------------------------------------------------------
+// STEPPER / NAVEGAÇÃO
+// ---------------------------------------------------------------
+function renderStepper(){
+  const el = document.getElementById('stepper');
+  el.innerHTML = '';
+  STEPS.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (s === state.currentStep ? ' active' : '') + (s < state.currentStep ? ' done' : '');
+    d.innerHTML = `<span class="num">${s}</span><span>${STEP_LABELS[s]}</span>`;
+    d.onclick = () => { if(s <= maxReachableStep()) goTo(s); };
+    el.appendChild(d);
+  });
+}
+
+function maxReachableStep(){
+  if(state.selectedTemplate) return 4;
+  if(state.selectedGatilhos.length > 0) return 3;
+  return 2;
+}
+
+function goTo(step){
+  state.currentStep = step;
+  document.querySelectorAll('.panel').forEach(p => {
+    p.classList.toggle('active', Number(p.dataset.step) === step);
+  });
+  if(step === 3) renderTemplates();
+  if(step === 4) renderBuilder();
+  renderStepper();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ---------------------------------------------------------------
+// STEP 1: AVATAR
+// ---------------------------------------------------------------
+document.getElementById('nome').addEventListener('input', e => state.nome = e.target.value);
+document.getElementById('medo').addEventListener('input', e => state.medo = e.target.value);
+document.getElementById('desejo').addEventListener('input', e => state.desejo = e.target.value);
+
+async function continuarDoAvatar(){
+  await loadVault();
+  goTo(2);
+}
+
+// ---------------------------------------------------------------
+// STEP 2: GATILHOS
+// ---------------------------------------------------------------
+function renderGatilhos(){
+  const grid = document.getElementById('gatilhoGrid');
+  grid.innerHTML = '';
+  GATILHOS.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'gatilho' + (state.selectedGatilhos.includes(g.id) ? ' selected' : '');
+    card.innerHTML = `<div class="name">${g.name}</div><div class="desc">${g.desc}</div>`;
+    card.onclick = () => toggleGatilho(g.id);
+    grid.appendChild(card);
+  });
+  updateLimitNote();
+}
+
+function toggleGatilho(id){
+  const idx = state.selectedGatilhos.indexOf(id);
+  if(idx > -1){
+    state.selectedGatilhos.splice(idx,1);
+  } else {
+    if(state.selectedGatilhos.length >= 3) return;
+    state.selectedGatilhos.push(id);
+  }
+  renderGatilhos();
+}
+
+function updateLimitNote(){
+  const n = state.selectedGatilhos.length;
+  const note = document.getElementById('limitNote');
+  note.textContent = `${n} de 3 selecionados`;
+  note.className = 'limit-note' + (n >= 2 ? ' warn' : '');
+  document.getElementById('toStep3').disabled = n < 2;
+}
+
+// ---------------------------------------------------------------
+// STEP 3: TEMPLATES
+// ---------------------------------------------------------------
+function renderTemplates(){
+  const names = state.selectedGatilhos.map(id => GATILHO_MAP[id]).join(' + ');
+  document.getElementById('comboSummary').textContent = `Sua combinação: ${names}`;
+
+  const scored = TEMPLATES.map(t => {
+    const matches = t.gatilhos.filter(g => state.selectedGatilhos.includes(g)).length;
+    return { ...t, matches };
+  }).filter(t => t.matches > 0)
+    .sort((a,b) => b.matches - a.matches);
+
+  const list = document.getElementById('templateList');
+  list.innerHTML = '';
+
+  if(scored.length === 0){
+    list.innerHTML = '<div class="no-match">Nenhum template direto para essa combinação — volte e tente outra dupla.</div>';
+    return;
+  }
+
+  scored.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'template-card' + (state.selectedTemplate && state.selectedTemplate.id === t.id ? ' selected' : '');
+    const tags = t.gatilhos.map(g => `<span class="tag">${GATILHO_MAP[g]}</span>`).join('');
+    card.innerHTML = `<div class="tags">${tags}</div><div class="frase">${t.text}</div>`;
+    card.onclick = () => {
+      state.selectedTemplate = t;
+      state.filledValues = {};
+      goTo(4);
+    };
+    list.appendChild(card);
+  });
+}
+
+// ---------------------------------------------------------------
+// STEP 4: BUILDER
+// ---------------------------------------------------------------
+function renderBuilder(){
+  const t = state.selectedTemplate;
+  if(!t) return;
+  document.getElementById('templatePreview').textContent = t.text;
+
+  const container = document.getElementById('blankFields');
+  container.innerHTML = '';
+  state.filledValues = state.filledValues || {};
+
+  t.blanks.forEach((blank, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'blank-field';
+    const inputId = 'blank_' + i;
+
+    let prefill = '';
+    const lower = blank.toLowerCase();
+    if(lower.includes('medo') && state.medo) prefill = state.medo;
+    if(lower.includes('desejo') && state.desejo) prefill = state.desejo;
+
+    wrap.innerHTML = `<label for="${inputId}">${blank}</label>
+      <div class="blank-hint">Só essa parte — o resto da frase já está pronto acima.</div>
+      <input type="text" id="${inputId}" placeholder="Ex: ${BLANK_EXAMPLES[blank] || '...'}" value="${state.filledValues[blank] || prefill}">`;
+    container.appendChild(wrap);
+
+    const input = wrap.querySelector('input');
+    input.addEventListener('input', e => {
+      state.filledValues[blank] = e.target.value;
+      updateResult();
+    });
+    if(prefill) state.filledValues[blank] = prefill;
+  });
+
+  updateResult();
+}
+
+function updateResult(){
+  const t = state.selectedTemplate;
+  if(!t) return;
+  let filled = t.text;
+  let complete = true;
+  t.blanks.forEach(b => {
+    const val = state.filledValues[b];
+    if(!val){ complete = false; }
+    filled = filled.replace(`{${b}}`, val || `{${b}}`);
+  });
+  const box = document.getElementById('resultBox');
+  if(complete){
+    box.style.display = 'block';
+    document.getElementById('finalHeadline').textContent = filled;
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+async function saveHeadline(){
+  const box = document.getElementById('resultBox');
+  const status = document.getElementById('saveStatus');
+  if(box.style.display !== 'block'){
+    status.textContent = 'Preencha todos os espaços antes de salvar.';
+    return;
+  }
+  const headline = document.getElementById('finalHeadline').textContent;
+  const gatilhosUsados = state.selectedTemplate.gatilhos
+    .filter(g => state.selectedGatilhos.includes(g))
+    .map(g => GATILHO_MAP[g]).join(' + ');
+
+  const entry = { text: headline, gatilhos: gatilhosUsados, ts: Date.now() };
+  state.vault.push(entry);
+  status.textContent = 'Salvando...';
+  const ok = await persistEntry(entry);
+  renderVault();
+  status.textContent = ok
+    ? (backendAtivo() ? 'Salva na planilha — não some mesmo trocando de aparelho.' : 'Salva neste navegador.')
+    : 'Salva nesta sessão — houve um problema para gravar de forma permanente.';
+  setTimeout(() => { status.textContent = ''; }, 3000);
+}
+
+// ---------------------------------------------------------------
+// VAULT
+// ---------------------------------------------------------------
+function renderVault(){
+  const list = document.getElementById('vaultList');
+  const count = document.getElementById('vaultCount');
+  const actions = document.getElementById('vaultActions');
+  list.innerHTML = '';
+
+  count.textContent = state.vault.length > 0 ? `${state.vault.length} headline${state.vault.length > 1 ? 's' : ''}` : '';
+  actions.style.display = state.vault.length > 0 ? 'flex' : 'none';
+
+  if(state.vault.length === 0){
+    list.innerHTML = '<div class="vault-empty">Nenhuma headline salva ainda. Monte a primeira acima.</div>';
+    return;
+  }
+
+  state.vault.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'vault-item';
+    row.innerHTML = `<div>
+        <div class="txt">${item.text}</div>
+        <div class="meta">${item.gatilhos}</div>
+      </div>
+      <button class="remove-btn" data-i="${i}">remover</button>`;
+    row.querySelector('.remove-btn').onclick = () => {
+      state.vault.splice(i,1);
+      if(!backendAtivo()){
+        try{ localStorage.setItem(VAULT_KEY, JSON.stringify(state.vault)); }catch(e){}
+      }
+      renderVault();
+    };
+    list.appendChild(row);
+  });
+}
+
+function copyAll(){
+  const text = state.vault.map((h,i) => `${i+1}. ${h.text}`).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    const status = document.getElementById('copyStatus');
+    status.textContent = 'Copiado. Cole onde quiser guardar.';
+    setTimeout(() => { status.textContent = ''; }, 2500);
+  });
+}
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+renderGatilhos();
+renderStepper();
+renderStorageBanner();
+loadVault();
+goTo(1);
+</script>
+
+</body>
+</html>
