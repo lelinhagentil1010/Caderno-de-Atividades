@@ -633,9 +633,14 @@ async function persistEntry(entry){
 }
 
 async function deleteEntry(id){
-  const { error } = await supabaseClient.from('respostas').delete().eq('id', id);
+  const { data, error } = await supabaseClient.from('respostas').delete().eq('id', id).select('id');
   if(error){
     console.error('Não foi possível excluir a resposta', error);
+    return false;
+  }
+  if(!data || data.length === 0){
+    // RLS bloqueou silenciosamente (nenhuma linha afetada) — provável política de delete ausente no Supabase
+    console.error('Exclusão não afetou nenhuma linha — confira a política de RLS de delete em respostas');
     return false;
   }
   return true;
