@@ -356,8 +356,17 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
 .prompt-box.collapsed .collapse-toggle{ transform: rotate(-90deg); }
 .prompt-box .card-body{ margin-top: 22px; }
 
+.inner-card{
+  background: var(--navy-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.inner-card:last-child{ margin-bottom: 0; }
+
 /* ---------- saved headlines ---------- */
-.vault{ margin-top: 48px; border-top: 1px solid var(--line); padding-top: 28px; }
+.vault{ margin-top: 0; }
 .vault-header{ display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
 .vault-header h2{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 18px; letter-spacing: 0.01em; color: var(--gold-light); margin:0; }
 .vault-header .count{ font-size: 13px; color: var(--cream-dim); }
@@ -391,6 +400,7 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
   .actions{ flex-direction: column; }
   .actions button{ width: 100%; }
   .collapsible{ padding: 20px 16px; }
+  .inner-card{ padding: 18px 14px; }
   .vault-item-actions{ width: 100%; justify-content: flex-end; }
 }
 </style>
@@ -420,6 +430,7 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     <button class="collapse-toggle" type="button" aria-label="Minimizar">▾</button>
   </div>
   <div class="card-body">
+  <div class="inner-card">
   <div class="stepper" id="stepper"></div>
 
   <!-- STEP 1: AVATAR -->
@@ -494,9 +505,10 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     </div>
     <div class="status" id="saveStatus"></div>
   </div>
+  </div>
 
   <!-- VAULT -->
-  <div class="vault">
+  <div class="inner-card vault">
     <div class="vault-header">
       <h2>Suas headlines da aula</h2>
       <span class="count" id="vaultCount"></span>
