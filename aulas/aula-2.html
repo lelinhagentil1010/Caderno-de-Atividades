@@ -319,8 +319,8 @@ button.primary:hover{ background: var(--gold-light); box-shadow: 0 8px 20px rgba
 button:disabled{ opacity: 0.35; cursor: not-allowed; }
 button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px; }
 
-/* ---------- cards ---------- */
-.builder-card, .vault-card{
+/* ---------- collapsible cards ---------- */
+.collapsible{
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--navy-2);
@@ -328,10 +328,35 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
   padding: 32px;
   margin-bottom: 28px;
 }
+.card-header{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.card-header h2{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: clamp(22px, 3.4vw, 28px); color: var(--cream); margin: 0; }
+.collapse-toggle{
+  width: 32px; height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--gold-dim);
+  background: var(--navy-3);
+  color: var(--gold-light);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.collapse-toggle:hover{ border-color: var(--gold); }
+.card-body{ margin-top: 26px; }
+.collapsible.collapsed .card-body{ display:none; }
+.collapsible.collapsed .collapse-toggle{ transform: rotate(-90deg); }
 
 /* ---------- saved headlines ---------- */
+.vault{ margin-top: 48px; border-top: 1px solid var(--line); padding-top: 28px; }
 .vault-header{ display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
-.vault-header h2{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: clamp(22px, 3.4vw, 28px); letter-spacing: 0.01em; color: var(--cream); margin:0; }
+.vault-header h2{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 18px; letter-spacing: 0.01em; color: var(--gold-light); margin:0; }
 .vault-header .count{ font-size: 13px; color: var(--cream-dim); }
 .vault-empty{ color: var(--cream-dim); font-style: italic; }
 .vault-item{ padding: 16px 0; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; gap: 16px; align-items:flex-start; flex-wrap: wrap; }
@@ -342,6 +367,19 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
 .remove-btn:hover{ color: var(--gold-light); border-color: var(--gold-dim); background:none; }
 .remove-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
 
+/* ---------- roteiro card ---------- */
+.roteiro-sub{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin: 0 0 10px; }
+.roteiro-steps{ margin: 16px 0 0; padding-left: 22px; }
+.roteiro-steps li{ padding: 6px 0; color: var(--cream); font-size: 15px; line-height: 1.4; }
+.roteiro-steps li::marker{ color: var(--gold-light); font-weight: 700; }
+.prompt-box{ margin-top: 26px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 20px; }
+.prompt-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.prompt-hint{ color: var(--cream-dim); font-size: 13.5px; font-style: italic; margin: 0 0 14px; }
+.prompt-text{ white-space: pre-wrap; font-family:'Poppins', sans-serif; font-size: 14px; line-height: 1.55; color: var(--cream); background: var(--navy-3); border-radius: var(--radius-sm); padding: 14px 16px; margin: 0 0 14px; }
+.feedback-box{ margin-top: 24px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 20px; }
+.feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 15px; line-height: 1.5; }
+
 .status{ font-size: 12.5px; color: var(--cream-dim); margin-top: 10px; min-height: 18px; }
 
 @media (max-width: 560px){
@@ -349,7 +387,7 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
   .stepper{ flex-wrap: wrap; }
   .actions{ flex-direction: column; }
   .actions button{ width: 100%; }
-  .builder-card, .vault-card{ padding: 20px 16px; }
+  .collapsible{ padding: 20px 16px; }
   .vault-item-actions{ width: 100%; justify-content: flex-end; }
 }
 </style>
@@ -373,7 +411,12 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     <div class="rule"></div>
   </div>
 
-  <div class="builder-card">
+  <div class="collapsible" id="gatilhosCard">
+  <div class="card-header" onclick="toggleCard('gatilhosCard')">
+    <h2>Caderno de Gatilhos</h2>
+    <button class="collapse-toggle" type="button" aria-label="Minimizar">▾</button>
+  </div>
+  <div class="card-body">
   <div class="stepper" id="stepper"></div>
 
   <!-- STEP 1: AVATAR -->
@@ -448,10 +491,9 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     </div>
     <div class="status" id="saveStatus"></div>
   </div>
-  </div>
 
-  <!-- VAULT: sempre visível abaixo -->
-  <div class="vault-card">
+  <!-- VAULT -->
+  <div class="vault">
     <div class="vault-header">
       <h2>Suas headlines da aula</h2>
       <span class="count" id="vaultCount"></span>
@@ -463,12 +505,69 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     <div class="status" id="copyStatus"></div>
   </div>
 
+  </div>
+  </div>
+
+  <!-- CARD: ESTRUTURA DE ROTEIRO -->
+  <div class="collapsible" id="roteiroCard">
+    <div class="card-header" onclick="toggleCard('roteiroCard')">
+      <h2>Estrutura de Roteiro</h2>
+      <button class="collapse-toggle" type="button" aria-label="Minimizar">▾</button>
+    </div>
+    <div class="card-body">
+      <div class="roteiro-sub">8 passos do gancho ao CTA final</div>
+      <p class="step-sub">Agora que você já sabe montar headlines com gatilhos, é hora de estruturar o roteiro completo do conteúdo — do gancho até o CTA final. Use o prompt abaixo com a sua IA de preferência pra gerar uma primeira versão, ajuste ao seu jeito e cole o resultado no campo de roteiro pra professora revisar.</p>
+
+      <p class="step-sub" style="margin-bottom:8px;"><strong style="color:var(--cream);">Os 8 passos do roteiro:</strong></p>
+      <ol class="roteiro-steps">
+        <li>Headline / gancho (gatilho)</li>
+        <li>Intensificador de mistério</li>
+        <li>CTA de salvamento</li>
+        <li>Conteúdo de impacto</li>
+        <li>CTA de compartilhamento</li>
+        <li>Narrativa central</li>
+        <li>Assinatura</li>
+        <li>CTA de seguir</li>
+      </ol>
+
+      <div class="prompt-box">
+        <div class="label">Prompt</div>
+        <p class="prompt-hint">Copie o prompt abaixo e cole na sua IA junto com seu arquétipo (tom de voz) e uma headline ou tema, para montar o roteiro.</p>
+        <div class="prompt-text" id="promptText">[Prompt ainda não configurado pela professora — texto placeholder.]</div>
+        <button onclick="copyPrompt()">Copiar prompt</button>
+      </div>
+
+      <div class="field" style="margin-top:26px;">
+        <label for="roteiroTexto">Roteiro</label>
+        <div class="hint">Cole aqui o roteiro gerado pela IA (ou escreva o seu). Salvar de novo substitui a versão anterior.</div>
+        <textarea id="roteiroTexto" rows="10" placeholder="Cole ou escreva seu roteiro aqui..."></textarea>
+      </div>
+      <div class="actions">
+        <button class="primary" onclick="salvarRoteiro()">Salvar roteiro</button>
+      </div>
+      <div class="status" id="roteiroStatus"></div>
+
+      <div class="feedback-box" id="feedbackBox" style="display:none;">
+        <div class="label">Correção da professora</div>
+        <div class="texto" id="feedbackText"></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script src="../js/supabase-client.js"></script>
 <script>
 const AULA_ID = 'aula-2';
+const ROTEIRO_AULA_ID = 'aula-2';
 let currentUserId = null;
+
+// ---------------------------------------------------------------
+// CARDS COLAPSÁVEIS
+// ---------------------------------------------------------------
+function toggleCard(id){
+  document.getElementById(id).classList.toggle('collapsed');
+}
 
 const BLANK_EXAMPLES = {
   'grupo comum': 'médicos sem posicionamento',
@@ -912,6 +1011,52 @@ function copyAll(){
 // ---------------------------------------------------------------
 // INIT
 // ---------------------------------------------------------------
+// ---------------------------------------------------------------
+// ESTRUTURA DE ROTEIRO
+// ---------------------------------------------------------------
+async function loadRoteiro(){
+  const { data, error } = await supabaseClient
+    .from('roteiros')
+    .select('*')
+    .eq('aula_id', ROTEIRO_AULA_ID)
+    .eq('user_id', currentUserId)
+    .maybeSingle();
+  if(error){
+    console.error('Não foi possível carregar o roteiro salvo', error);
+    return;
+  }
+  if(data){
+    document.getElementById('roteiroTexto').value = data.texto;
+    if(data.comentario_professor){
+      document.getElementById('feedbackText').textContent = data.comentario_professor;
+      document.getElementById('feedbackBox').style.display = 'block';
+    }
+  }
+}
+
+async function salvarRoteiro(){
+  const texto = document.getElementById('roteiroTexto').value.trim();
+  const status = document.getElementById('roteiroStatus');
+  if(!texto){
+    status.textContent = 'Escreva ou cole o roteiro antes de salvar.';
+    status.className = 'status error';
+    return;
+  }
+  status.textContent = 'Salvando...';
+  status.className = 'status';
+  const { error } = await supabaseClient
+    .from('roteiros')
+    .upsert({ aula_id: ROTEIRO_AULA_ID, user_id: currentUserId, texto }, { onConflict: 'aula_id,user_id' });
+  status.textContent = error ? 'Não foi possível salvar. Tente novamente.' : 'Roteiro salvo — a professora pode revisar.';
+  status.className = error ? 'status error' : 'status';
+  setTimeout(() => { status.textContent = ''; }, 3000);
+}
+
+function copyPrompt(){
+  const text = document.getElementById('promptText').textContent;
+  navigator.clipboard.writeText(text);
+}
+
 (async function init(){
   const result = await requireApprovedSession('../index.html');
   if(!result) return;
@@ -920,6 +1065,7 @@ function copyAll(){
   renderGatilhos();
   renderStepper();
   await loadVault();
+  await loadRoteiro();
   goTo(1);
 })();
 </script>

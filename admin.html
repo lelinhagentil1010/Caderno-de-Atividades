@@ -216,8 +216,9 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
   <div class="panel" data-panel="respostas">
     <div class="field">
       <label for="aulaSelect">Aula</label>
-      <select id="aulaSelect" onchange="carregarRespostas()">
-        <option value="aula-2">Aula 2 · Caderno de Gatilhos</option>
+      <select id="aulaSelect" onchange="onAulaSelectChange()">
+        <option value="headlines:aula-2">Aula 2 · Caderno de Gatilhos</option>
+        <option value="roteiro:aula-2">Aula 2 · Estrutura de Roteiro</option>
       </select>
     </div>
     <div id="respostasList"></div>
@@ -233,7 +234,19 @@ let adminSession = null;
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
-  if(name === 'respostas') carregarRespostas();
+  if(name === 'respostas') onAulaSelectChange();
+}
+
+function onAulaSelectChange(){
+  const [tipo, aulaId] = document.getElementById('aulaSelect').value.split(':');
+  if(tipo === 'roteiro') carregarRoteiros(aulaId);
+  else carregarRespostas(aulaId);
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 function formatDate(iso){
@@ -261,8 +274,8 @@ async function carregarPendentes(){
     card.innerHTML = `
       <div class="row">
         <div>
-          <div class="nome">${p.nome || '(sem nome)'}</div>
-          <div class="email">${p.email}</div>
+          <div class="nome">${escapeHtml(p.nome || '(sem nome)')}</div>
+          <div class="email">${escapeHtml(p.email || '')}</div>
           <div class="when">Cadastrado em ${formatDate(p.created_at)}</div>
         </div>
         <div class="actions">
@@ -347,8 +360,7 @@ function copiarCredenciais(){
 // ---------------------------------------------------------------
 // RESPOSTAS
 // ---------------------------------------------------------------
-async function carregarRespostas(){
-  const aulaId = document.getElementById('aulaSelect').value;
+async function carregarRespostas(aulaId){
   const el = document.getElementById('respostasList');
   el.innerHTML = '<div class="empty">Carregando...</div>';
 
@@ -383,21 +395,84 @@ async function carregarRespostas(){
     group.innerHTML = `
       <div class="resp-group-header">
         <div>
-          <div class="nome">${perfil.nome || perfil.email || '(desconhecido)'}</div>
-          ${perfil.nome ? `<div class="email">${perfil.email || ''}</div>` : ''}
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
         </div>
         <div class="resp-count">${items.length} resposta${items.length > 1 ? 's' : ''}</div>
       </div>
       <div class="resp-items">
         ${items.map(r => `
           <div class="resp-item">
-            <div class="texto">${r.dados.texto || JSON.stringify(r.dados)}</div>
+            <div class="texto">${escapeHtml(r.dados.texto || JSON.stringify(r.dados))}</div>
             <div class="quando">${formatDate(r.created_at)}</div>
           </div>
         `).join('')}
       </div>
     `;
     el.appendChild(group);
+  });
+}
+
+// ---------------------------------------------------------------
+// ROTEIROS
+// ---------------------------------------------------------------
+async function carregarRoteiros(aulaId){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data: roteiros, error } = await supabaseClient
+    .from('roteiros')
+    .select('*')
+    .eq('aula_id', aulaId)
+    .order('updated_at', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!roteiros || roteiros.length === 0){ el.innerHTML = '<div class="empty">Nenhum roteiro enviado ainda para esta aula.</div>'; return; }
+
+  const userIds = [...new Set(roteiros.map(r => r.user_id))];
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  el.innerHTML = '';
+  roteiros.forEach(r => {
+    const perfil = perfilMap[r.user_id] || {};
+    const card = document.createElement('div');
+    card.className = 'resp-group';
+    card.innerHTML = `
+      <div class="resp-group-header">
+        <div>
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
+        </div>
+        <div class="resp-count">Atualizado ${formatDate(r.updated_at)}</div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <div class="texto" style="white-space:pre-wrap; font-style:normal;">${escapeHtml(r.texto)}</div>
+        </div>
+        <div class="field" style="margin-top:14px; margin-bottom:0;">
+          <label>Correção / comentário</label>
+          <textarea class="comentario-input" rows="3">${escapeHtml(r.comentario_professor || '')}</textarea>
+        </div>
+        <div class="actions" style="margin-top:10px;">
+          <button class="small salvar-comentario">Salvar comentário</button>
+        </div>
+      </div>
+    `;
+    card.querySelector('.salvar-comentario').onclick = async (e) => {
+      const btn = e.target;
+      const textarea = card.querySelector('.comentario-input');
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      const { error } = await supabaseClient
+        .from('roteiros')
+        .update({ comentario_professor: textarea.value })
+        .eq('id', r.id);
+      btn.disabled = false;
+      btn.textContent = error ? 'Erro — tentar de novo' : 'Salvo!';
+      if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
+    };
+    el.appendChild(card);
   });
 }
 
