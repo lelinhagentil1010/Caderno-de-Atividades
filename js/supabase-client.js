@@ -3,8 +3,8 @@
 // (Project Settings → API → Project URL / anon public key)
 // ---------------------------------------------------------------
 const SUPABASE_CONFIG = {
-  URL: '',
-  ANON_KEY: ''
+  URL: 'https://ntzapmachzooaekpsyia.supabase.co',
+  ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50emFwbWFjaHpvb2Fla3BzeWlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5NDIxMjIsImV4cCI6MjEwMTUxODEyMn0.CC_CPCI2WeMn9W0Ra0ze6Au31GrnUH8STs6lYzz5w2Q'
 };
 
 const supabaseReady = !!(SUPABASE_CONFIG.URL && SUPABASE_CONFIG.ANON_KEY);
