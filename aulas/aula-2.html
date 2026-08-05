@@ -319,17 +319,28 @@ button.primary:hover{ background: var(--gold-light); box-shadow: 0 8px 20px rgba
 button:disabled{ opacity: 0.35; cursor: not-allowed; }
 button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px; }
 
+/* ---------- cards ---------- */
+.builder-card, .vault-card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+  margin-bottom: 28px;
+}
+
 /* ---------- saved headlines ---------- */
-.vault{ margin-top: 56px; border-top: 1px solid var(--line); padding-top: 28px; }
 .vault-header{ display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
-.vault-header h2{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 16px; letter-spacing: 0.01em; color: var(--gold-light); margin:0; }
+.vault-header h2{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: clamp(22px, 3.4vw, 28px); letter-spacing: 0.01em; color: var(--cream); margin:0; }
 .vault-header .count{ font-size: 13px; color: var(--cream-dim); }
 .vault-empty{ color: var(--cream-dim); font-style: italic; }
-.vault-item{ padding: 16px 0; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; gap: 16px; align-items:flex-start; }
+.vault-item{ padding: 16px 0; border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; gap: 16px; align-items:flex-start; flex-wrap: wrap; }
 .vault-item .txt{ font-family:'Poppins', sans-serif; font-weight: 500; font-size: 15.5px; line-height: 1.45; color: var(--cream); }
 .vault-item .meta{ font-size: 12px; font-weight: 600; color: var(--gold-light); margin-top: 6px; font-family:'Poppins', sans-serif; letter-spacing: 0.02em; }
-.remove-btn{ border: none; background: none; color: var(--cream-dim); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); border-radius: var(--radius-pill); }
+.vault-item-actions{ display:flex; gap: 8px; flex-shrink: 0; }
+.remove-btn{ border: none; background: none; color: var(--cream-dim); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); border-radius: var(--radius-pill); cursor: pointer; }
 .remove-btn:hover{ color: var(--gold-light); border-color: var(--gold-dim); background:none; }
+.remove-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
 
 .status{ font-size: 12.5px; color: var(--cream-dim); margin-top: 10px; min-height: 18px; }
 
@@ -338,6 +349,8 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
   .stepper{ flex-wrap: wrap; }
   .actions{ flex-direction: column; }
   .actions button{ width: 100%; }
+  .builder-card, .vault-card{ padding: 20px 16px; }
+  .vault-item-actions{ width: 100%; justify-content: flex-end; }
 }
 </style>
 </head>
@@ -360,6 +373,7 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     <div class="rule"></div>
   </div>
 
+  <div class="builder-card">
   <div class="stepper" id="stepper"></div>
 
   <!-- STEP 1: AVATAR -->
@@ -434,9 +448,10 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     </div>
     <div class="status" id="saveStatus"></div>
   </div>
+  </div>
 
   <!-- VAULT: sempre visível abaixo -->
-  <div class="vault">
+  <div class="vault-card">
     <div class="vault-header">
       <h2>Suas headlines da aula</h2>
       <span class="count" id="vaultCount"></span>
@@ -847,8 +862,21 @@ function renderVault(){
         <div class="txt">${item.text}</div>
         <div class="meta">${item.gatilhos}</div>
       </div>
-      <button class="remove-btn" data-i="${i}">excluir</button>`;
-    row.querySelector('.remove-btn').onclick = async (e) => {
+      <div class="vault-item-actions">
+        <button class="remove-btn copy-one">copiar</button>
+        <button class="remove-btn delete-one">excluir</button>
+      </div>`;
+
+    row.querySelector('.copy-one').onclick = (e) => {
+      const btn = e.target;
+      navigator.clipboard.writeText(item.text).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'copiado';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      });
+    };
+
+    row.querySelector('.delete-one').onclick = async (e) => {
       const btn = e.target;
       btn.disabled = true;
       btn.textContent = 'excluindo...';
@@ -862,6 +890,7 @@ function renderVault(){
       state.vault.splice(i,1);
       renderVault();
     };
+
     list.appendChild(row);
   });
 }
