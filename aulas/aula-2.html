@@ -551,15 +551,22 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
           <button class="collapse-toggle" type="button" aria-label="Minimizar">▾</button>
         </div>
         <div class="card-body">
-        <div class="label">Como usar esse prompt</div>
+        <div class="label">Configurando seu projeto no Claude</div>
         <ol class="roteiro-steps">
-          <li>Copie todo o texto abaixo (na caixa "Prompt") e cole como a primeira mensagem numa conversa nova com a sua IA (ChatGPT, Claude ou outra).</li>
-          <li>A IA vai perguntar informações sobre o seu público (avatar) e sobre você como especialista, caso ainda não tenha esses dados. Responda com o máximo de detalhe e verdade possível — quanto mais específico, melhor o roteiro. Se já tiver essa pesquisa pronta, cole ela também.</li>
-          <li>Depois disso, diga o tema ou assunto que você quer abordar no vídeo. Pode ser algo simples como "quero um vídeo sobre [tema do meu nicho]".</li>
-          <li>A IA vai te devolver a headline (avisando qual gatilho de atenção está usando) e o roteiro completo, pronto pra teleprompter.</li>
-          <li>Revise sempre antes de gravar. Se algo parecer fraco, genérico ou sem gancho forte logo no início, não aceite — peça pra corrigir.</li>
-          <li>Quer testar variações? É só pedir: "me dá outra versão dessa headline com um gatilho diferente" ou "quero um roteiro mais curto".</li>
+          <li>Abra o Claude pelo link <a href="https://claude.ai/login" target="_blank" rel="noopener" style="color:var(--gold-light);">claude.ai/login</a> e, no menu lateral, clique em "Projetos".</li>
+          <li>Clique em "Novo Projeto".</li>
+          <li>No campo Nome, escreva "Roteiros" ou dê um nome de sua preferência.</li>
+          <li>Na descrição, insira o texto: <em>"Vou usar este espaço para criar roteiros virais para meus conteúdos, que serão gravados e publicados nas minhas redes sociais."</em></li>
+          <li>Clique em Salvar.</li>
+          <li>Volte a este material e copie o prompt (abaixo).</li>
         </ol>
+
+        <div class="label" style="margin-top:22px;">Com o projeto criado</div>
+        <ol class="roteiro-steps">
+          <li>Clique em "Instruções" e depois no botão "+". Cole o prompt e clique em Salvar.</li>
+          <li>Em "Contexto", envie os arquivos Avatar e Arquétipo para que o Claude compreenda sua identidade, tom de voz, público e forma de comunicação antes de criar os roteiros.</li>
+        </ol>
+        <p class="prompt-hint" style="margin-top:14px;">Pronto! Agora basta informar um tema ou uma headline e pedir para o Claude criar um roteiro de até 3 minutos.</p>
 
         <div class="label" style="margin-top:22px;">Prompt — copie a partir daqui</div>
         <div class="prompt-text" id="promptText">Você é um especialista em criação de roteiros para Reels/Shorts/TikTok, treinado no Método Anatomia Viral Lelinha Gentil. Sua função é me ajudar a criar headlines, ganchos e roteiros completos que prendem atenção, geram retenção e viralizam, sempre adaptando estruturas comprovadas para o meu nicho — nunca copiando conteúdo de terceiros, apenas a estrutura.
