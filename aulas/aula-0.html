@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Narrativa — ÊNFASE</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background: #0F1F3D;
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+
+.app{
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+}
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  background: var(--navy-2);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+
+.masthead{ text-align:center; margin-bottom: 36px; }
+.eyebrow{ font-family:'Poppins', sans-serif; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Poppins', sans-serif; font-weight:700; font-size: clamp(26px, 4.4vw, 38px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.5; max-width: 480px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.progress{ display:flex; gap: 6px; justify-content:center; margin-bottom: 28px; }
+.dot{ width: 8px; height: 8px; border-radius: 50%; background: var(--navy-3); transition: background .2s ease; }
+.dot.active{ background: var(--gold); }
+.dot.done{ background: var(--gold-light); }
+
+.step-label{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 14px; text-align:center; }
+.question{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: clamp(19px, 3vw, 23px); line-height: 1.4; color: var(--cream); margin-bottom: 20px; text-align:center; }
+
+textarea{
+  width:100%;
+  min-height: 130px;
+  background: var(--navy-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  resize: vertical;
+}
+textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+textarea::placeholder{ color: rgba(244,239,227,0.32); }
+
+.nav{ display:flex; justify-content: space-between; gap: 14px; margin-top: 24px; }
+button{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  padding: 13px 26px;
+  border-radius: var(--radius-pill);
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+button.primary:hover{ background: var(--gold-light); box-shadow: 0 8px 20px rgba(201,162,39,0.25); transform: translateY(-1px); }
+button:disabled{ opacity: 0.35; cursor: not-allowed; }
+
+.hidden{ display:none !important; }
+
+.result-title{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: clamp(20px, 3.2vw, 26px); color: var(--cream); margin: 0 0 8px; text-align:center; }
+.result-sub{ color: var(--cream-dim); font-size: 14px; text-align:center; margin: 0 0 22px; }
+.result-text{ min-height: 220px; font-family:'Poppins', sans-serif; font-size: 15.5px; line-height: 1.7; }
+.result-actions{ display:flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+.status{ font-size: 13px; color: var(--cream-dim); margin-top: 14px; min-height: 18px; text-align:center; }
+.status.error{ color: var(--red); }
+
+.feedback-box{ margin-top: 26px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 20px; }
+.feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 15px; line-height: 1.5; }
+
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+  .nav{ flex-direction: column-reverse; }
+  .nav button{ width: 100%; }
+  .result-actions{ flex-direction: column; }
+  .result-actions button{ width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="ÊNFASE" class="logo">
+    <div style="display:flex; gap:10px;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Aula 0 · Narrativa</div>
+    <h1>Minha Narrativa</h1>
+    <p class="quote">Responda com calma, uma pergunta de cada vez. No final, suas respostas viram o texto da sua própria história.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="card">
+
+    <!-- TELA DE PERGUNTAS -->
+    <div id="questionScreen">
+      <div class="progress" id="progress"></div>
+      <div class="step-label" id="stepLabel">PERGUNTA 1 DE 6</div>
+      <div class="question" id="questionText"></div>
+      <textarea id="answerBox" placeholder="Escreva aqui, sem se preocupar em ser perfeito..."></textarea>
+      <div class="nav">
+        <button id="backBtn">Voltar</button>
+        <button class="primary" id="nextBtn">Avançar</button>
+      </div>
+    </div>
+
+    <!-- TELA DE RESULTADO -->
+    <div id="resultScreen" class="hidden">
+      <div class="result-title">A sua história</div>
+      <div class="result-sub">Isto é um primeiro rascunho, montado a partir do que você escreveu. Edite à vontade até soar como você.</div>
+      <textarea class="result-text" id="finalText"></textarea>
+      <div class="result-actions">
+        <button class="primary" id="saveBtn">Salvar narrativa</button>
+        <button id="copyBtn">Copiar texto</button>
+        <button id="downloadBtn">Baixar como .txt</button>
+        <button id="restartBtn">Recomeçar</button>
+      </div>
+      <div class="status" id="narrativaStatus"></div>
+
+      <div class="feedback-box" id="feedbackBox" style="display:none;">
+        <div class="label">Correção da professora</div>
+        <div class="texto" id="feedbackText"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+const ROTEIRO_AULA_ID = 'aula-0';
+let currentUserId = null;
+
+const questions = [
+  "Antes de me tornar quem sou hoje, o meu maior desafio profissional foi...",
+  "O momento em que percebi que precisava mudar foi quando...",
+  "A decisão que tomei a partir disso foi...",
+  "Hoje, a conquista da qual mais me orgulho é...",
+  "O que me diferencia de outros profissionais da minha área é...",
+  "Quero ser lembrado(a), no meu mercado, como a pessoa que..."
+];
+
+let current = 0;
+const answers = new Array(questions.length).fill("");
+
+const progressEl = document.getElementById("progress");
+const stepLabel = document.getElementById("stepLabel");
+const questionText = document.getElementById("questionText");
+const answerBox = document.getElementById("answerBox");
+const backBtn = document.getElementById("backBtn");
+const nextBtn = document.getElementById("nextBtn");
+const questionScreen = document.getElementById("questionScreen");
+const resultScreen = document.getElementById("resultScreen");
+const finalText = document.getElementById("finalText");
+
+function renderProgress(){
+  progressEl.innerHTML = "";
+  questions.forEach((_, i) => {
+    const d = document.createElement("div");
+    d.className = "dot" + (i === current ? " active" : i < current ? " done" : "");
+    progressEl.appendChild(d);
+  });
+}
+
+function renderQuestion(){
+  stepLabel.textContent = `PERGUNTA ${current + 1} DE ${questions.length}`;
+  questionText.textContent = questions[current];
+  answerBox.value = answers[current];
+  backBtn.disabled = current === 0;
+  nextBtn.textContent = current === questions.length - 1 ? "Ver minha história" : "Avançar";
+  renderProgress();
+  answerBox.focus();
+}
+
+function buildStory(){
+  const a = answers.map(x => x.trim().replace(/\.$/, ""));
+  return `Antes de me tornar quem sou hoje, o meu maior desafio profissional foi ${a[0]}.\n\n` +
+    `Tudo começou a mudar quando ${a[1]}. Foi a partir daí que ${a[2]}.\n\n` +
+    `Hoje, a conquista da qual mais me orgulho é ${a[3]} — e o que me diferencia de outros profissionais da minha área é ${a[4]}.\n\n` +
+    `Meu compromisso, daqui para frente, é ser lembrado(a) como a pessoa que ${a[5]}.`;
+}
+
+function showResult(){
+  questionScreen.classList.add("hidden");
+  resultScreen.classList.remove("hidden");
+}
+
+nextBtn.addEventListener("click", () => {
+  answers[current] = answerBox.value;
+  if(current < questions.length - 1){
+    current++;
+    renderQuestion();
+  } else {
+    finalText.value = buildStory();
+    showResult();
+  }
+});
+
+backBtn.addEventListener("click", () => {
+  answers[current] = answerBox.value;
+  if(current > 0){
+    current--;
+    renderQuestion();
+  }
+});
+
+document.getElementById("copyBtn").addEventListener("click", () => {
+  navigator.clipboard.writeText(finalText.value);
+  const status = document.getElementById("narrativaStatus");
+  status.textContent = "Copiado.";
+  setTimeout(() => { status.textContent = ""; }, 2000);
+});
+
+document.getElementById("downloadBtn").addEventListener("click", () => {
+  const blob = new Blob([finalText.value], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "minha_narrativa.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("restartBtn").addEventListener("click", () => {
+  current = 0;
+  answers.fill("");
+  questionScreen.classList.remove("hidden");
+  resultScreen.classList.add("hidden");
+  document.getElementById("feedbackBox").style.display = "none";
+  renderQuestion();
+});
+
+// ---------------------------------------------------------------
+// PERSISTÊNCIA (reaproveita a tabela roteiros, aula_id='aula-0')
+// ---------------------------------------------------------------
+async function loadNarrativa(){
+  const { data, error } = await supabaseClient
+    .from('roteiros')
+    .select('*')
+    .eq('aula_id', ROTEIRO_AULA_ID)
+    .eq('user_id', currentUserId)
+    .maybeSingle();
+  if(error){
+    console.error('Não foi possível carregar a narrativa salva', error);
+    renderQuestion();
+    return;
+  }
+  if(data){
+    finalText.value = data.texto;
+    if(data.comentario_professor){
+      document.getElementById('feedbackText').textContent = data.comentario_professor;
+      document.getElementById('feedbackBox').style.display = 'block';
+    }
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  const texto = finalText.value.trim();
+  const status = document.getElementById("narrativaStatus");
+  if(!texto){
+    status.textContent = 'Escreva sua narrativa antes de salvar.';
+    status.className = 'status error';
+    return;
+  }
+  status.textContent = 'Salvando...';
+  status.className = 'status';
+  const { error } = await supabaseClient
+    .from('roteiros')
+    .upsert({ aula_id: ROTEIRO_AULA_ID, user_id: currentUserId, texto }, { onConflict: 'aula_id,user_id' });
+  status.textContent = error ? 'Não foi possível salvar. Tente novamente.' : 'Narrativa salva — a professora pode revisar.';
+  status.className = error ? 'status error' : 'status';
+  setTimeout(() => { status.textContent = ''; }, 3000);
+});
+
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  currentUserId = result.session.user.id;
+  await loadNarrativa();
+})();
+</script>
+
+</body>
+</html>
