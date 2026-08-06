@@ -384,6 +384,9 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
 .roteiro-steps{ margin: 16px 0 0; padding-left: 22px; }
 .roteiro-steps li{ padding: 6px 0; color: var(--cream); font-size: 15px; line-height: 1.4; }
 .roteiro-steps li::marker{ color: var(--gold-light); font-weight: 700; }
+.roteiro-steps-detailed li{ padding: 10px 0; }
+.step-item-title{ font-weight: 600; color: var(--cream); font-size: 15px; }
+.step-item-desc{ font-size: 13.5px; color: var(--cream-dim); margin-top: 4px; line-height: 1.5; }
 .prompt-box{ margin-top: 26px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 20px; }
 .prompt-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
 .prompt-hint{ color: var(--cream-dim); font-size: 13.5px; font-style: italic; margin: 0 0 14px; }
@@ -534,15 +537,39 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
       <p class="step-sub">Agora que você já sabe montar headlines com gatilhos, é hora de estruturar o roteiro completo do conteúdo — do gancho até o CTA final. Use o prompt abaixo com a sua IA de preferência pra gerar uma primeira versão, ajuste ao seu jeito e cole o resultado no campo de roteiro pra professora revisar.</p>
 
       <p class="step-sub" style="margin-bottom:8px;"><strong style="color:var(--cream);">Os 8 passos do roteiro:</strong></p>
-      <ol class="roteiro-steps">
-        <li>Headline / gancho (gatilho)</li>
-        <li>Intensificador de mistério</li>
-        <li>CTA de salvamento</li>
-        <li>Conteúdo de impacto</li>
-        <li>CTA de compartilhamento</li>
-        <li>Narrativa central</li>
-        <li>Assinatura</li>
-        <li>CTA de seguir</li>
+      <ol class="roteiro-steps roteiro-steps-detailed">
+        <li>
+          <div class="step-item-title">Headline / Gancho (Gatilho)</div>
+          <div class="step-item-desc">É a primeira frase do vídeo. Sua função é prender a atenção nos primeiros segundos, despertando interesse para que a pessoa não role para o próximo conteúdo.</div>
+        </li>
+        <li>
+          <div class="step-item-title">Intensificador de Mistério</div>
+          <div class="step-item-desc">Depois do gancho, aumente a curiosidade sem revelar a resposta. Faça o público sentir que precisa assistir até o final para descobrir a informação.</div>
+        </li>
+        <li>
+          <div class="step-item-title">CTA de Salvamento</div>
+          <div class="step-item-desc">Peça para a pessoa salvar o vídeo antes de entregar o conteúdo. Isso aumenta as chances de ela guardar o material para consultar depois e melhora o alcance.</div>
+        </li>
+        <li>
+          <div class="step-item-title">Conteúdo de Impacto</div>
+          <div class="step-item-desc">É a parte em que você entrega valor, resolve um problema, ensina algo ou revela uma informação interessante que recompensa a atenção do público.</div>
+        </li>
+        <li>
+          <div class="step-item-title">CTA de Compartilhamento</div>
+          <div class="step-item-desc">Convide o público a compartilhar o vídeo com alguém que também pode se beneficiar do conteúdo. Isso aumenta o alcance de forma orgânica.</div>
+        </li>
+        <li>
+          <div class="step-item-title">Narrativa Central</div>
+          <div class="step-item-desc">Conecte o conteúdo com uma história, experiência ou situação do dia a dia. Isso cria identificação e faz o público se envolver emocionalmente.</div>
+        </li>
+        <li>
+          <div class="step-item-title">Assinatura ("Eu sou...")</div>
+          <div class="step-item-desc">Apresente rapidamente quem você é e por que as pessoas podem confiar no seu conteúdo. Isso fortalece sua autoridade e sua marca pessoal.</div>
+        </li>
+        <li>
+          <div class="step-item-title">CTA de Seguir</div>
+          <div class="step-item-desc">Finalize convidando a pessoa a seguir seu perfil para receber mais conteúdos semelhantes. Mostre um motivo claro para ela continuar acompanhando você.</div>
+        </li>
       </ol>
 
       <div class="prompt-box collapsed" id="promptBox">
