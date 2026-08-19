@@ -179,7 +179,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
 
   <div class="tabs">
     <div class="tab active" data-tab="pendentes" onclick="switchTab('pendentes')">Cadastros pendentes</div>
-    <div class="tab" data-tab="cadastrar" onclick="switchTab('cadastrar')">Cadastrar aluno</div>
+    <div class="tab" data-tab="alunos" onclick="switchTab('alunos')">Alunos</div>
     <div class="tab" data-tab="respostas" onclick="switchTab('respostas')">Respostas</div>
   </div>
 
@@ -188,8 +188,9 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
     <div id="pendentesList"></div>
   </div>
 
-  <!-- CADASTRAR -->
-  <div class="panel" data-panel="cadastrar">
+  <!-- ALUNOS -->
+  <div class="panel" data-panel="alunos">
+    <div class="label" style="margin-bottom:14px;">Adicionar aluno</div>
     <div class="field">
       <label for="novoNome">Nome do aluno</label>
       <input type="text" id="novoNome" placeholder="Nome completo">
@@ -209,6 +210,15 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
       <div class="line"><strong>Email:</strong> <span id="resEmail"></span></div>
       <div class="line"><strong>Senha:</strong> <span id="resSenha"></span></div>
       <button class="small copy-btn" onclick="copiarCredenciais()">Copiar para enviar</button>
+    </div>
+
+    <div class="label" style="margin-top:34px; margin-bottom:14px;">Lista de alunos</div>
+    <div id="alunosList"></div>
+
+    <div class="result-box" id="resetBox">
+      <div class="line"><strong>Email:</strong> <span id="resetEmail"></span></div>
+      <div class="line"><strong>Nova senha:</strong> <span id="resetSenha"></span></div>
+      <button class="small copy-btn" onclick="copiarCredenciaisReset()">Copiar para enviar</button>
     </div>
   </div>
 
@@ -236,6 +246,7 @@ function switchTab(name){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
   if(name === 'respostas') onAulaSelectChange();
+  if(name === 'alunos') carregarAlunos();
 }
 
 function onAulaSelectChange(){
@@ -343,6 +354,7 @@ async function criarAluno(){
     document.getElementById('novoNome').value = '';
     document.getElementById('novoEmail').value = '';
     document.getElementById('novoSenha').value = '';
+    carregarAlunos();
   } catch(e){
     status.textContent = 'Erro de conexão. Tente novamente.';
     status.className = 'status error';
@@ -356,6 +368,114 @@ function copiarCredenciais(){
   const senha = document.getElementById('resSenha').textContent;
   const texto = `Acesso ao Caderno de Atividades:\nLink: ${window.location.origin}\nEmail: ${email}\nSenha: ${senha}`;
   navigator.clipboard.writeText(texto);
+}
+
+// ---------------------------------------------------------------
+// LISTA DE ALUNOS (excluir / resetar senha)
+// ---------------------------------------------------------------
+function gerarSenhaProvisoria(){
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let senha = '';
+  for(let i = 0; i < 8; i++) senha += chars[Math.floor(Math.random() * chars.length)];
+  return senha;
+}
+
+async function carregarAlunos(){
+  const el = document.getElementById('alunosList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('*')
+    .eq('role', 'student')
+    .order('nome', { ascending: true });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno cadastrado ainda.</div>'; return; }
+
+  const statusLabel = { approved: 'Aprovado', pending: 'Pendente', rejected: 'Recusado' };
+
+  el.innerHTML = '';
+  data.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="row">
+        <div>
+          <div class="nome">${escapeHtml(p.nome || '(sem nome)')}</div>
+          <div class="email">${escapeHtml(p.email || '')}</div>
+          <div class="when">${statusLabel[p.status] || p.status}</div>
+        </div>
+        <div class="actions">
+          <button class="small reset-senha">Resetar senha</button>
+          <button class="small reject excluir">Excluir</button>
+        </div>
+      </div>
+    `;
+    card.querySelector('.reset-senha').onclick = (e) => resetarSenhaAluno(p, e.target);
+    card.querySelector('.excluir').onclick = (e) => excluirAluno(p, e.target);
+    el.appendChild(card);
+  });
+}
+
+async function resetarSenhaAluno(aluno, btn){
+  if(!confirm(`Gerar uma nova senha provisória para ${aluno.nome || aluno.email}? A senha anterior deixa de funcionar.`)) return;
+  const novaSenha = gerarSenhaProvisoria();
+  btn.disabled = true;
+  btn.textContent = 'Resetando...';
+  try{
+    const res = await fetch('/.netlify/functions/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: adminSession.access_token, userId: aluno.id, novaSenha })
+    });
+    const result = await res.json();
+    if(!res.ok){
+      alert(result.error || 'Não foi possível resetar a senha.');
+      return;
+    }
+    document.getElementById('resetEmail').textContent = aluno.email || '';
+    document.getElementById('resetSenha').textContent = novaSenha;
+    document.getElementById('resetBox').style.display = 'block';
+    document.getElementById('resetBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch(e){
+    alert('Erro de conexão. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Resetar senha';
+  }
+}
+
+function copiarCredenciaisReset(){
+  const email = document.getElementById('resetEmail').textContent;
+  const senha = document.getElementById('resetSenha').textContent;
+  const texto = `Sua senha do Caderno de Atividades foi redefinida:\nLink: ${window.location.origin}\nEmail: ${email}\nNova senha: ${senha}`;
+  navigator.clipboard.writeText(texto);
+}
+
+async function excluirAluno(aluno, btn){
+  if(!confirm(`Excluir ${aluno.nome || aluno.email} definitivamente? Isso apaga a conta e TODAS as respostas dele(a) (headlines, roteiros, narrativa). Não tem como desfazer.`)) return;
+  btn.disabled = true;
+  btn.textContent = 'Excluindo...';
+  try{
+    const res = await fetch('/.netlify/functions/delete-student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: adminSession.access_token, userId: aluno.id })
+    });
+    const result = await res.json();
+    if(!res.ok){
+      alert(result.error || 'Não foi possível excluir.');
+      btn.disabled = false;
+      btn.textContent = 'Excluir';
+      return;
+    }
+    carregarAlunos();
+  } catch(e){
+    alert('Erro de conexão. Tente novamente.');
+    btn.disabled = false;
+    btn.textContent = 'Excluir';
+  }
 }
 
 // ---------------------------------------------------------------
