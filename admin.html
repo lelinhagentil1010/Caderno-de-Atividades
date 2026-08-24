@@ -11,6 +11,7 @@
 <link rel="icon" href="icon-192.png">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
@@ -227,6 +228,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
     <div class="field">
       <label for="aulaSelect">Aula</label>
       <select id="aulaSelect" onchange="onAulaSelectChange()">
+        <option value="avatar:especialista">Pesquisa · Avatar e Especialista</option>
         <option value="roteiro:aula-0">Aula 0 · Minha Narrativa</option>
         <option value="headlines:aula-2">Aula 2 · Caderno de Gatilhos</option>
         <option value="roteiro:aula-2">Aula 2 · Estrutura de Roteiro</option>
@@ -252,6 +254,7 @@ function switchTab(name){
 function onAulaSelectChange(){
   const [tipo, aulaId] = document.getElementById('aulaSelect').value.split(':');
   if(tipo === 'roteiro') carregarRoteiros(aulaId);
+  else if(tipo === 'avatar') carregarAvatarEspecialista();
   else carregarRespostas(aulaId);
 }
 
@@ -592,6 +595,152 @@ async function carregarRoteiros(aulaId){
       btn.disabled = false;
       btn.textContent = error ? 'Erro — tentar de novo' : 'Salvo!';
       if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
+    };
+    el.appendChild(card);
+  });
+}
+
+// ---------------------------------------------------------------
+// AVATAR E ESPECIALISTA
+// ---------------------------------------------------------------
+const PERGUNTAS_AVATAR = [
+  { id: 'avatar_desejos', label: 'Desejos', pergunta: 'O que esse público quer alcançar ou resolver?' },
+  { id: 'avatar_dores', label: 'Dores', pergunta: 'Quais medos, vergonhas, frustrações ou tabus esse público carrega?' },
+  { id: 'avatar_demografia', label: 'Características demográficas', pergunta: 'Idade, gênero predominante, classe social, região?' },
+  { id: 'avatar_qualidades', label: 'Qualidades desse público', pergunta: 'O que já faz bem, já busca, já sabe?' },
+  { id: 'avatar_defeitos', label: 'Defeitos/resistências', pergunta: 'O que evita, o que atrapalha esse público a agir?' },
+  { id: 'avatar_referencias', label: 'Itens/referências que esse público já conhece', pergunta: 'Memes, outras figuras públicas, termos, expressões que usam?' },
+  { id: 'esp_conquistas', label: 'Desejos e conquistas', pergunta: 'O que você já realizou na carreira/vida?' },
+  { id: 'esp_dor', label: 'Situações dolorosas', pergunta: 'O que você já enfrentou (profissionais ou pessoais que humanizam sua história)?' },
+  { id: 'esp_habitos', label: 'Hábitos e hobbies', pergunta: 'Quais são?' },
+  { id: 'esp_formacao', label: 'Formação profissional', pergunta: 'Onde estudou, especializações, tempo de atuação?' },
+  { id: 'esp_quemvoce', label: 'Quem você é', pergunta: 'Idade, estado civil, nacionalidade/cidade?' },
+  { id: 'esp_qualidades', label: 'Qualidades pessoais', pergunta: 'Bom humor, didático, direto, paciente etc.?' },
+];
+
+function svgToPngDataUrl(url, width, height){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function gerarPdfAvatarEspecialista(registro){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+
+  try{
+    const logoDataUrl = await svgToPngDataUrl('assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${registro.nome}`, margin, y);
+  y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  doc.text(`Email: ${registro.email}`, margin, y);
+  y += 6;
+  const dataConclusao = new Date(registro.concluido_em || registro.created_at).toLocaleString('pt-BR');
+  doc.text(`Concluído em: ${dataConclusao}`, margin, y);
+  y += 12;
+
+  PERGUNTAS_AVATAR.forEach(p => {
+    const resposta = (registro.respostas && registro.respostas[p.id]) || '';
+    if(y > pageHeight - 30){ doc.addPage(); y = 22; }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(15, 31, 61);
+    const tituloLines = doc.splitTextToSize(`${p.label} — ${p.pergunta}`, maxWidth);
+    doc.text(tituloLines, margin, y);
+    y += tituloLines.length * 5.5 + 2;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(40, 40, 40);
+    const respLines = doc.splitTextToSize(resposta, maxWidth);
+    respLines.forEach(line => {
+      if(y > pageHeight - 20){ doc.addPage(); y = 22; }
+      doc.text(line, margin, y);
+      y += 5.5;
+    });
+    y += 7;
+  });
+
+  const nomeArquivo = (registro.nome || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`avatar-especialista-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+async function carregarAvatarEspecialista(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('avatar_especialista')
+    .select('*')
+    .order('concluido_em', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno concluiu essa pesquisa ainda.</div>'; return; }
+
+  el.innerHTML = '';
+  data.forEach(registro => {
+    const card = document.createElement('div');
+    card.className = 'resp-group';
+    card.innerHTML = `
+      <div class="resp-group-header">
+        <div>
+          <div class="nome">${escapeHtml(registro.nome || registro.email || '(desconhecido)')}</div>
+          <div class="email">${escapeHtml(registro.email || '')}</div>
+        </div>
+        <div class="resp-count">${new Date(registro.concluido_em || registro.created_at).toLocaleDateString('pt-BR')}</div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <button class="small baixar-pdf">Baixar PDF</button>
+        </div>
+      </div>
+    `;
+    card.querySelector('.baixar-pdf').onclick = async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+      try{
+        await gerarPdfAvatarEspecialista(registro);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Baixar PDF';
+      }
     };
     el.appendChild(card);
   });

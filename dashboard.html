@@ -153,25 +153,31 @@ html,body{ margin:0; padding:0; background:#0F1F3D; color:var(--cream); font-fam
 <script src="js/supabase-client.js"></script>
 <script>
 // Lista de aulas — adicionar uma entrada aqui quando uma aula nova for publicada
+// soAdmin: true = só aparece disponível pra quem tem role 'admin' (fica "Em breve" pros alunos até liberarmos)
 const AULAS = [
+  { id: 'avatar-especialista', numero: '★', titulo: 'Avatar e Especialista', descricao: 'Pesquisa inicial sobre seu público e sua identidade como especialista.', ativo: true, soAdmin: true, url: 'aulas/avatar-especialista.html' },
   { id: 'aula-0', numero: 0, titulo: 'Narrativa', descricao: 'Responda 6 perguntas e monte o texto da sua própria história.', ativo: true, url: 'aulas/aula-0.html' },
   { id: 'aula-1', numero: 1, titulo: 'Aula 1', descricao: 'Conteúdo em preparação.', ativo: false, url: null },
   { id: 'aula-2', numero: 2, titulo: 'Anatomia Viral', descricao: 'Monte headlines combinando gatilhos mentais e templates.', ativo: true, url: 'aulas/aula-2.html' },
 ];
 
+let currentProfile = null;
+
 function renderGrid(){
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
   AULAS.forEach(a => {
+    const bloqueadoPorRole = a.soAdmin && (!currentProfile || currentProfile.role !== 'admin');
+    const disponivel = a.ativo && !bloqueadoPorRole;
     const card = document.createElement('div');
-    card.className = 'card' + (a.ativo ? '' : ' locked');
+    card.className = 'card' + (disponivel ? '' : ' locked');
     card.innerHTML = `
       <div class="num">${a.numero}</div>
       <h2>${a.titulo}</h2>
       <p>${a.descricao}</p>
-      <div class="badge">${a.ativo ? 'Disponível' : 'Em breve'}</div>
+      <div class="badge">${disponivel ? 'Disponível' : 'Em breve'}</div>
     `;
-    if(a.ativo){
+    if(disponivel){
       card.onclick = () => { window.location.href = a.url; };
     }
     grid.appendChild(card);
@@ -183,6 +189,7 @@ function renderGrid(){
   const result = await requireApprovedSession('index.html');
   if(!result) return;
   const { profile } = result;
+  currentProfile = profile;
   document.getElementById('whoName').textContent = profile.nome || profile.email;
   if(profile.role === 'admin'){
     document.getElementById('adminLink').style.display = 'inline-block';

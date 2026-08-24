@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avatar e Especialista — ÊNFASE</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background: #0F1F3D;
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+
+.app{
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+}
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  background: var(--navy-2);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+
+.masthead{ text-align:center; margin-bottom: 32px; }
+.eyebrow{ font-family:'Poppins', sans-serif; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Poppins', sans-serif; font-weight:700; font-size: clamp(26px, 4.4vw, 36px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.5; max-width: 480px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.progress{ display:flex; gap: 5px; justify-content:center; flex-wrap: wrap; margin-bottom: 26px; }
+.dot{ width: 7px; height: 7px; border-radius: 50%; background: var(--navy-3); transition: background .2s ease; }
+.dot.active{ background: var(--gold); }
+.dot.done{ background: var(--gold-light); }
+
+.step-label{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 10px; text-align:center; }
+.step-bloco{ text-align:center; font-size: 12px; color: var(--cream-dim); font-style: italic; margin-bottom: 10px; }
+.question{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: clamp(18px, 2.8vw, 21px); line-height: 1.4; color: var(--cream); margin-bottom: 6px; text-align:center; }
+.question-sub{ text-align:center; color: var(--cream-dim); font-size: 13.5px; margin-bottom: 20px; }
+
+input[type=text], input[type=email], textarea{
+  width:100%;
+  background: var(--navy-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+}
+textarea{ min-height: 120px; resize: vertical; }
+input:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
+
+.field-error{ font-size: 12.5px; color: var(--red); margin-top: 8px; min-height: 16px; }
+
+.nav{ display:flex; justify-content: space-between; gap: 14px; margin-top: 22px; }
+button{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  padding: 13px 26px;
+  border-radius: var(--radius-pill);
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+button.primary:hover{ background: var(--gold-light); box-shadow: 0 8px 20px rgba(201,162,39,0.25); transform: translateY(-1px); }
+button:disabled{ opacity: 0.35; cursor: not-allowed; }
+
+.hidden{ display:none !important; }
+
+.result-title{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: clamp(20px, 3.2vw, 26px); color: var(--cream); margin: 0 0 8px; text-align:center; }
+.result-sub{ color: var(--cream-dim); font-size: 14px; text-align:center; margin: 0 0 24px; }
+.result-icon{ width: 56px; height: 56px; margin: 0 auto 18px; border-radius: var(--radius-pill); background: rgba(201,162,39,0.12); display:flex; align-items:center; justify-content:center; font-size: 26px; }
+.result-actions{ display:flex; gap: 12px; flex-wrap: wrap; justify-content:center; margin-top: 8px; }
+
+.status{ font-size: 13px; color: var(--cream-dim); margin-top: 14px; min-height: 18px; text-align:center; }
+.status.error{ color: var(--red); }
+
+.blocked{ text-align:center; padding: 60px 20px; }
+
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+  .nav{ flex-direction: column-reverse; }
+  .nav button{ width: 100%; }
+  .result-actions{ flex-direction: column; width: 100%; }
+  .result-actions button{ width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="ÊNFASE" class="logo">
+    <div style="display:flex; gap:10px;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Pesquisa Inicial</div>
+    <h1>Avatar e Especialista</h1>
+    <p class="quote">Responda com o máximo de detalhes possível. Quanto mais específico, melhor o roteiro final consegue falar diretamente com o público certo.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="card">
+
+    <!-- TELA DE PERGUNTAS -->
+    <div id="questionScreen">
+      <div class="progress" id="progress"></div>
+      <div class="step-label" id="stepLabel">PERGUNTA 1 DE 14</div>
+      <div class="step-bloco" id="stepBloco"></div>
+      <div class="question" id="questionText"></div>
+      <div class="question-sub" id="questionSub"></div>
+      <div id="fieldWrap"></div>
+      <div class="field-error" id="fieldError"></div>
+      <div class="nav">
+        <button id="backBtn">Voltar</button>
+        <button class="primary" id="nextBtn">Avançar</button>
+      </div>
+    </div>
+
+    <!-- TELA DE RESULTADO -->
+    <div id="resultScreen" class="hidden">
+      <div class="result-icon">✓</div>
+      <div class="result-title">Pesquisa concluída</div>
+      <div class="result-sub" id="resultSub"></div>
+      <div class="result-actions">
+        <button class="primary" id="downloadBtn">Baixar PDF</button>
+        <button id="restartBtn">Refazer pesquisa</button>
+      </div>
+      <div class="status" id="resultStatus"></div>
+    </div>
+
+    <!-- BLOQUEADO -->
+    <div id="blockedScreen" class="hidden">
+      <div class="blocked">
+        <div class="result-icon">🔒</div>
+        <div class="result-title">Ainda não disponível</div>
+        <p class="result-sub">Essa atividade ainda não foi liberada pela professora.</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+const CAMPOS_FIXOS = [
+  { id: 'nome', label: 'Nome completo', tipo: 'text', placeholder: 'Seu nome completo' },
+  { id: 'email', label: 'Email', tipo: 'email', placeholder: 'seu@email.com' },
+];
+
+const PERGUNTAS = [
+  { id: 'avatar_desejos', bloco: 'BLOCO 1 — SOBRE O AVATAR (o público que você quer atingir)', label: 'Desejos', pergunta: 'O que esse público quer alcançar ou resolver?' },
+  { id: 'avatar_dores', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Dores', pergunta: 'Quais medos, vergonhas, frustrações ou tabus esse público carrega?' },
+  { id: 'avatar_demografia', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Características demográficas', pergunta: 'Idade, gênero predominante, classe social, região?' },
+  { id: 'avatar_qualidades', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Qualidades desse público', pergunta: 'O que já faz bem, já busca, já sabe?' },
+  { id: 'avatar_defeitos', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Defeitos/resistências', pergunta: 'O que evita, o que atrapalha esse público a agir?' },
+  { id: 'avatar_referencias', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Itens/referências que esse público já conhece', pergunta: 'Memes, outras figuras públicas, termos, expressões que usam?' },
+  { id: 'esp_conquistas', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA (você)', label: 'Desejos e conquistas', pergunta: 'O que você já realizou na carreira/vida?' },
+  { id: 'esp_dor', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Situações dolorosas', pergunta: 'O que você já enfrentou (profissionais ou pessoais que humanizam sua história)?' },
+  { id: 'esp_habitos', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Hábitos e hobbies', pergunta: 'Quais são?' },
+  { id: 'esp_formacao', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Formação profissional', pergunta: 'Onde estudou, especializações, tempo de atuação?' },
+  { id: 'esp_quemvoce', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Quem você é', pergunta: 'Idade, estado civil, nacionalidade/cidade?' },
+  { id: 'esp_qualidades', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Qualidades pessoais', pergunta: 'Bom humor, didático, direto, paciente etc.?' },
+];
+
+const STEPS = [...CAMPOS_FIXOS, ...PERGUNTAS];
+
+let current = 0;
+const respostas = {};
+let currentUserId = null;
+let registroAtual = null;
+
+const progressEl = document.getElementById("progress");
+const stepLabel = document.getElementById("stepLabel");
+const stepBloco = document.getElementById("stepBloco");
+const questionText = document.getElementById("questionText");
+const questionSub = document.getElementById("questionSub");
+const fieldWrap = document.getElementById("fieldWrap");
+const fieldError = document.getElementById("fieldError");
+const backBtn = document.getElementById("backBtn");
+const nextBtn = document.getElementById("nextBtn");
+const questionScreen = document.getElementById("questionScreen");
+const resultScreen = document.getElementById("resultScreen");
+
+function renderProgress(){
+  progressEl.innerHTML = "";
+  STEPS.forEach((_, i) => {
+    const d = document.createElement("div");
+    d.className = "dot" + (i === current ? " active" : i < current ? " done" : "");
+    progressEl.appendChild(d);
+  });
+}
+
+function currentFieldValue(){
+  const el = document.getElementById('stepField');
+  return el ? el.value.trim() : '';
+}
+
+function renderStep(){
+  const step = STEPS[current];
+  stepLabel.textContent = `PERGUNTA ${current + 1} DE ${STEPS.length}`;
+  stepBloco.textContent = step.bloco || '';
+  questionText.textContent = step.label;
+  questionSub.textContent = step.pergunta || '';
+  fieldError.textContent = '';
+
+  const valorSalvo = respostas[step.id] || '';
+  if(step.tipo === 'text' || step.tipo === 'email'){
+    fieldWrap.innerHTML = `<input type="${step.tipo}" id="stepField" placeholder="${step.placeholder}">`;
+  } else {
+    fieldWrap.innerHTML = `<textarea id="stepField" placeholder="Escreva aqui, com o máximo de detalhes..."></textarea>`;
+  }
+  const el = document.getElementById('stepField');
+  el.value = valorSalvo;
+  el.addEventListener('input', () => { fieldError.textContent = ''; });
+
+  backBtn.disabled = current === 0;
+  nextBtn.textContent = current === STEPS.length - 1 ? "Concluir pesquisa" : "Avançar";
+  renderProgress();
+  el.focus();
+}
+
+function validarStep(){
+  const step = STEPS[current];
+  const val = currentFieldValue();
+  if(!val){
+    fieldError.textContent = 'Essa pergunta precisa de uma resposta.';
+    return false;
+  }
+  if(step.tipo === 'email' && !val.includes('@')){
+    fieldError.textContent = 'Digite um email válido.';
+    return false;
+  }
+  return true;
+}
+
+nextBtn.addEventListener("click", async () => {
+  if(!validarStep()) return;
+  respostas[STEPS[current].id] = currentFieldValue();
+
+  if(current < STEPS.length - 1){
+    current++;
+    renderStep();
+  } else {
+    await concluirPesquisa();
+  }
+});
+
+backBtn.addEventListener("click", () => {
+  respostas[STEPS[current].id] = currentFieldValue();
+  if(current > 0){
+    current--;
+    renderStep();
+  }
+});
+
+document.getElementById("restartBtn").addEventListener("click", () => {
+  current = 0;
+  Object.keys(respostas).forEach(k => delete respostas[k]);
+  resultScreen.classList.add("hidden");
+  questionScreen.classList.remove("hidden");
+  document.getElementById("resultStatus").textContent = '';
+  renderStep();
+});
+
+// ---------------------------------------------------------------
+// SALVAR / CARREGAR
+// ---------------------------------------------------------------
+async function concluirPesquisa(){
+  nextBtn.disabled = true;
+  nextBtn.textContent = 'Salvando...';
+
+  const dadosPerguntas = {};
+  PERGUNTAS.forEach(p => { dadosPerguntas[p.id] = respostas[p.id] || ''; });
+
+  const { data, error } = await supabaseClient
+    .from('avatar_especialista')
+    .upsert({
+      user_id: currentUserId,
+      nome: respostas.nome,
+      email: respostas.email,
+      respostas: dadosPerguntas
+    }, { onConflict: 'user_id' })
+    .select()
+    .single();
+
+  nextBtn.disabled = false;
+  nextBtn.textContent = 'Concluir pesquisa';
+
+  if(error){
+    fieldError.textContent = 'Não foi possível salvar. Tente novamente.';
+    return;
+  }
+
+  registroAtual = data;
+  mostrarResultado();
+}
+
+function mostrarResultado(){
+  questionScreen.classList.add("hidden");
+  resultScreen.classList.remove("hidden");
+  const data = new Date(registroAtual.concluido_em || registroAtual.created_at);
+  document.getElementById('resultSub').textContent = `Concluída em ${data.toLocaleString('pt-BR')}`;
+}
+
+async function carregarPesquisa(){
+  const { data, error } = await supabaseClient
+    .from('avatar_especialista')
+    .select('*')
+    .eq('user_id', currentUserId)
+    .maybeSingle();
+  if(error){
+    console.error('Não foi possível carregar a pesquisa salva', error);
+    renderStep();
+    return;
+  }
+  if(data){
+    registroAtual = data;
+    mostrarResultado();
+  } else {
+    renderStep();
+  }
+}
+
+// ---------------------------------------------------------------
+// GERAÇÃO DE PDF
+// ---------------------------------------------------------------
+function svgToPngDataUrl(url, width, height){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function gerarPdfAvatarEspecialista(registro){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+
+  try{
+    const logoDataUrl = await svgToPngDataUrl('../assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${registro.nome}`, margin, y);
+  y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  doc.text(`Email: ${registro.email}`, margin, y);
+  y += 6;
+  const dataConclusao = new Date(registro.concluido_em || registro.created_at).toLocaleString('pt-BR');
+  doc.text(`Concluído em: ${dataConclusao}`, margin, y);
+  y += 12;
+
+  PERGUNTAS.forEach(p => {
+    const resposta = (registro.respostas && registro.respostas[p.id]) || '';
+    if(y > pageHeight - 30){ doc.addPage(); y = 22; }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(15, 31, 61);
+    const tituloLines = doc.splitTextToSize(`${p.label} — ${p.pergunta}`, maxWidth);
+    doc.text(tituloLines, margin, y);
+    y += tituloLines.length * 5.5 + 2;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(40, 40, 40);
+    const respLines = doc.splitTextToSize(resposta, maxWidth);
+    respLines.forEach(line => {
+      if(y > pageHeight - 20){ doc.addPage(); y = 22; }
+      doc.text(line, margin, y);
+      y += 5.5;
+    });
+    y += 7;
+  });
+
+  const nomeArquivo = (registro.nome || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`avatar-especialista-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('downloadBtn');
+  const status = document.getElementById('resultStatus');
+  btn.disabled = true;
+  status.textContent = 'Gerando PDF...';
+  status.className = 'status';
+  try{
+    await gerarPdfAvatarEspecialista(registroAtual);
+    status.textContent = '';
+  } catch(e){
+    status.textContent = 'Não foi possível gerar o PDF. Tente novamente.';
+    status.className = 'status error';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  const { session, profile } = result;
+
+  if(profile.role !== 'admin'){
+    document.getElementById('questionScreen').classList.add('hidden');
+    document.getElementById('resultScreen').classList.add('hidden');
+    document.getElementById('blockedScreen').classList.remove('hidden');
+    return;
+  }
+
+  currentUserId = session.user.id;
+  respostas.nome = profile.nome || '';
+  await carregarPesquisa();
+})();
+</script>
+
+</body>
+</html>
