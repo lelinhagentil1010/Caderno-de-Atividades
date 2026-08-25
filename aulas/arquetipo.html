@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionário Arquétipo — ÊNFASE</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background: #0F1F3D;
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+
+.app{
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+}
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  background: var(--navy-2);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+
+.masthead{ text-align:center; margin-bottom: 32px; }
+.eyebrow{ font-family:'Poppins', sans-serif; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Poppins', sans-serif; font-weight:700; font-size: clamp(24px, 4.4vw, 34px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14px; line-height: 1.5; max-width: 480px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.progress-bar{ height: 4px; background: var(--navy-3); border-radius: var(--radius-pill); margin-bottom: 22px; overflow:hidden; }
+.progress-fill{ height: 100%; background: var(--gold); border-radius: var(--radius-pill); transition: width .25s ease; }
+.progress-count{ text-align:center; font-size: 12px; color: var(--cream-dim); margin-bottom: 18px; }
+
+.step-label{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 10px; text-align:center; }
+.question{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: clamp(18px, 2.8vw, 21px); line-height: 1.4; color: var(--cream); margin-bottom: 22px; text-align:center; }
+
+input[type=text], input[type=email], input[type=tel], textarea{
+  width:100%;
+  background: var(--navy-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+}
+textarea{ min-height: 120px; resize: vertical; }
+input:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
+
+.field-error{ font-size: 12.5px; color: var(--red); margin-top: 8px; min-height: 16px; text-align:center; }
+
+.nav{ display:flex; justify-content: space-between; gap: 14px; margin-top: 22px; }
+button{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  padding: 13px 26px;
+  border-radius: var(--radius-pill);
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+button.primary:hover{ background: var(--gold-light); box-shadow: 0 8px 20px rgba(201,162,39,0.25); transform: translateY(-1px); }
+button:disabled{ opacity: 0.35; cursor: not-allowed; }
+
+.hidden{ display:none !important; }
+
+/* escala (Likert) */
+.escala-row{ display:flex; justify-content:center; gap: 10px; margin-top: 4px; }
+.escala-btn{
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-dim);
+  background: var(--navy-3);
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  cursor: pointer;
+  transition: all .15s ease;
+  padding: 0;
+}
+.escala-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.12); }
+.escala-btn.selected{ background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.escala-labels{ display:flex; justify-content:space-between; margin-top: 12px; font-size: 12px; color: var(--cream-dim); font-style: italic; }
+
+/* multipla escolha */
+.opcoes-list{ display:flex; flex-direction:column; gap: 12px; }
+.opcao-btn{
+  width: 100%;
+  text-align:left;
+  padding: 16px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--navy-3);
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.opcao-btn:hover{ border-color: var(--gold-dim); background: rgba(201,162,39,0.08); }
+.opcao-btn.selected{ border-color: var(--gold); background: linear-gradient(180deg, rgba(201,162,39,0.16), rgba(201,162,39,0.05)); color: var(--gold-light); }
+
+.result-title{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: clamp(20px, 3.2vw, 26px); color: var(--cream); margin: 0 0 8px; text-align:center; }
+.result-sub{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.6; text-align:center; max-width: 460px; margin: 0 auto; }
+.result-icon{ width: 56px; height: 56px; margin: 0 auto 18px; border-radius: var(--radius-pill); background: rgba(201,162,39,0.12); display:flex; align-items:center; justify-content:center; font-size: 26px; }
+
+.status{ font-size: 13px; color: var(--cream-dim); margin-top: 14px; min-height: 18px; text-align:center; }
+.status.error{ color: var(--red); }
+
+.blocked{ text-align:center; padding: 60px 20px; }
+
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+  .nav{ flex-direction: column-reverse; }
+  .nav button{ width: 100%; }
+  .escala-btn{ width: 42px; height: 42px; font-size: 15px; }
+  .escala-row{ gap: 6px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="ÊNFASE" class="logo">
+    <div style="display:flex; gap:10px;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Diagnóstico</div>
+    <h1>Questionário Arquétipo</h1>
+    <p class="quote">Responda com sinceridade — não existe resposta certa ou errada. Suas respostas ficam salvas automaticamente a cada passo.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="card">
+
+    <!-- TELA DE PERGUNTAS -->
+    <div id="questionScreen">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-count" id="progressCount"></div>
+      <div class="step-label" id="stepLabel"></div>
+      <div class="question" id="questionText"></div>
+      <div id="fieldWrap"></div>
+      <div class="field-error" id="fieldError"></div>
+      <div class="nav">
+        <button id="backBtn">Voltar</button>
+        <button class="primary hidden" id="nextBtn">Avançar</button>
+      </div>
+    </div>
+
+    <!-- TELA DE CONCLUSÃO -->
+    <div id="resultScreen" class="hidden">
+      <div class="result-icon">✓</div>
+      <div class="result-title">Questionário concluído!</div>
+      <p class="result-sub">Obrigado por responder com sinceridade. A mentora vai analisar suas respostas e entrar em contato assim que finalizar a leitura do seu arquétipo.</p>
+    </div>
+
+    <!-- BLOQUEADO -->
+    <div id="blockedScreen" class="hidden">
+      <div class="blocked">
+        <div class="result-icon">🔒</div>
+        <div class="result-title">Ainda não disponível</div>
+        <p class="result-sub">Essa atividade é liberada individualmente pela professora. Assim que ela liberar pra você, o card aparece no seu painel.</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+// ---------------------------------------------------------------
+// DADOS DO QUESTIONÁRIO
+// ---------------------------------------------------------------
+const CONTATO_FIXOS = [
+  { id: 'primeiro_nome', label: 'Primeiro nome', tipo: 'contato-text', placeholder: 'Seu primeiro nome' },
+  { id: 'sobrenome', label: 'Sobrenome', tipo: 'contato-text', placeholder: 'Seu sobrenome' },
+  { id: 'telefone', label: 'Telefone', tipo: 'contato-tel', placeholder: '(00) 00000-0000' },
+  { id: 'email', label: 'Email', tipo: 'contato-email', placeholder: 'seu@email.com' },
+  { id: 'empresa', label: 'Empresa/negócio', tipo: 'contato-text', placeholder: 'Nome da sua empresa ou negócio' },
+];
+
+const GRUPO_A = [
+  "Eu me sinto mais eu mesmo quando estou resolvendo um problema que ninguém mais conseguiu resolver.",
+  "Prefiro manter minha rotina estável a testar algo novo sem necessidade.",
+  "Quando alguém está sofrendo perto de mim, é quase automático querer cuidar.",
+  "Gosto de ser a pessoa que assume o controle quando tudo desmorona.",
+  "Rir de mim mesmo em público não me incomoda, às vezes eu provoco isso.",
+  "Acredito que existe sempre uma explicação lógica por trás das coisas, mesmo quando parecem inexplicáveis.",
+  "Prefiro ambientes onde ninguém está competindo por status ou aparência.",
+  "Já fui descrito como alguém \"intenso demais\" por pessoas próximas.",
+  "Tenho facilidade em fazer as pessoas se sentirem especiais e desejadas.",
+  "Não me canso de aprender coisas novas, mesmo fora da minha área.",
+  "Prefiro seguir regras estabelecidas a inventar meu próprio caminho.",
+  "Sinto que fui colocado aqui para proteger quem não consegue se proteger sozinho.",
+  "Tenho prazer em criar coisas do zero, mesmo sem saber exatamente onde vai dar.",
+  "Confio mais em dados e estrutura do que em intuição.",
+  "Já me disseram que tenho uma energia contagiante em ambientes sociais.",
+  "Prefiro dizer a verdade difícil a manter todo mundo confortável.",
+  "Gosto de estar no comando e decidir por onde o grupo vai.",
+  "Quando algo está errado no sistema, minha vontade é quebrar a regra, não pedir permissão.",
+  "Sinto satisfação profunda quando alguém me diz que eu mudei a vida dele.",
+  "Prefiro ser visto como alguém confiável e presente a alguém brilhante e distante.",
+  "Tenho facilidade em simplificar o que é complicado para os outros entenderem.",
+  "Já abri mão de segurança financeira ou estabilidade para viver algo novo.",
+  "Fico incomodado quando sinto que estou sendo apenas mais um na multidão.",
+  "Prefiro liderar pelo exemplo a liderar pela imposição.",
+  "Tenho facilidade em fazer amigos em qualquer ambiente novo.",
+  "Não tenho medo de parecer estranho se isso significa ser autêntico.",
+  "Gosto de criar experiências bonitas, sejam visuais, emocionais ou sensoriais.",
+  "Prefiro resolver um problema sozinho a delegar para alguém.",
+  "Acredito que a vida deveria ser mais leve do que as pessoas fazem parecer.",
+  "Sinto que tenho uma missão maior do que o meu trabalho do dia a dia.",
+  "Tenho dificuldade em aceitar autoridade que não fez por merecer.",
+  "Prefiro ambientes organizados e previsíveis a ambientes caóticos e criativos.",
+  "Já fui procurado por pessoas que queriam minha opinião antes de decidir algo importante.",
+  "Tenho um desconforto genuíno com desigualdade ou injustiça.",
+  "Gosto de ser a pessoa que enxerga o potencial que os outros ainda não veem em si mesmos.",
+  "Prefiro construir algo com minhas próprias mãos a comprar pronto.",
+  "Sinto que minha função é trazer leveza para momentos tensos.",
+  "Não gosto de seguir tendência só porque todo mundo está seguindo.",
+  "Tenho facilidade em perdoar e recomeçar relações que deram errado.",
+  "Prefiro assumir o risco de errar a nunca ter tentado.",
+  "Sinto orgulho genuíno quando algo que criei impacta muita gente.",
+  "Acredito que regras existem para servir as pessoas, não o contrário.",
+  "Já me chamaram de \"cabeça fria\" em momentos de crise.",
+  "Tenho facilidade em me conectar emocionalmente com desconhecidos.",
+  "Prefiro ambientes simples e sem pretensão a lugares sofisticados demais.",
+  "Sinto que tenho responsabilidade de manter tudo funcionando quando ninguém mais assume.",
+  "Gosto de romper padrões só para ver o que acontece.",
+  "Tenho facilidade em explicar coisas complexas usando metáforas ou histórias.",
+  "Prefiro proteger meu círculo próximo a expandir minha rede de contatos.",
+  "Já fui procurado por alguém que queria \"a mesma transformação\" que eu tive.",
+  "Gosto de estar no controle das decisões financeiras e estratégicas da minha vida ou negócio.",
+  "Sinto prazer genuíno em fazer os outros rirem, mesmo à minha própria custa.",
+  "Prefiro qualidade artesanal a produção em escala.",
+  "Tenho facilidade em confiar nas pessoas antes delas provarem que merecem.",
+  "Já me senti sufocado em ambientes muito rígidos ou burocráticos.",
+  "Sinto que minha palavra tem peso, as pessoas escutam quando eu falo.",
+  "Gosto de experimentar coisas novas antes delas ficarem populares.",
+  "Prefiro um relacionamento profundo a vários relacionamentos superficiais.",
+  "Tenho facilidade em identificar o que está por trás do comportamento das pessoas.",
+  "Já fui a pessoa que quebrou uma regra do grupo porque achava injusta.",
+  "Sinto que meu papel é dar estrutura para caos alheio.",
+  "Gosto de ser reconhecido pela beleza ou sensibilidade daquilo que eu faço.",
+  "Prefiro estar sempre em movimento a ficar parado num lugar só.",
+  "Tenho facilidade em fazer as pessoas relaxarem em momentos de tensão.",
+  "Já abandonei um caminho seguro porque ele não fazia mais sentido pra mim.",
+  "Sinto que fui feito para provar que o extraordinário é possível.",
+  "Gosto de cuidar dos detalhes que ninguém mais percebe.",
+  "Prefiro pertencer a um grupo comum a ser visto como diferente dos outros.",
+  "Tenho facilidade em transformar uma situação ruim em algo positivo com humor.",
+  "Sinto que existe algo maior acontecendo através de mim quando estou no auge do meu trabalho.",
+  "Prefiro liderar com autoridade clara a liderar de forma horizontal e consensual.",
+  "Já me disseram que sou \"intenso demais\" ou \"grande demais\" para o ambiente em que estava.",
+];
+
+const GRUPO_B = [
+  { pergunta: "Quando encontro um problema difícil, meu primeiro instinto é:", opcoes: ["Estudar, pesquisar e entender profundamente antes de agir", "Sentir intuitivamente qual é o caminho e agir na hora certa"] },
+  { pergunta: "As pessoas me procuram principalmente para:", opcoes: ["Entender uma situação com mais clareza e lógica", "Viver uma experiência de transformação que parece quase mágica"] },
+  { pergunta: "Meu maior orgulho profissional é:", opcoes: ["Saber mais sobre o meu assunto do que praticamente qualquer um", "Provocar mudanças que a própria pessoa não sabia que eram possíveis"] },
+  { pergunta: "Quando assumo o controle de uma situação difícil, é porque:", opcoes: ["Alguém precisa agir e enfrentar o problema de frente, e esse alguém sou eu", "Falta estrutura e organização, e eu sei como colocar ordem"] },
+  { pergunta: "Eu me sinto mais realizado quando:", opcoes: ["Supero um desafio que exigiu coragem e sacrifício pessoal", "Construo um sistema ou legado que continua funcionando sem mim"] },
+  { pergunta: "Minha maior força em uma crise é:", opcoes: ["Agir rápido e assumir o risco que ninguém mais quer assumir", "Manter a cabeça fria e organizar quem está em pânico"] },
+  { pergunta: "Quando alguém próximo está sofrendo, meu instinto é:", opcoes: ["Cuidar, proteger e resolver o problema por ela", "Estar presente, criar conexão profunda e fazer ela se sentir vista"] },
+  { pergunta: "As pessoas dizem que eu sou alguém que:", opcoes: ["Sempre está disponível para ajudar, mesmo se sacrificando", "Faz qualquer pessoa se sentir especial e desejada"] },
+  { pergunta: "Meu maior medo em um relacionamento (profissional ou pessoal) é:", opcoes: ["Não conseguir proteger ou cuidar de quem depende de mim", "Perder a conexão e a intimidade genuína com o outro"] },
+];
+
+const GRUPO_C = [
+  { pergunta: "Você está no meio de um projeto importante e descobre um erro grave que ninguém mais percebeu. Ele não é seu, mas se não for corrigido agora, vai comprometer tudo. Você:", opcoes: ["Assume a correção sozinho, mesmo que isso signifique noites sem dormir", "Reúne todo mundo, expõe o problema com clareza e organiza um plano de ação", "Aponta o erro com humor, tirando a tensão do ambiente antes de resolver", "Silenciosamente corrige o que pode e deixa o resto para depois, sem alarde"] },
+  { pergunta: "Alguém que você respeita muito discorda publicamente de uma decisão sua. Sua reação mais provável é:", opcoes: ["Defender sua posição com firmeza, mesmo sob desconforto", "Explicar com calma o raciocínio por trás da decisão", "Perguntar o que a pessoa está sentindo antes de qualquer coisa", "Deixar quieto por um tempo e voltar ao assunto quando estiver mais leve"] },
+  { pergunta: "Você tem duas opções de caminho profissional: uma segura e previsível, outra arriscada mas alinhada com algo que você acredita profundamente. Historicamente, você escolhe:", opcoes: ["O caminho arriscado, quase sempre", "O caminho seguro, a não ser que o risco seja calculado e bem estruturado", "Depende de quem vai estar comigo nessa jornada", "O que parecer mais interessante e menos óbvio no momento"] },
+  { pergunta: "Quando você erra publicamente, sua reação mais comum é:", opcoes: ["Assumir o erro rápido e já partir para consertar", "Analisar o que deu errado antes de falar qualquer coisa", "Rir de si mesmo para aliviar a tensão do ambiente", "Sentir muito e se preocupar com quem foi afetado antes de pensar em si"] },
+  { pergunta: "Se pudesse escolher como as pessoas lembrariam de você daqui a 10 anos, seria como alguém que:", opcoes: ["Teve coragem de enfrentar o que precisava ser enfrentado", "Trouxe clareza e verdade para quem estava perdido", "Construiu algo que durou além dele", "Fez as pessoas se sentirem mais vivas e conectadas"] },
+];
+
+const GRUPO_D = [
+  "Descreva uma situação em que você agiu de um jeito que te surpreendeu, positivamente ou negativamente. O que aconteceu?",
+  "Se seu trabalho fosse um personagem de filme ou livro, qual seria e por quê?",
+  "Qual crítica ou apelido as pessoas mais próximas já te deram, mesmo que de brincadeira, que você sente que tem um fundo de verdade?",
+];
+
+// monta a lista única de passos
+const STEPS = [];
+CONTATO_FIXOS.forEach(c => STEPS.push({ id: c.id, tipo: c.tipo, label: c.label, pergunta: c.label, placeholder: c.placeholder, grupo: 'contato' }));
+GRUPO_A.forEach((texto, i) => STEPS.push({ id: `a_${i+1}`, tipo: 'escala', pergunta: texto, grupo: 'A' }));
+GRUPO_B.forEach((q, i) => STEPS.push({ id: `b_${i+1}`, tipo: 'escolha', pergunta: q.pergunta, opcoes: q.opcoes, grupo: 'B' }));
+GRUPO_C.forEach((q, i) => STEPS.push({ id: `c_${i+1}`, tipo: 'escolha', pergunta: q.pergunta, opcoes: q.opcoes, grupo: 'C' }));
+GRUPO_D.forEach((texto, i) => STEPS.push({ id: `d_${i+1}`, tipo: 'texto', pergunta: texto, grupo: 'D' }));
+
+// ---------------------------------------------------------------
+// ESTADO
+// ---------------------------------------------------------------
+let current = 0;
+const contato = {};
+const respostas = {};
+let currentUserId = null;
+let salvando = false;
+
+const questionScreen = document.getElementById('questionScreen');
+const resultScreen = document.getElementById('resultScreen');
+const stepLabel = document.getElementById('stepLabel');
+const questionText = document.getElementById('questionText');
+const fieldWrap = document.getElementById('fieldWrap');
+const fieldError = document.getElementById('fieldError');
+const backBtn = document.getElementById('backBtn');
+const nextBtn = document.getElementById('nextBtn');
+const progressFill = document.getElementById('progressFill');
+const progressCount = document.getElementById('progressCount');
+
+function grupoLabel(g){
+  return { contato: 'SOBRE VOCÊ', A: 'BLOCO 1', B: 'BLOCO 2', C: 'BLOCO 3', D: 'BLOCO 4' }[g] || '';
+}
+
+function renderStep(){
+  const step = STEPS[current];
+  stepLabel.textContent = grupoLabel(step.grupo);
+  questionText.textContent = step.pergunta;
+  fieldError.textContent = '';
+  progressFill.style.width = `${Math.round((current / STEPS.length) * 100)}%`;
+  progressCount.textContent = `${current + 1} de ${STEPS.length}`;
+  backBtn.disabled = current === 0;
+
+  if(step.tipo.startsWith('contato')){
+    const inputType = step.tipo === 'contato-email' ? 'email' : step.tipo === 'contato-tel' ? 'tel' : 'text';
+    fieldWrap.innerHTML = `<input type="${inputType}" id="stepField" placeholder="${step.placeholder}">`;
+    document.getElementById('stepField').value = contato[step.id] || '';
+    nextBtn.classList.remove('hidden');
+    document.getElementById('stepField').focus();
+  } else if(step.tipo === 'texto'){
+    fieldWrap.innerHTML = `<textarea id="stepField" placeholder="Escreva aqui..."></textarea>`;
+    document.getElementById('stepField').value = respostas[step.id] || '';
+    nextBtn.classList.remove('hidden');
+    document.getElementById('stepField').focus();
+  } else if(step.tipo === 'escala'){
+    const selecionado = respostas[step.id];
+    let html = '<div class="escala-row">';
+    for(let n = 1; n <= 5; n++){
+      html += `<button type="button" class="escala-btn${selecionado == n ? ' selected' : ''}" data-valor="${n}">${n}</button>`;
+    }
+    html += '</div><div class="escala-labels"><span>Discordo totalmente</span><span>Concordo totalmente</span></div>';
+    fieldWrap.innerHTML = html;
+    fieldWrap.querySelectorAll('.escala-btn').forEach(btn => {
+      btn.onclick = () => { respostas[step.id] = btn.dataset.valor; avancar(); };
+    });
+    nextBtn.classList.add('hidden');
+  } else if(step.tipo === 'escolha'){
+    const selecionado = respostas[step.id];
+    let html = '<div class="opcoes-list">';
+    step.opcoes.forEach((op, i) => {
+      html += `<button type="button" class="opcao-btn${selecionado === op ? ' selected' : ''}" data-valor="${i}">${op}</button>`;
+    });
+    html += '</div>';
+    fieldWrap.innerHTML = html;
+    fieldWrap.querySelectorAll('.opcao-btn').forEach((btn, i) => {
+      btn.onclick = () => { respostas[step.id] = step.opcoes[i]; avancar(); };
+    });
+    nextBtn.classList.add('hidden');
+  }
+}
+
+function valorAtualDoCampo(){
+  const el = document.getElementById('stepField');
+  return el ? el.value.trim() : '';
+}
+
+function validarStepAtual(){
+  const step = STEPS[current];
+  if(step.tipo.startsWith('contato') || step.tipo === 'texto'){
+    const val = valorAtualDoCampo();
+    if(!val){ fieldError.textContent = 'Essa pergunta precisa de uma resposta.'; return false; }
+    if(step.tipo === 'contato-email' && !val.includes('@')){ fieldError.textContent = 'Digite um email válido.'; return false; }
+    if(step.tipo.startsWith('contato')) contato[step.id] = val;
+    else respostas[step.id] = val;
+    return true;
+  }
+  // escala/escolha já são salvas no clique
+  if(!respostas[step.id]){ fieldError.textContent = 'Selecione uma opção antes de continuar.'; return false; }
+  return true;
+}
+
+nextBtn.addEventListener('click', () => {
+  if(!validarStepAtual()) return;
+  avancar();
+});
+
+async function avancar(){
+  await salvarProgresso();
+  if(current < STEPS.length - 1){
+    current++;
+    renderStep();
+  } else {
+    await concluir();
+  }
+}
+
+backBtn.addEventListener('click', () => {
+  if(document.getElementById('stepField')){
+    const step = STEPS[current];
+    const val = valorAtualDoCampo();
+    if(step.tipo.startsWith('contato')) contato[step.id] = val;
+    else if(step.tipo === 'texto') respostas[step.id] = val;
+  }
+  if(current > 0){
+    current--;
+    renderStep();
+  }
+});
+
+// ---------------------------------------------------------------
+// PERSISTÊNCIA (salva a cada passo — resume de onde parou)
+// ---------------------------------------------------------------
+async function salvarProgresso(){
+  if(salvando) return;
+  salvando = true;
+  try{
+    await supabaseClient.from('arquetipo').upsert({
+      user_id: currentUserId,
+      contato,
+      respostas,
+      passo_atual: current,
+      concluido: false
+    }, { onConflict: 'user_id' });
+  } catch(e){
+    console.error('Não foi possível salvar o progresso', e);
+  } finally {
+    salvando = false;
+  }
+}
+
+async function concluir(){
+  await supabaseClient.from('arquetipo').upsert({
+    user_id: currentUserId,
+    contato,
+    respostas,
+    passo_atual: STEPS.length,
+    concluido: true,
+    concluido_em: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+  questionScreen.classList.add('hidden');
+  resultScreen.classList.remove('hidden');
+}
+
+async function carregarProgresso(){
+  const { data, error } = await supabaseClient
+    .from('arquetipo')
+    .select('*')
+    .eq('user_id', currentUserId)
+    .maybeSingle();
+  if(error){ console.error('Não foi possível carregar o progresso salvo', error); renderStep(); return; }
+  if(data){
+    if(data.concluido){
+      questionScreen.classList.add('hidden');
+      resultScreen.classList.remove('hidden');
+      return;
+    }
+    Object.assign(contato, data.contato || {});
+    Object.assign(respostas, data.respostas || {});
+    current = Math.min(data.passo_atual || 0, STEPS.length - 1);
+  }
+  renderStep();
+}
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  const { session, profile } = result;
+
+  if(profile.role !== 'admin' && !profile.arquetipo_habilitado){
+    document.getElementById('questionScreen').classList.add('hidden');
+    document.getElementById('blockedScreen').classList.remove('hidden');
+    return;
+  }
+
+  currentUserId = session.user.id;
+  await carregarProgresso();
+})();
+</script>
+
+</body>
+</html>

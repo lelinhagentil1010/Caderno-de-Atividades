@@ -228,6 +228,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
     <div class="field">
       <label for="aulaSelect">Aula</label>
       <select id="aulaSelect" onchange="onAulaSelectChange()">
+        <option value="arquetipo:respostas">Arquétipo · Respostas</option>
         <option value="avatar:especialista">Pesquisa · Avatar e Especialista</option>
         <option value="roteiro:aula-0">Aula 0 · Minha Narrativa</option>
         <option value="headlines:aula-2">Aula 2 · Caderno de Gatilhos</option>
@@ -255,6 +256,7 @@ function onAulaSelectChange(){
   const [tipo, aulaId] = document.getElementById('aulaSelect').value.split(':');
   if(tipo === 'roteiro') carregarRoteiros(aulaId);
   else if(tipo === 'avatar') carregarAvatarEspecialista();
+  else if(tipo === 'arquetipo') carregarArquetipoRespostas();
   else carregarRespostas(aulaId);
 }
 
@@ -414,11 +416,39 @@ async function carregarAlunos(){
           <button class="small reject excluir">Excluir</button>
         </div>
       </div>
+      <div class="row" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--cream-dim); cursor:pointer;">
+          <input type="checkbox" class="toggle-arquetipo" ${p.arquetipo_habilitado ? 'checked' : ''} style="width:16px; height:16px;">
+          Liberar Questionário Arquétipo
+        </label>
+        <button class="small copiar-link-arquetipo">Copiar link</button>
+      </div>
     `;
     card.querySelector('.reset-senha').onclick = (e) => resetarSenhaAluno(p, e.target);
     card.querySelector('.excluir').onclick = (e) => excluirAluno(p, e.target);
+    card.querySelector('.toggle-arquetipo').onchange = (e) => alternarArquetipoHabilitado(p, e.target);
+    card.querySelector('.copiar-link-arquetipo').onclick = (e) => {
+      navigator.clipboard.writeText(`${window.location.origin}/aulas/arquetipo.html`);
+      const btn = e.target;
+      const original = btn.textContent;
+      btn.textContent = 'Copiado!';
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    };
     el.appendChild(card);
   });
+}
+
+async function alternarArquetipoHabilitado(aluno, checkbox){
+  checkbox.disabled = true;
+  const { error } = await supabaseClient
+    .from('profiles')
+    .update({ arquetipo_habilitado: checkbox.checked })
+    .eq('id', aluno.id);
+  checkbox.disabled = false;
+  if(error){
+    checkbox.checked = !checkbox.checked;
+    alert('Erro: ' + error.message);
+  }
 }
 
 async function resetarSenhaAluno(aluno, btn){
@@ -744,6 +774,272 @@ async function carregarAvatarEspecialista(){
     };
     el.appendChild(card);
   });
+}
+
+// ---------------------------------------------------------------
+// ARQUÉTIPO — RESPOSTAS
+// ---------------------------------------------------------------
+const CONTATO_FIXOS_ARQ = [
+  { id: 'primeiro_nome', label: 'Primeiro nome' },
+  { id: 'sobrenome', label: 'Sobrenome' },
+  { id: 'telefone', label: 'Telefone' },
+  { id: 'email', label: 'Email' },
+  { id: 'empresa', label: 'Empresa/negócio' },
+];
+
+const GRUPO_A_ARQ = [
+  "Eu me sinto mais eu mesmo quando estou resolvendo um problema que ninguém mais conseguiu resolver.",
+  "Prefiro manter minha rotina estável a testar algo novo sem necessidade.",
+  "Quando alguém está sofrendo perto de mim, é quase automático querer cuidar.",
+  "Gosto de ser a pessoa que assume o controle quando tudo desmorona.",
+  "Rir de mim mesmo em público não me incomoda, às vezes eu provoco isso.",
+  "Acredito que existe sempre uma explicação lógica por trás das coisas, mesmo quando parecem inexplicáveis.",
+  "Prefiro ambientes onde ninguém está competindo por status ou aparência.",
+  "Já fui descrito como alguém \"intenso demais\" por pessoas próximas.",
+  "Tenho facilidade em fazer as pessoas se sentirem especiais e desejadas.",
+  "Não me canso de aprender coisas novas, mesmo fora da minha área.",
+  "Prefiro seguir regras estabelecidas a inventar meu próprio caminho.",
+  "Sinto que fui colocado aqui para proteger quem não consegue se proteger sozinho.",
+  "Tenho prazer em criar coisas do zero, mesmo sem saber exatamente onde vai dar.",
+  "Confio mais em dados e estrutura do que em intuição.",
+  "Já me disseram que tenho uma energia contagiante em ambientes sociais.",
+  "Prefiro dizer a verdade difícil a manter todo mundo confortável.",
+  "Gosto de estar no comando e decidir por onde o grupo vai.",
+  "Quando algo está errado no sistema, minha vontade é quebrar a regra, não pedir permissão.",
+  "Sinto satisfação profunda quando alguém me diz que eu mudei a vida dele.",
+  "Prefiro ser visto como alguém confiável e presente a alguém brilhante e distante.",
+  "Tenho facilidade em simplificar o que é complicado para os outros entenderem.",
+  "Já abri mão de segurança financeira ou estabilidade para viver algo novo.",
+  "Fico incomodado quando sinto que estou sendo apenas mais um na multidão.",
+  "Prefiro liderar pelo exemplo a liderar pela imposição.",
+  "Tenho facilidade em fazer amigos em qualquer ambiente novo.",
+  "Não tenho medo de parecer estranho se isso significa ser autêntico.",
+  "Gosto de criar experiências bonitas, sejam visuais, emocionais ou sensoriais.",
+  "Prefiro resolver um problema sozinho a delegar para alguém.",
+  "Acredito que a vida deveria ser mais leve do que as pessoas fazem parecer.",
+  "Sinto que tenho uma missão maior do que o meu trabalho do dia a dia.",
+  "Tenho dificuldade em aceitar autoridade que não fez por merecer.",
+  "Prefiro ambientes organizados e previsíveis a ambientes caóticos e criativos.",
+  "Já fui procurado por pessoas que queriam minha opinião antes de decidir algo importante.",
+  "Tenho um desconforto genuíno com desigualdade ou injustiça.",
+  "Gosto de ser a pessoa que enxerga o potencial que os outros ainda não veem em si mesmos.",
+  "Prefiro construir algo com minhas próprias mãos a comprar pronto.",
+  "Sinto que minha função é trazer leveza para momentos tensos.",
+  "Não gosto de seguir tendência só porque todo mundo está seguindo.",
+  "Tenho facilidade em perdoar e recomeçar relações que deram errado.",
+  "Prefiro assumir o risco de errar a nunca ter tentado.",
+  "Sinto orgulho genuíno quando algo que criei impacta muita gente.",
+  "Acredito que regras existem para servir as pessoas, não o contrário.",
+  "Já me chamaram de \"cabeça fria\" em momentos de crise.",
+  "Tenho facilidade em me conectar emocionalmente com desconhecidos.",
+  "Prefiro ambientes simples e sem pretensão a lugares sofisticados demais.",
+  "Sinto que tenho responsabilidade de manter tudo funcionando quando ninguém mais assume.",
+  "Gosto de romper padrões só para ver o que acontece.",
+  "Tenho facilidade em explicar coisas complexas usando metáforas ou histórias.",
+  "Prefiro proteger meu círculo próximo a expandir minha rede de contatos.",
+  "Já fui procurado por alguém que queria \"a mesma transformação\" que eu tive.",
+  "Gosto de estar no controle das decisões financeiras e estratégicas da minha vida ou negócio.",
+  "Sinto prazer genuíno em fazer os outros rirem, mesmo à minha própria custa.",
+  "Prefiro qualidade artesanal a produção em escala.",
+  "Tenho facilidade em confiar nas pessoas antes delas provarem que merecem.",
+  "Já me senti sufocado em ambientes muito rígidos ou burocráticos.",
+  "Sinto que minha palavra tem peso, as pessoas escutam quando eu falo.",
+  "Gosto de experimentar coisas novas antes delas ficarem populares.",
+  "Prefiro um relacionamento profundo a vários relacionamentos superficiais.",
+  "Tenho facilidade em identificar o que está por trás do comportamento das pessoas.",
+  "Já fui a pessoa que quebrou uma regra do grupo porque achava injusta.",
+  "Sinto que meu papel é dar estrutura para caos alheio.",
+  "Gosto de ser reconhecido pela beleza ou sensibilidade daquilo que eu faço.",
+  "Prefiro estar sempre em movimento a ficar parado num lugar só.",
+  "Tenho facilidade em fazer as pessoas relaxarem em momentos de tensão.",
+  "Já abandonei um caminho seguro porque ele não fazia mais sentido pra mim.",
+  "Sinto que fui feito para provar que o extraordinário é possível.",
+  "Gosto de cuidar dos detalhes que ninguém mais percebe.",
+  "Prefiro pertencer a um grupo comum a ser visto como diferente dos outros.",
+  "Tenho facilidade em transformar uma situação ruim em algo positivo com humor.",
+  "Sinto que existe algo maior acontecendo através de mim quando estou no auge do meu trabalho.",
+  "Prefiro liderar com autoridade clara a liderar de forma horizontal e consensual.",
+  "Já me disseram que sou \"intenso demais\" ou \"grande demais\" para o ambiente em que estava.",
+];
+
+const GRUPO_B_ARQ = [
+  "Quando encontro um problema difícil, meu primeiro instinto é:",
+  "As pessoas me procuram principalmente para:",
+  "Meu maior orgulho profissional é:",
+  "Quando assumo o controle de uma situação difícil, é porque:",
+  "Eu me sinto mais realizado quando:",
+  "Minha maior força em uma crise é:",
+  "Quando alguém próximo está sofrendo, meu instinto é:",
+  "As pessoas dizem que eu sou alguém que:",
+  "Meu maior medo em um relacionamento (profissional ou pessoal) é:",
+];
+
+const GRUPO_C_ARQ = [
+  "Você está no meio de um projeto importante e descobre um erro grave que ninguém mais percebeu. Ele não é seu, mas se não for corrigido agora, vai comprometer tudo. Você:",
+  "Alguém que você respeita muito discorda publicamente de uma decisão sua. Sua reação mais provável é:",
+  "Você tem duas opções de caminho profissional: uma segura e previsível, outra arriscada mas alinhada com algo que você acredita profundamente. Historicamente, você escolhe:",
+  "Quando você erra publicamente, sua reação mais comum é:",
+  "Se pudesse escolher como as pessoas lembrariam de você daqui a 10 anos, seria como alguém que:",
+];
+
+const GRUPO_D_ARQ = [
+  "Descreva uma situação em que você agiu de um jeito que te surpreendeu, positivamente ou negativamente. O que aconteceu?",
+  "Se seu trabalho fosse um personagem de filme ou livro, qual seria e por quê?",
+  "Qual crítica ou apelido as pessoas mais próximas já te deram, mesmo que de brincadeira, que você sente que tem um fundo de verdade?",
+];
+
+async function carregarArquetipoRespostas(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('arquetipo')
+    .select('*')
+    .eq('concluido', true)
+    .order('concluido_em', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno concluiu o questionário ainda.</div>'; return; }
+
+  el.innerHTML = '';
+  data.forEach(registro => {
+    const nomeCompleto = `${registro.contato?.primeiro_nome || ''} ${registro.contato?.sobrenome || ''}`.trim();
+    const card = document.createElement('div');
+    card.className = 'resp-group';
+    card.innerHTML = `
+      <div class="resp-group-header">
+        <div>
+          <div class="nome">${escapeHtml(nomeCompleto || registro.contato?.email || '(desconhecido)')}</div>
+          <div class="email">${escapeHtml(registro.contato?.email || '')}</div>
+        </div>
+        <div class="resp-count">${new Date(registro.concluido_em).toLocaleDateString('pt-BR')}</div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <button class="small baixar-pdf-arquetipo">Baixar PDF</button>
+        </div>
+      </div>
+    `;
+    card.querySelector('.baixar-pdf-arquetipo').onclick = async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+      try{
+        await gerarPdfArquetipo(registro, nomeCompleto);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Baixar PDF';
+      }
+    };
+    el.appendChild(card);
+  });
+}
+
+async function gerarPdfArquetipo(registro, nomeCompleto){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  function novaCapa(){
+    doc.setFillColor(15, 31, 61);
+    doc.rect(0, 0, pageWidth, 36, 'F');
+  }
+  novaCapa();
+
+  try{
+    const logoDataUrl = await svgToPngDataUrl('assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeCompleto || registro.contato?.email || ''}`, margin, y);
+  y += 8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  CONTATO_FIXOS_ARQ.forEach(c => {
+    const val = (registro.contato && registro.contato[c.id]) || '';
+    doc.text(`${c.label}: ${val}`, margin, y);
+    y += 5.5;
+  });
+  y += 2;
+  doc.text(`Concluído em: ${new Date(registro.concluido_em).toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+
+  function escreverPergunta(titulo, resposta){
+    checarQuebra(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11.5);
+    doc.setTextColor(15, 31, 61);
+    const tituloLines = doc.splitTextToSize(titulo, maxWidth);
+    doc.text(tituloLines, margin, y);
+    y += tituloLines.length * 5.2 + 1.5;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(40, 40, 40);
+    const respLines = doc.splitTextToSize(String(resposta || ''), maxWidth);
+    respLines.forEach(line => {
+      checarQuebra(14);
+      doc.text(line, margin, y);
+      y += 5.2;
+    });
+    y += 5;
+  }
+
+  checarQuebra(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(201, 162, 39);
+  doc.text('BLOCO 1', margin, y);
+  y += 7;
+  GRUPO_A_ARQ.forEach((pergunta, i) => escreverPergunta(pergunta, `Resposta: ${registro.respostas?.[`a_${i+1}`] || ''} / 5`));
+
+  checarQuebra(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(201, 162, 39);
+  doc.text('BLOCO 2', margin, y);
+  y += 7;
+  GRUPO_B_ARQ.forEach((pergunta, i) => escreverPergunta(pergunta, registro.respostas?.[`b_${i+1}`] || ''));
+
+  checarQuebra(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(201, 162, 39);
+  doc.text('BLOCO 3', margin, y);
+  y += 7;
+  GRUPO_C_ARQ.forEach((pergunta, i) => escreverPergunta(pergunta, registro.respostas?.[`c_${i+1}`] || ''));
+
+  checarQuebra(20);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(201, 162, 39);
+  doc.text('BLOCO 4', margin, y);
+  y += 7;
+  GRUPO_D_ARQ.forEach((pergunta, i) => escreverPergunta(pergunta, registro.respostas?.[`d_${i+1}`] || ''));
+
+  const nomeArquivo = (nomeCompleto || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`arquetipo-${nomeArquivo || 'aluno'}.pdf`);
 }
 
 // ---------------------------------------------------------------

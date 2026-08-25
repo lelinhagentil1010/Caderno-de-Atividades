@@ -322,6 +322,7 @@ nextBtn.addEventListener("click", async () => {
 
   if(current < STEPS.length - 1){
     current++;
+    await salvarProgresso();
     renderStep();
   } else {
     await concluirPesquisa();
@@ -348,12 +349,30 @@ document.getElementById("restartBtn").addEventListener("click", () => {
 // ---------------------------------------------------------------
 // SALVAR / CARREGAR
 // ---------------------------------------------------------------
+function dadosPerguntasAtuais(){
+  const dadosPerguntas = {};
+  PERGUNTAS.forEach(p => { dadosPerguntas[p.id] = respostas[p.id] || ''; });
+  return dadosPerguntas;
+}
+
+async function salvarProgresso(){
+  try{
+    await supabaseClient.from('avatar_especialista').upsert({
+      user_id: currentUserId,
+      nome: respostas.nome || null,
+      email: respostas.email || null,
+      respostas: dadosPerguntasAtuais(),
+      passo_atual: current,
+      concluido: false
+    }, { onConflict: 'user_id' });
+  } catch(e){
+    console.error('Não foi possível salvar o progresso', e);
+  }
+}
+
 async function concluirPesquisa(){
   nextBtn.disabled = true;
   nextBtn.textContent = 'Salvando...';
-
-  const dadosPerguntas = {};
-  PERGUNTAS.forEach(p => { dadosPerguntas[p.id] = respostas[p.id] || ''; });
 
   const { data, error } = await supabaseClient
     .from('avatar_especialista')
@@ -361,7 +380,10 @@ async function concluirPesquisa(){
       user_id: currentUserId,
       nome: respostas.nome,
       email: respostas.email,
-      respostas: dadosPerguntas
+      respostas: dadosPerguntasAtuais(),
+      passo_atual: STEPS.length,
+      concluido: true,
+      concluido_em: new Date().toISOString()
     }, { onConflict: 'user_id' })
     .select()
     .single();
@@ -396,9 +418,15 @@ async function carregarPesquisa(){
     renderStep();
     return;
   }
-  if(data){
+  if(data && data.concluido){
     registroAtual = data;
     mostrarResultado();
+  } else if(data){
+    if(data.nome) respostas.nome = data.nome;
+    if(data.email) respostas.email = data.email;
+    Object.assign(respostas, data.respostas || {});
+    current = Math.min(data.passo_atual || 0, STEPS.length - 1);
+    renderStep();
   } else {
     renderStep();
   }

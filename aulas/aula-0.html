@@ -275,13 +275,15 @@ function showResult(){
   resultScreen.classList.remove("hidden");
 }
 
-nextBtn.addEventListener("click", () => {
+nextBtn.addEventListener("click", async () => {
   answers[current] = answerBox.value;
   if(current < questions.length - 1){
     current++;
+    await salvarRascunho();
     renderQuestion();
   } else {
     finalText.value = buildStory();
+    await salvarRascunho();
     showResult();
   }
 });
@@ -323,6 +325,18 @@ document.getElementById("restartBtn").addEventListener("click", () => {
 // ---------------------------------------------------------------
 // PERSISTÊNCIA (reaproveita a tabela roteiros, aula_id='aula-0')
 // ---------------------------------------------------------------
+async function salvarRascunho(){
+  try{
+    await supabaseClient.from('roteiros').upsert({
+      aula_id: ROTEIRO_AULA_ID,
+      user_id: currentUserId,
+      rascunho: { current, answers }
+    }, { onConflict: 'aula_id,user_id' });
+  } catch(e){
+    console.error('Não foi possível salvar o progresso', e);
+  }
+}
+
 async function loadNarrativa(){
   const { data, error } = await supabaseClient
     .from('roteiros')
@@ -335,13 +349,17 @@ async function loadNarrativa(){
     renderQuestion();
     return;
   }
-  if(data){
+  if(data && data.texto){
     finalText.value = data.texto;
     if(data.comentario_professor){
       document.getElementById('feedbackText').textContent = data.comentario_professor;
       document.getElementById('feedbackBox').style.display = 'block';
     }
     showResult();
+  } else if(data && data.rascunho){
+    current = Math.min(data.rascunho.current || 0, questions.length - 1);
+    (data.rascunho.answers || []).forEach((a, i) => { if(i < answers.length) answers[i] = a || ''; });
+    renderQuestion();
   } else {
     renderQuestion();
   }
