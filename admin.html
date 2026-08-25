@@ -357,7 +357,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
 
       <div class="result-box" id="resetBox">
         <div class="line"><strong>Email:</strong> <span id="resetEmail"></span></div>
-        <div class="line"><strong>Nova senha:</strong> <span id="resetSenha"></span></div>
+        <div class="line"><strong>Senha provisória:</strong> <span id="resetSenha"></span></div>
         <button class="small copy-btn" onclick="copiarCredenciaisReset()">Copiar para enviar</button>
       </div>
     </div>
@@ -737,7 +737,7 @@ async function resetarSenhaAluno(aluno, btn){
 function copiarCredenciaisReset(){
   const email = document.getElementById('resetEmail').textContent;
   const senha = document.getElementById('resetSenha').textContent;
-  const texto = `Sua senha do Caderno de Atividades foi redefinida:\nLink: ${window.location.origin}\nEmail: ${email}\nNova senha: ${senha}`;
+  const texto = `Sua senha do Caderno de Atividades foi redefinida:\nLink: ${window.location.origin}\nEmail: ${email}\nSenha provisória: ${senha}\n\nVocê vai precisar trocar essa senha no próximo acesso.`;
   navigator.clipboard.writeText(texto);
 }
 

@@ -57,6 +57,13 @@ exports.handler = async (event) => {
       };
     }
 
+    // 4. Marca a senha como provisória: o aluno precisa trocar por uma própria no próximo login
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+      method: 'PATCH',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ deve_trocar_senha: true })
+    });
+
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   } catch (e) {
     return { statusCode: 500, body: JSON.stringify({ error: 'Erro inesperado: ' + e.message }) };
