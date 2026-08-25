@@ -33,16 +33,20 @@
   --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
 }
 *{ box-sizing: border-box; }
-html,body{ margin:0; padding:0; background:#0F1F3D; color:var(--cream); font-family:'Poppins', sans-serif; font-size:15px; min-height:100vh; }
+html,body{
+  margin:0; padding:0;
+  background-color:#0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  color:var(--cream); font-family:'Poppins', sans-serif; font-size:15px; min-height:100vh;
+}
 
 .app{
   max-width: 900px;
   margin: 0 auto;
   padding: 32px 24px 80px;
   min-height: 100vh;
-  background-image:
-    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
-    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
 }
 
 .topbar{

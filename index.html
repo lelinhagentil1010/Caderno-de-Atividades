@@ -41,7 +41,10 @@
 
 html,body{
   margin:0; padding:0;
-  background: #0F1F3D;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
   color: var(--cream);
   font-family: 'Poppins', sans-serif;
   font-size: 16px;
@@ -57,10 +60,15 @@ html,body{
   width: 100%;
   display:flex;
   flex-direction:column;
-  background-color: #0F1F3D;
-  background-image:
-    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
-    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  justify-content:center;
+}
+
+.auth-card{
+  background: var(--navy-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 40px 32px;
 }
 
 .masthead{ text-align:center; margin-bottom: 40px; }
@@ -191,12 +199,12 @@ button:disabled{ opacity: 0.45; cursor: not-allowed; transform:none; box-shadow:
   </div>
 
   <!-- CHECANDO SESSÃO -->
-  <div class="panel active" id="checking">
+  <div class="panel auth-card active" id="checking">
     <div class="status">Verificando sessão...</div>
   </div>
 
   <!-- LOGIN / CADASTRO -->
-  <div class="panel" id="authArea">
+  <div class="panel auth-card" id="authArea">
     <div class="tabs">
       <div class="tab active" data-tab="entrar" onclick="switchTab('entrar')">Entrar</div>
       <div class="tab" data-tab="cadastrar" onclick="switchTab('cadastrar')">Cadastrar</div>
