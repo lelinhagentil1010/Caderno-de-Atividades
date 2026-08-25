@@ -551,7 +551,7 @@ function copiarCredenciais(){
 }
 
 function copiarLinkArquetipo(e){
-  navigator.clipboard.writeText(`${window.location.origin}/aulas/arquetipo.html`);
+  navigator.clipboard.writeText(`${window.location.origin}/index.html?destino=arquetipo`);
   const btn = e.target;
   const original = btn.textContent;
   btn.textContent = 'Copiado!';

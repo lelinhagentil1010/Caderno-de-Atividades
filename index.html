@@ -294,17 +294,24 @@ function switchTab(name){
   document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
 }
 
+const destinoArquetipo = new URLSearchParams(window.location.search).get('destino') === 'arquetipo';
+
 async function routeByStatus(profile){
   if(!profile){
     showPanel('authArea');
     return;
+  }
+  if(destinoArquetipo && profile.status !== 'rejected'){
+    await supabaseClient.rpc('auto_aprovar_arquetipo');
+    const refreshed = await getSessionAndProfile();
+    if(refreshed.profile) profile = refreshed.profile;
   }
   if(profile.status === 'approved'){
     if(profile.deve_trocar_senha){
       showPanel('changePasswordArea');
       return;
     }
-    window.location.href = 'inicio.html';
+    window.location.href = destinoArquetipo ? 'aulas/arquetipo.html' : 'inicio.html';
   } else if(profile.status === 'pending'){
     showPanel('pendingArea');
   } else {
