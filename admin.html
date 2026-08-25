@@ -219,7 +219,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
         <button class="link-btn bell-btn" onclick="toggleNotificacoes()">🔔<span class="bell-badge hidden" id="bellBadge">0</span></button>
         <div class="notif-dropdown hidden" id="notifDropdown"></div>
       </div>
-      <a class="link-btn" href="dashboard.html">◂ Voltar</a>
+      <a class="link-btn" href="inicio.html">◂ Voltar</a>
       <button class="link-btn" onclick="logout('index.html')">Sair</button>
     </div>
   </div>
@@ -1175,7 +1175,7 @@ async function gerarPdfArquetipo(registro, nomeCompleto){
     return;
   }
   if(profile.role !== 'admin'){
-    window.location.href = 'dashboard.html';
+    window.location.href = 'inicio.html';
     return;
   }
   adminSession = session;
