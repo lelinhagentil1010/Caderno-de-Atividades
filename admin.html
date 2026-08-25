@@ -155,6 +155,17 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
 .resp-item .texto{ font-family:'Poppins', sans-serif; font-style: italic; color: var(--cream); font-size: 14.5px; line-height: 1.5; word-wrap: break-word; }
 .resp-item .quando{ font-size: 11.5px; color: var(--cream-dim); margin-top: 6px; }
 
+/* Desktop grande (ex: 1920x1080) */
+@media (min-width: 1440px){
+  .app{ max-width: 1180px; }
+}
+
+/* Tablet */
+@media (max-width: 1024px){
+  .app{ padding: 32px 24px 70px; }
+}
+
+/* Mobile */
 @media (max-width: 640px){
   .app{ padding: 28px 16px 60px; }
   .card .row{ align-items: flex-start; }
