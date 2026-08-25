@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Caderno de Atividades — Painel do Professor</title>
+<title>Caderno de Atividades, Painel do Professor</title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0F1F3D">
@@ -735,7 +735,7 @@ async function carregarRoteiros(aulaId){
         .update({ comentario_professor: textarea.value })
         .eq('id', r.id);
       btn.disabled = false;
-      btn.textContent = error ? 'Erro — tentar de novo' : 'Salvo!';
+      btn.textContent = error ? 'Erro, tentar de novo' : 'Salvo!';
       if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
     };
     el.appendChild(card);
@@ -823,7 +823,7 @@ async function gerarPdfAvatarEspecialista(registro){
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.setTextColor(15, 31, 61);
-    const tituloLines = doc.splitTextToSize(`${p.label} — ${p.pergunta}`, maxWidth);
+    const tituloLines = doc.splitTextToSize(`${p.label}, ${p.pergunta}`, maxWidth);
     doc.text(tituloLines, margin, y);
     y += tituloLines.length * 5.5 + 2;
 

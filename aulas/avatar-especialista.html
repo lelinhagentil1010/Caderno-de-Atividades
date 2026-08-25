@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Avatar e Especialista — ÊNFASE</title>
+<title>Avatar e Especialista, ÊNFASE</title>
 
 <link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="#0F1F3D">
@@ -231,18 +231,18 @@ const CAMPOS_FIXOS = [
 ];
 
 const PERGUNTAS = [
-  { id: 'avatar_desejos', bloco: 'BLOCO 1 — SOBRE O AVATAR (o público que você quer atingir)', label: 'Desejos', pergunta: 'O que esse público quer alcançar ou resolver?' },
-  { id: 'avatar_dores', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Dores', pergunta: 'Quais medos, vergonhas, frustrações ou tabus esse público carrega?' },
-  { id: 'avatar_demografia', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Características demográficas', pergunta: 'Idade, gênero predominante, classe social, região?' },
-  { id: 'avatar_qualidades', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Qualidades desse público', pergunta: 'O que já faz bem, já busca, já sabe?' },
-  { id: 'avatar_defeitos', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Defeitos/resistências', pergunta: 'O que evita, o que atrapalha esse público a agir?' },
-  { id: 'avatar_referencias', bloco: 'BLOCO 1 — SOBRE O AVATAR', label: 'Itens/referências que esse público já conhece', pergunta: 'Memes, outras figuras públicas, termos, expressões que usam?' },
-  { id: 'esp_conquistas', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA (você)', label: 'Desejos e conquistas', pergunta: 'O que você já realizou na carreira/vida?' },
-  { id: 'esp_dor', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Situações dolorosas', pergunta: 'O que você já enfrentou (profissionais ou pessoais que humanizam sua história)?' },
-  { id: 'esp_habitos', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Hábitos e hobbies', pergunta: 'Quais são?' },
-  { id: 'esp_formacao', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Formação profissional', pergunta: 'Onde estudou, especializações, tempo de atuação?' },
-  { id: 'esp_quemvoce', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Quem você é', pergunta: 'Idade, estado civil, nacionalidade/cidade?' },
-  { id: 'esp_qualidades', bloco: 'BLOCO 2 — SOBRE O ESPECIALISTA', label: 'Qualidades pessoais', pergunta: 'Bom humor, didático, direto, paciente etc.?' },
+  { id: 'avatar_desejos', bloco: 'BLOCO 1, SOBRE O AVATAR (o público que você quer atingir)', label: 'Desejos', pergunta: 'O que esse público quer alcançar ou resolver?' },
+  { id: 'avatar_dores', bloco: 'BLOCO 1, SOBRE O AVATAR', label: 'Dores', pergunta: 'Quais medos, vergonhas, frustrações ou tabus esse público carrega?' },
+  { id: 'avatar_demografia', bloco: 'BLOCO 1, SOBRE O AVATAR', label: 'Características demográficas', pergunta: 'Idade, gênero predominante, classe social, região?' },
+  { id: 'avatar_qualidades', bloco: 'BLOCO 1, SOBRE O AVATAR', label: 'Qualidades desse público', pergunta: 'O que já faz bem, já busca, já sabe?' },
+  { id: 'avatar_defeitos', bloco: 'BLOCO 1, SOBRE O AVATAR', label: 'Defeitos/resistências', pergunta: 'O que evita, o que atrapalha esse público a agir?' },
+  { id: 'avatar_referencias', bloco: 'BLOCO 1, SOBRE O AVATAR', label: 'Itens/referências que esse público já conhece', pergunta: 'Memes, outras figuras públicas, termos, expressões que usam?' },
+  { id: 'esp_conquistas', bloco: 'BLOCO 2, SOBRE O ESPECIALISTA (você)', label: 'Desejos e conquistas', pergunta: 'O que você já realizou na carreira/vida?' },
+  { id: 'esp_dor', bloco: 'BLOCO 2, SOBRE O ESPECIALISTA', label: 'Situações dolorosas', pergunta: 'O que você já enfrentou (profissionais ou pessoais que humanizam sua história)?' },
+  { id: 'esp_habitos', bloco: 'BLOCO 2, SOBRE O ESPECIALISTA', label: 'Hábitos e hobbies', pergunta: 'Quais são?' },
+  { id: 'esp_formacao', bloco: 'BLOCO 2, SOBRE O ESPECIALISTA', label: 'Formação profissional', pergunta: 'Onde estudou, especializações, tempo de atuação?' },
+  { id: 'esp_quemvoce', bloco: 'BLOCO 2, SOBRE O ESPECIALISTA', label: 'Quem você é', pergunta: 'Idade, estado civil, nacionalidade/cidade?' },
+  { id: 'esp_qualidades', bloco: 'BLOCO 2, SOBRE O ESPECIALISTA', label: 'Qualidades pessoais', pergunta: 'Bom humor, didático, direto, paciente etc.?' },
 ];
 
 const STEPS = [...CAMPOS_FIXOS, ...PERGUNTAS];
@@ -498,7 +498,7 @@ async function gerarPdfAvatarEspecialista(registro){
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.setTextColor(15, 31, 61);
-    const tituloLines = doc.splitTextToSize(`${p.label} — ${p.pergunta}`, maxWidth);
+    const tituloLines = doc.splitTextToSize(`${p.label}, ${p.pergunta}`, maxWidth);
     doc.text(tituloLines, margin, y);
     y += tituloLines.length * 5.5 + 2;
 

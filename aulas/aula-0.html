@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Minha Narrativa — ÊNFASE</title>
+<title>Minha Narrativa, ÊNFASE</title>
 
 <link rel="manifest" href="../manifest.json">
 <meta name="theme-color" content="#0F1F3D">
@@ -266,7 +266,7 @@ function buildStory(){
   const a = answers.map(x => x.trim().replace(/\.$/, ""));
   return `Antes de me tornar quem sou hoje, o meu maior desafio profissional foi ${a[0]}.\n\n` +
     `Tudo começou a mudar quando ${a[1]}. Foi a partir daí que ${a[2]}.\n\n` +
-    `Hoje, a conquista da qual mais me orgulho é ${a[3]} — e o que me diferencia de outros profissionais da minha área é ${a[4]}.\n\n` +
+    `Hoje, a conquista da qual mais me orgulho é ${a[3]}, e o que me diferencia de outros profissionais da minha área é ${a[4]}.\n\n` +
     `Meu compromisso, daqui para frente, é ser lembrado(a) como a pessoa que ${a[5]}.`;
 }
 
@@ -378,7 +378,7 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
   const { error } = await supabaseClient
     .from('roteiros')
     .upsert({ aula_id: ROTEIRO_AULA_ID, user_id: currentUserId, texto }, { onConflict: 'aula_id,user_id' });
-  status.textContent = error ? 'Não foi possível salvar. Tente novamente.' : 'Narrativa salva — a professora pode revisar.';
+  status.textContent = error ? 'Não foi possível salvar. Tente novamente.' : 'Narrativa salva, a professora pode revisar.';
   status.className = error ? 'status error' : 'status';
   setTimeout(() => { status.textContent = ''; }, 3000);
 });

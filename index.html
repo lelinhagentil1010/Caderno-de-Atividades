@@ -327,7 +327,7 @@ async function doRegister(){
   }
   const { session, profile } = await getSessionAndProfile();
   if(!session){
-    status.textContent = 'Cadastro recebido, mas o sistema não liberou sessão automática (confirmação de email pode estar ativada no Supabase — avise a professora). Tente entrar pela aba "Entrar".';
+    status.textContent = 'Cadastro recebido, mas o sistema não liberou sessão automática (confirmação de email pode estar ativada no Supabase, avise a professora). Tente entrar pela aba "Entrar".';
     status.className = 'status error';
     return;
   }
