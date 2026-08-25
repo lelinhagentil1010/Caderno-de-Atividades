@@ -166,6 +166,7 @@ let currentProfile = null;
 function renderChoices(){
   const grid = document.getElementById('choiceGrid');
   const arquetipoDisponivel = currentProfile.role === 'admin' || !!currentProfile.arquetipo_habilitado;
+  const cadernoDisponivel = currentProfile.role === 'admin' || !!currentProfile.caderno_habilitado;
 
   grid.innerHTML = `
     <div class="choice-card${arquetipoDisponivel ? '' : ' locked'}" id="cardArquetipo">
@@ -174,18 +175,20 @@ function renderChoices(){
       <p>Descubra a essência da sua marca</p>
       <div class="choice-badge">${arquetipoDisponivel ? 'Acessar' : 'Aguardando liberação'}</div>
     </div>
-    <div class="choice-card" id="cardMentoria">
+    <div class="choice-card${cadernoDisponivel ? '' : ' locked'}" id="cardMentoria">
       <div class="choice-icon">✦</div>
       <h2>Caderno Mentoria ÊNFASE</h2>
       <p>Suas aulas e atividades da mentoria</p>
-      <div class="choice-badge">Acessar</div>
+      <div class="choice-badge">${cadernoDisponivel ? 'Acessar' : 'Aguardando liberação'}</div>
     </div>
   `;
 
   if(arquetipoDisponivel){
     document.getElementById('cardArquetipo').onclick = () => { window.location.href = 'aulas/arquetipo.html'; };
   }
-  document.getElementById('cardMentoria').onclick = () => { window.location.href = 'dashboard.html'; };
+  if(cadernoDisponivel){
+    document.getElementById('cardMentoria').onclick = () => { window.location.href = 'dashboard.html'; };
+  }
 
   document.getElementById('loadStatus').style.display = 'none';
 }

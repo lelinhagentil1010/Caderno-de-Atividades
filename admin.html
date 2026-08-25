@@ -207,6 +207,55 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
 .notif-item:hover{ background: rgba(201,162,39,0.08); }
 .notif-item .notif-date{ font-size: 11px; color: var(--cream-dim); }
 .notif-empty{ padding: 16px; font-size: 13px; color: var(--cream-dim); font-style: italic; text-align:center; }
+
+.hidden{ display:none !important; }
+
+.alunos-toolbar{ display:flex; flex-wrap:wrap; gap: 10px; margin-bottom: 26px; }
+
+.aluno-row-card{ padding: 16px 22px; }
+.aluno-row-card .row{ flex-wrap: nowrap; }
+.aluno-row-card .info{ min-width: 0; flex: 1; }
+.aluno-row-card .nome, .aluno-row-card .email{ overflow:hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aluno-row-card .ver-aluno{ flex-shrink: 0; }
+
+.check-field{ display:flex; align-items:center; gap: 10px; font-size: 13.5px; color: var(--cream-dim); cursor:pointer; margin-bottom: 14px; }
+.check-field input[type=checkbox]{ width: 17px; height: 17px; flex-shrink: 0; accent-color: var(--gold); }
+
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(8,14,28,0.72);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 20px;
+  z-index: 200;
+}
+.modal-box{
+  background: var(--navy-2);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 28px 26px;
+  max-width: 440px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.modal-header{ display:flex; justify-content:space-between; align-items:flex-start; gap: 12px; margin-bottom: 22px; }
+.modal-header h3{ font-family:'Poppins', sans-serif; font-weight:700; font-size: 19px; margin:0; color: var(--cream); }
+.modal-close{
+  background:none; border:none; color: var(--cream-dim); font-size: 20px; line-height:1;
+  cursor:pointer; padding: 2px 6px; font-family:'Poppins', sans-serif;
+}
+.modal-close:hover{ color: var(--gold-light); }
+.modal-sub{ font-size: 12.5px; color: var(--cream-dim); margin: -12px 0 18px; }
+.modal-box .field{ max-width: none; }
+
+@media (max-width: 640px){
+  .alunos-toolbar{ flex-direction: column; }
+  .alunos-toolbar button{ width: 100%; }
+}
 </style>
 </head>
 <body>
@@ -241,39 +290,71 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
 
   <!-- ALUNOS -->
   <div class="panel" data-panel="alunos">
-    <div class="label" style="margin-bottom:14px;">Adicionar aluno</div>
-    <div class="field">
-      <label for="novoNome">Nome do aluno</label>
-      <input type="text" id="novoNome" placeholder="Nome completo">
-    </div>
-    <div class="field">
-      <label for="novoEmail">Email</label>
-      <input type="email" id="novoEmail" placeholder="aluno@email.com">
-    </div>
-    <div class="field">
-      <label for="novoSenha">Senha</label>
-      <input type="password" id="novoSenha" placeholder="Defina uma senha">
-    </div>
-    <button class="primary" id="btnCriar" onclick="criarAluno()">Cadastrar aluno</button>
-    <div class="status" id="criarStatus"></div>
-
-    <div class="result-box" id="resultBox">
-      <div class="line"><strong>Email:</strong> <span id="resEmail"></span></div>
-      <div class="line"><strong>Senha:</strong> <span id="resSenha"></span></div>
-      <button class="small copy-btn" onclick="copiarCredenciais()">Copiar para enviar</button>
+    <div class="alunos-toolbar">
+      <button class="primary" style="margin-top:0; width:auto;" onclick="abrirModalCadastro()">+ Cadastrar aluno</button>
+      <button class="small" onclick="copiarLinkArquetipo(event)">Copiar link do Arquétipo</button>
     </div>
 
-    <div class="label" style="margin-top:34px; margin-bottom:14px;">Lista de alunos</div>
+    <div class="label" style="margin-bottom:14px;">Lista de alunos</div>
     <div id="alunosList"></div>
-
-    <div class="result-box" id="resetBox">
-      <div class="line"><strong>Email:</strong> <span id="resetEmail"></span></div>
-      <div class="line"><strong>Nova senha:</strong> <span id="resetSenha"></span></div>
-      <button class="small copy-btn" onclick="copiarCredenciaisReset()">Copiar para enviar</button>
-    </div>
 
     <div class="label" style="margin-top:34px; margin-bottom:14px;">Administradores</div>
     <div id="adminsList"></div>
+  </div>
+
+  <!-- MODAL: CADASTRAR ALUNO -->
+  <div class="modal-overlay hidden" id="modalCadastro">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Cadastrar aluno</h3>
+        <button class="modal-close" onclick="fecharModalCadastro()">✕</button>
+      </div>
+      <div class="field">
+        <label for="novoNome">Nome do aluno</label>
+        <input type="text" id="novoNome" placeholder="Nome completo">
+      </div>
+      <div class="field">
+        <label for="novoEmail">Email</label>
+        <input type="email" id="novoEmail" placeholder="aluno@email.com">
+      </div>
+      <label class="check-field"><input type="checkbox" id="novoArquetipo"> Liberar Questionário Arquétipo</label>
+      <label class="check-field"><input type="checkbox" id="novoCaderno" checked> Liberar Caderno Mentoria ÊNFASE</label>
+      <div class="modal-sub">Uma senha provisória é gerada automaticamente. O aluno troca por uma senha própria no primeiro acesso.</div>
+      <button class="primary" id="btnCriar" onclick="criarAluno()" style="width:100%;">Cadastrar aluno</button>
+      <div class="status" id="criarStatus"></div>
+
+      <div class="result-box" id="resultBox">
+        <div class="line"><strong>Email:</strong> <span id="resEmail"></span></div>
+        <div class="line"><strong>Senha provisória:</strong> <span id="resSenha"></span></div>
+        <button class="small copy-btn" onclick="copiarCredenciais()">Copiar para enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VER ALUNO -->
+  <div class="modal-overlay hidden" id="modalAluno">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="verAlunoNome">Aluno</h3>
+        <button class="modal-close" onclick="fecharModalAluno()">✕</button>
+      </div>
+      <div class="email" id="verAlunoEmail" style="margin-bottom:4px;"></div>
+      <div class="when" id="verAlunoStatus" style="margin-bottom:22px;"></div>
+
+      <label class="check-field"><input type="checkbox" id="verAlunoArquetipo"> Liberar Questionário Arquétipo</label>
+      <label class="check-field"><input type="checkbox" id="verAlunoCaderno"> Liberar Caderno Mentoria ÊNFASE</label>
+
+      <div class="actions" style="margin-top:22px;">
+        <button class="small" id="btnResetarSenhaModal">Resetar senha</button>
+        <button class="small reject" id="btnExcluirModal">Excluir aluno</button>
+      </div>
+
+      <div class="result-box" id="resetBox">
+        <div class="line"><strong>Email:</strong> <span id="resetEmail"></span></div>
+        <div class="line"><strong>Nova senha:</strong> <span id="resetSenha"></span></div>
+        <button class="small copy-btn" onclick="copiarCredenciaisReset()">Copiar para enviar</button>
+      </div>
+    </div>
   </div>
 
   <!-- RESPOSTAS -->
@@ -353,15 +434,30 @@ async function carregarPendentes(){
           <button class="small reject">Recusar</button>
         </div>
       </div>
+      <div class="row" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line); gap:20px;">
+        <label class="check-field" style="margin-bottom:0;"><input type="checkbox" class="pend-arquetipo"> Liberar Arquétipo</label>
+        <label class="check-field" style="margin-bottom:0;"><input type="checkbox" class="pend-caderno" checked> Liberar Caderno</label>
+      </div>
     `;
-    card.querySelector('.approve').onclick = () => atualizarStatus(p.id, 'approved');
-    card.querySelector('.reject').onclick = () => atualizarStatus(p.id, 'rejected');
+    card.querySelector('.approve').onclick = () => aprovarPendente(p.id, card);
+    card.querySelector('.reject').onclick = () => recusarPendente(p.id);
     el.appendChild(card);
   });
 }
 
-async function atualizarStatus(id, status){
-  const { error } = await supabaseClient.from('profiles').update({ status }).eq('id', id);
+async function aprovarPendente(id, card){
+  const arquetipo = card.querySelector('.pend-arquetipo').checked;
+  const caderno = card.querySelector('.pend-caderno').checked;
+  const { error } = await supabaseClient
+    .from('profiles')
+    .update({ status: 'approved', arquetipo_habilitado: arquetipo, caderno_habilitado: caderno })
+    .eq('id', id);
+  if(error){ alert('Erro: ' + error.message); return; }
+  carregarPendentes();
+}
+
+async function recusarPendente(id){
+  const { error } = await supabaseClient.from('profiles').update({ status: 'rejected' }).eq('id', id);
   if(error){ alert('Erro: ' + error.message); return; }
   carregarPendentes();
 }
@@ -369,25 +465,37 @@ async function atualizarStatus(id, status){
 // ---------------------------------------------------------------
 // CADASTRAR ALUNO
 // ---------------------------------------------------------------
+function abrirModalCadastro(){
+  document.getElementById('novoNome').value = '';
+  document.getElementById('novoEmail').value = '';
+  document.getElementById('novoArquetipo').checked = false;
+  document.getElementById('novoCaderno').checked = true;
+  document.getElementById('criarStatus').textContent = '';
+  document.getElementById('criarStatus').className = 'status';
+  document.getElementById('resultBox').style.display = 'none';
+  document.getElementById('modalCadastro').classList.remove('hidden');
+}
+
+function fecharModalCadastro(){
+  document.getElementById('modalCadastro').classList.add('hidden');
+}
+
 async function criarAluno(){
   const nome = document.getElementById('novoNome').value.trim();
   const email = document.getElementById('novoEmail').value.trim();
-  const senha = document.getElementById('novoSenha').value;
+  const arquetipo = document.getElementById('novoArquetipo').checked;
+  const caderno = document.getElementById('novoCaderno').checked;
   const status = document.getElementById('criarStatus');
   const btn = document.getElementById('btnCriar');
   document.getElementById('resultBox').style.display = 'none';
 
-  if(!nome || !email || !senha){
-    status.textContent = 'Preencha todos os campos.';
-    status.className = 'status error';
-    return;
-  }
-  if(senha.length < 6){
-    status.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+  if(!nome || !email){
+    status.textContent = 'Preencha nome e email.';
     status.className = 'status error';
     return;
   }
 
+  const senha = gerarSenhaProvisoria();
   btn.disabled = true;
   status.textContent = 'Cadastrando...';
   status.className = 'status';
@@ -396,7 +504,7 @@ async function criarAluno(){
     const res = await fetch('/.netlify/functions/create-student', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken: adminSession.access_token, nome, email, senha })
+      body: JSON.stringify({ accessToken: adminSession.access_token, nome, email, senha, arquetipoHabilitado: arquetipo, cadernoHabilitado: caderno })
     });
     const result = await res.json();
     if(!res.ok){
@@ -411,7 +519,6 @@ async function criarAluno(){
     document.getElementById('resultBox').style.display = 'block';
     document.getElementById('novoNome').value = '';
     document.getElementById('novoEmail').value = '';
-    document.getElementById('novoSenha').value = '';
     carregarAlunos();
   } catch(e){
     status.textContent = 'Erro de conexão. Tente novamente.';
@@ -424,8 +531,16 @@ async function criarAluno(){
 function copiarCredenciais(){
   const email = document.getElementById('resEmail').textContent;
   const senha = document.getElementById('resSenha').textContent;
-  const texto = `Acesso ao Caderno de Atividades:\nLink: ${window.location.origin}\nEmail: ${email}\nSenha: ${senha}`;
+  const texto = `Acesso ao Caderno de Atividades:\nLink: ${window.location.origin}\nEmail: ${email}\nSenha provisória: ${senha}\n\nVocê vai precisar trocar essa senha no primeiro acesso.`;
   navigator.clipboard.writeText(texto);
+}
+
+function copiarLinkArquetipo(e){
+  navigator.clipboard.writeText(`${window.location.origin}/aulas/arquetipo.html`);
+  const btn = e.target;
+  const original = btn.textContent;
+  btn.textContent = 'Copiado!';
+  setTimeout(() => { btn.textContent = original; }, 1500);
 }
 
 // ---------------------------------------------------------------
@@ -451,69 +566,22 @@ async function carregarAlunos(){
   if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
   if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno cadastrado ainda.</div>'; return; }
 
-  const statusLabel = { approved: 'Aprovado', pending: 'Pendente', rejected: 'Recusado' };
-
   el.innerHTML = '';
   data.forEach(p => {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card aluno-row-card';
     card.innerHTML = `
       <div class="row">
-        <div>
+        <div class="info">
           <div class="nome">${escapeHtml(p.nome || '(sem nome)')}</div>
           <div class="email">${escapeHtml(p.email || '')}</div>
-          <div class="when">${statusLabel[p.status] || p.status}</div>
         </div>
-        <div class="actions">
-          <button class="small reset-senha">Resetar senha</button>
-          <button class="small reject excluir">Excluir</button>
-        </div>
-      </div>
-      <div class="row" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
-        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--cream-dim); cursor:pointer;">
-          <input type="checkbox" class="toggle-arquetipo" ${p.arquetipo_habilitado ? 'checked' : ''} style="width:16px; height:16px;">
-          Liberar Questionário Arquétipo
-        </label>
-        <button class="small copiar-link-arquetipo">Copiar link</button>
-      </div>
-      <div class="row" style="margin-top:10px;">
-        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--cream-dim); cursor:pointer;">
-          <input type="checkbox" class="toggle-admin" style="width:16px; height:16px;">
-          Promover a administrador
-        </label>
+        <button class="small ver-aluno">Ver aluno</button>
       </div>
     `;
-    card.querySelector('.reset-senha').onclick = (e) => resetarSenhaAluno(p, e.target);
-    card.querySelector('.excluir').onclick = (e) => excluirAluno(p, e.target);
-    card.querySelector('.toggle-arquetipo').onchange = (e) => alternarArquetipoHabilitado(p, e.target);
-    card.querySelector('.toggle-admin').onchange = (e) => promoverAdmin(p, e.target);
-    card.querySelector('.copiar-link-arquetipo').onclick = (e) => {
-      navigator.clipboard.writeText(`${window.location.origin}/aulas/arquetipo.html`);
-      const btn = e.target;
-      const original = btn.textContent;
-      btn.textContent = 'Copiado!';
-      setTimeout(() => { btn.textContent = original; }, 1500);
-    };
+    card.querySelector('.ver-aluno').onclick = () => abrirModalAluno(p);
     el.appendChild(card);
   });
-}
-
-async function promoverAdmin(aluno, checkbox){
-  if(!checkbox.checked) return;
-  if(!confirm(`Promover ${aluno.nome || aluno.email} a administrador? Ele(a) passa a ter acesso total ao painel do professor, igual você.`)){
-    checkbox.checked = false;
-    return;
-  }
-  checkbox.disabled = true;
-  const { error } = await supabaseClient.from('profiles').update({ role: 'admin' }).eq('id', aluno.id);
-  if(error){
-    alert('Erro: ' + error.message);
-    checkbox.disabled = false;
-    checkbox.checked = false;
-    return;
-  }
-  carregarAlunos();
-  carregarAdmins();
 }
 
 async function carregarAdmins(){
@@ -574,6 +642,56 @@ async function alternarArquetipoHabilitado(aluno, checkbox){
   }
 }
 
+async function alternarCadernoHabilitado(aluno, checkbox){
+  checkbox.disabled = true;
+  const { error } = await supabaseClient
+    .from('profiles')
+    .update({ caderno_habilitado: checkbox.checked })
+    .eq('id', aluno.id);
+  checkbox.disabled = false;
+  if(error){
+    checkbox.checked = !checkbox.checked;
+    alert('Erro: ' + error.message);
+  }
+}
+
+// ---------------------------------------------------------------
+// MODAL "VER ALUNO"
+// ---------------------------------------------------------------
+let alunoAtualModal = null;
+const statusLabel = { approved: 'Aprovado', pending: 'Pendente', rejected: 'Recusado' };
+
+function abrirModalAluno(p){
+  alunoAtualModal = p;
+  document.getElementById('verAlunoNome').textContent = p.nome || '(sem nome)';
+  document.getElementById('verAlunoEmail').textContent = p.email || '';
+  document.getElementById('verAlunoStatus').textContent = statusLabel[p.status] || p.status;
+  document.getElementById('verAlunoArquetipo').checked = !!p.arquetipo_habilitado;
+  document.getElementById('verAlunoCaderno').checked = !!p.caderno_habilitado;
+  document.getElementById('resetBox').style.display = 'none';
+  document.getElementById('modalAluno').classList.remove('hidden');
+}
+
+function fecharModalAluno(){
+  document.getElementById('modalAluno').classList.add('hidden');
+  alunoAtualModal = null;
+}
+
+document.getElementById('verAlunoArquetipo').addEventListener('change', (e) => {
+  if(alunoAtualModal) alternarArquetipoHabilitado(alunoAtualModal, e.target);
+});
+document.getElementById('verAlunoCaderno').addEventListener('change', (e) => {
+  if(alunoAtualModal) alternarCadernoHabilitado(alunoAtualModal, e.target);
+});
+document.getElementById('btnResetarSenhaModal').addEventListener('click', (e) => {
+  if(alunoAtualModal) resetarSenhaAluno(alunoAtualModal, e.target);
+});
+document.getElementById('btnExcluirModal').addEventListener('click', async (e) => {
+  if(!alunoAtualModal) return;
+  const ok = await excluirAluno(alunoAtualModal, e.target);
+  if(ok) fecharModalAluno();
+});
+
 async function resetarSenhaAluno(aluno, btn){
   if(!confirm(`Gerar uma nova senha provisória para ${aluno.nome || aluno.email}? A senha anterior deixa de funcionar.`)) return;
   const novaSenha = gerarSenhaProvisoria();
@@ -593,7 +711,6 @@ async function resetarSenhaAluno(aluno, btn){
     document.getElementById('resetEmail').textContent = aluno.email || '';
     document.getElementById('resetSenha').textContent = novaSenha;
     document.getElementById('resetBox').style.display = 'block';
-    document.getElementById('resetBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } catch(e){
     alert('Erro de conexão. Tente novamente.');
   } finally {
@@ -610,7 +727,7 @@ function copiarCredenciaisReset(){
 }
 
 async function excluirAluno(aluno, btn){
-  if(!confirm(`Excluir ${aluno.nome || aluno.email} definitivamente? Isso apaga a conta e TODAS as respostas dele(a) (headlines, roteiros, narrativa). Não tem como desfazer.`)) return;
+  if(!confirm(`Excluir ${aluno.nome || aluno.email} definitivamente? Isso apaga a conta e TODAS as respostas dele(a) (headlines, roteiros, narrativa). Não tem como desfazer.`)) return false;
   btn.disabled = true;
   btn.textContent = 'Excluindo...';
   try{
@@ -623,14 +740,16 @@ async function excluirAluno(aluno, btn){
     if(!res.ok){
       alert(result.error || 'Não foi possível excluir.');
       btn.disabled = false;
-      btn.textContent = 'Excluir';
-      return;
+      btn.textContent = 'Excluir aluno';
+      return false;
     }
     carregarAlunos();
+    return true;
   } catch(e){
     alert('Erro de conexão. Tente novamente.');
     btn.disabled = false;
-    btn.textContent = 'Excluir';
+    btn.textContent = 'Excluir aluno';
+    return false;
   }
 }
 

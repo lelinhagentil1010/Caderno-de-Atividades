@@ -10,7 +10,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'JSON inválido' }) };
   }
 
-  const { accessToken, nome, email, senha } = body;
+  const { accessToken, nome, email, senha, arquetipoHabilitado, cadernoHabilitado } = body;
   if (!accessToken || !nome || !email || !senha) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Campos obrigatórios faltando' }) };
   }
@@ -61,6 +61,18 @@ exports.handler = async (event) => {
         body: JSON.stringify({ error: created.msg || created.error_description || 'Não foi possível criar o aluno' })
       };
     }
+
+    // 4. Define os acessos liberados e força troca de senha no primeiro login
+    // (a linha em profiles já existe nesse ponto, criada pelo trigger handle_new_user)
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${created.id}`, {
+      method: 'PATCH',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        arquetipo_habilitado: !!arquetipoHabilitado,
+        caderno_habilitado: !!cadernoHabilitado,
+        deve_trocar_senha: true
+      })
+    });
 
     return { statusCode: 200, body: JSON.stringify({ ok: true, email }) };
   } catch (e) {

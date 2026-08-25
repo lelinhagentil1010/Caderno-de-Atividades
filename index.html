@@ -253,6 +253,25 @@ button:disabled{ opacity: 0.45; cursor: not-allowed; transform:none; box-shadow:
     </div>
   </div>
 
+  <!-- TROCAR SENHA (primeiro acesso) -->
+  <div class="panel" id="changePasswordArea">
+    <div class="holding" style="text-align:left;">
+      <div class="icon" style="margin:0 auto 20px;">🔑</div>
+      <h2 style="text-align:center;">Defina sua senha</h2>
+      <p style="text-align:center;">Este é seu primeiro acesso. Crie uma senha só sua para continuar.</p>
+      <div class="field" style="margin-top:24px;">
+        <label for="novaSenha1">Nova senha</label>
+        <input type="password" id="novaSenha1" placeholder="Crie uma senha">
+      </div>
+      <div class="field">
+        <label for="novaSenha2">Confirmar nova senha</label>
+        <input type="password" id="novaSenha2" placeholder="Repita a senha">
+      </div>
+      <button onclick="trocarSenhaPrimeiroAcesso()">Salvar e continuar</button>
+      <div class="status" id="changePasswordStatus"></div>
+    </div>
+  </div>
+
 </div>
 
 <script src="js/supabase-client.js"></script>
@@ -273,12 +292,51 @@ async function routeByStatus(profile){
     return;
   }
   if(profile.status === 'approved'){
+    if(profile.deve_trocar_senha){
+      showPanel('changePasswordArea');
+      return;
+    }
     window.location.href = 'inicio.html';
   } else if(profile.status === 'pending'){
     showPanel('pendingArea');
   } else {
     showPanel('rejectedArea');
   }
+}
+
+async function trocarSenhaPrimeiroAcesso(){
+  const status = document.getElementById('changePasswordStatus');
+  const senha1 = document.getElementById('novaSenha1').value;
+  const senha2 = document.getElementById('novaSenha2').value;
+  if(!senha1 || !senha2){
+    status.textContent = 'Preencha os dois campos.';
+    status.className = 'status error';
+    return;
+  }
+  if(senha1.length < 6){
+    status.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+    status.className = 'status error';
+    return;
+  }
+  if(senha1 !== senha2){
+    status.textContent = 'As senhas não coincidem.';
+    status.className = 'status error';
+    return;
+  }
+  status.textContent = 'Salvando...';
+  status.className = 'status';
+
+  const { error: updateError } = await supabaseClient.auth.updateUser({ password: senha1 });
+  if(updateError){
+    status.textContent = 'Não foi possível salvar a senha. Tente novamente.';
+    status.className = 'status error';
+    return;
+  }
+
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  await supabaseClient.from('profiles').update({ deve_trocar_senha: false }).eq('id', session.user.id);
+
+  window.location.href = 'inicio.html';
 }
 
 async function doLogin(){

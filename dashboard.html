@@ -125,6 +125,12 @@ html,body{ margin:0; padding:0; background:#0F1F3D; color:var(--cream); font-fam
 
 .status{ text-align:center; color: var(--cream-dim); padding: 40px 0; }
 
+.blocked{ text-align:center; padding: 60px 20px; }
+.hidden{ display:none !important; }
+.result-icon{ width: 56px; height: 56px; margin: 0 auto 18px; border-radius: var(--radius-pill); background: rgba(201,162,39,0.12); display:flex; align-items:center; justify-content:center; font-size: 26px; }
+.result-title{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: clamp(20px, 3.2vw, 26px); color: var(--cream); margin: 0 0 8px; text-align:center; }
+.result-sub{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.6; text-align:center; max-width: 460px; margin: 0 auto; }
+
 /* Desktop grande (ex: 1920x1080) — aproveita mais a largura disponível */
 @media (min-width: 1440px){
   .app{ max-width: 1200px; }
@@ -162,6 +168,15 @@ html,body{ margin:0; padding:0; background:#0F1F3D; color:var(--cream); font-fam
 
   <div class="grid" id="grid"></div>
   <div class="status" id="loadStatus">Carregando...</div>
+
+  <!-- BLOQUEADO -->
+  <div id="blockedScreen" class="hidden">
+    <div class="blocked">
+      <div class="result-icon">🔒</div>
+      <div class="result-title">Ainda não disponível</div>
+      <p class="result-sub">Essa área é liberada individualmente pela professora. Assim que ela liberar pra você, o acesso aparece aqui.</p>
+    </div>
+  </div>
 </div>
 
 <script src="js/supabase-client.js"></script>
@@ -214,6 +229,13 @@ function renderGrid(){
   const { profile } = result;
   currentProfile = profile;
   document.getElementById('whoName').textContent = profile.nome || profile.email;
+
+  if(profile.role !== 'admin' && !profile.caderno_habilitado){
+    document.getElementById('loadStatus').style.display = 'none';
+    document.getElementById('blockedScreen').classList.remove('hidden');
+    return;
+  }
+
   renderGrid();
 })();
 </script>
