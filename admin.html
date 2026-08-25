@@ -161,6 +161,41 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
   .actions{ width: 100%; }
   .card .actions button{ flex: 1; }
 }
+
+.bell-wrap{ position: relative; }
+.bell-btn{ position: relative; font-size: 16px; padding: 9px 14px; }
+.bell-badge{
+  position: absolute;
+  top: -6px; right: -6px;
+  background: var(--red);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  min-width: 17px;
+  height: 17px;
+  border-radius: var(--radius-pill);
+  display:flex; align-items:center; justify-content:center;
+  padding: 0 4px;
+  font-family:'Poppins', sans-serif;
+}
+.notif-dropdown{
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 300px;
+  max-height: 340px;
+  overflow-y: auto;
+  background: var(--navy-2);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 8px;
+  z-index: 20;
+}
+.notif-item{ padding: 12px; border-radius: var(--radius-sm); font-size: 13px; color: var(--cream); line-height: 1.4; }
+.notif-item:hover{ background: rgba(201,162,39,0.08); }
+.notif-item .notif-date{ font-size: 11px; color: var(--cream-dim); }
+.notif-empty{ padding: 16px; font-size: 13px; color: var(--cream-dim); font-style: italic; text-align:center; }
 </style>
 </head>
 <body>
@@ -169,6 +204,10 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
   <div class="topbar">
     <img src="assets/logo.svg" alt="ÊNFASE" class="logo">
     <div class="actions">
+      <div class="bell-wrap">
+        <button class="link-btn bell-btn" onclick="toggleNotificacoes()">🔔<span class="bell-badge hidden" id="bellBadge">0</span></button>
+        <div class="notif-dropdown hidden" id="notifDropdown"></div>
+      </div>
       <a class="link-btn" href="dashboard.html">◂ Voltar</a>
       <button class="link-btn" onclick="logout('index.html')">Sair</button>
     </div>
@@ -221,6 +260,9 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
       <div class="line"><strong>Nova senha:</strong> <span id="resetSenha"></span></div>
       <button class="small copy-btn" onclick="copiarCredenciaisReset()">Copiar para enviar</button>
     </div>
+
+    <div class="label" style="margin-top:34px; margin-bottom:14px;">Administradores</div>
+    <div id="adminsList"></div>
   </div>
 
   <!-- RESPOSTAS -->
@@ -249,7 +291,7 @@ function switchTab(name){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
   if(name === 'respostas') onAulaSelectChange();
-  if(name === 'alunos') carregarAlunos();
+  if(name === 'alunos'){ carregarAlunos(); carregarAdmins(); }
 }
 
 function onAulaSelectChange(){
@@ -423,10 +465,17 @@ async function carregarAlunos(){
         </label>
         <button class="small copiar-link-arquetipo">Copiar link</button>
       </div>
+      <div class="row" style="margin-top:10px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--cream-dim); cursor:pointer;">
+          <input type="checkbox" class="toggle-admin" style="width:16px; height:16px;">
+          Promover a administrador
+        </label>
+      </div>
     `;
     card.querySelector('.reset-senha').onclick = (e) => resetarSenhaAluno(p, e.target);
     card.querySelector('.excluir').onclick = (e) => excluirAluno(p, e.target);
     card.querySelector('.toggle-arquetipo').onchange = (e) => alternarArquetipoHabilitado(p, e.target);
+    card.querySelector('.toggle-admin').onchange = (e) => promoverAdmin(p, e.target);
     card.querySelector('.copiar-link-arquetipo').onclick = (e) => {
       navigator.clipboard.writeText(`${window.location.origin}/aulas/arquetipo.html`);
       const btn = e.target;
@@ -436,6 +485,69 @@ async function carregarAlunos(){
     };
     el.appendChild(card);
   });
+}
+
+async function promoverAdmin(aluno, checkbox){
+  if(!checkbox.checked) return;
+  if(!confirm(`Promover ${aluno.nome || aluno.email} a administrador? Ele(a) passa a ter acesso total ao painel do professor, igual você.`)){
+    checkbox.checked = false;
+    return;
+  }
+  checkbox.disabled = true;
+  const { error } = await supabaseClient.from('profiles').update({ role: 'admin' }).eq('id', aluno.id);
+  if(error){
+    alert('Erro: ' + error.message);
+    checkbox.disabled = false;
+    checkbox.checked = false;
+    return;
+  }
+  carregarAlunos();
+  carregarAdmins();
+}
+
+async function carregarAdmins(){
+  const el = document.getElementById('adminsList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('*')
+    .eq('role', 'admin')
+    .order('nome', { ascending: true });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum administrador.</div>'; return; }
+
+  el.innerHTML = '';
+  data.forEach(p => {
+    const souEu = adminSession && p.id === adminSession.user.id;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="row">
+        <div>
+          <div class="nome">${escapeHtml(p.nome || '(sem nome)')}${souEu ? ' <span style="color:var(--gold-light); font-size:12px;">(você)</span>' : ''}</div>
+          <div class="email">${escapeHtml(p.email || '')}</div>
+        </div>
+        <div class="actions">
+          ${souEu ? '' : '<button class="small reject rebaixar">Rebaixar para aluno</button>'}
+        </div>
+      </div>
+    `;
+    if(!souEu){
+      card.querySelector('.rebaixar').onclick = (e) => rebaixarAdmin(p, e.target);
+    }
+    el.appendChild(card);
+  });
+}
+
+async function rebaixarAdmin(admin, btn){
+  if(!confirm(`Rebaixar ${admin.nome || admin.email} para aluno? Ele(a) perde acesso ao painel do professor.`)) return;
+  btn.disabled = true;
+  const { error } = await supabaseClient.from('profiles').update({ role: 'student' }).eq('id', admin.id);
+  if(error){ alert('Erro: ' + error.message); btn.disabled = false; return; }
+  carregarAdmins();
+  carregarAlunos();
 }
 
 async function alternarArquetipoHabilitado(aluno, checkbox){
@@ -1058,7 +1170,70 @@ async function gerarPdfArquetipo(registro, nomeCompleto){
   adminSession = session;
   adminProfile = profile;
   carregarPendentes();
+  verificarNotificacoes();
 })();
+
+// ---------------------------------------------------------------
+// NOTIFICAÇÕES (sininho)
+// ---------------------------------------------------------------
+let notificacoesPendentes = [];
+
+async function verificarNotificacoes(){
+  const { data, error } = await supabaseClient
+    .from('arquetipo')
+    .select('user_id, concluido_em, contato')
+    .eq('concluido', true)
+    .eq('visto_pelo_professor', false)
+    .order('concluido_em', { ascending: false });
+  if(error || !data) return;
+  notificacoesPendentes = data;
+  const badge = document.getElementById('bellBadge');
+  if(data.length > 0){
+    badge.textContent = data.length;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function renderNotificacoes(){
+  const dropdown = document.getElementById('notifDropdown');
+  if(notificacoesPendentes.length === 0){
+    dropdown.innerHTML = '<div class="notif-empty">Nenhuma notificação nova.</div>';
+    return;
+  }
+  dropdown.innerHTML = notificacoesPendentes.map(n => {
+    const nome = `${n.contato?.primeiro_nome || ''} ${n.contato?.sobrenome || ''}`.trim() || n.contato?.email || 'Aluno';
+    const data = new Date(n.concluido_em).toLocaleString('pt-BR');
+    return `<div class="notif-item"><strong>${escapeHtml(nome)}</strong> concluiu o Questionário Arquétipo<br><span class="notif-date">${data}</span></div>`;
+  }).join('');
+}
+
+async function marcarNotificacoesComoVistas(){
+  if(notificacoesPendentes.length === 0) return;
+  const ids = notificacoesPendentes.map(n => n.user_id);
+  await supabaseClient.from('arquetipo').update({ visto_pelo_professor: true }).in('user_id', ids);
+  document.getElementById('bellBadge').classList.add('hidden');
+}
+
+function toggleNotificacoes(){
+  const dropdown = document.getElementById('notifDropdown');
+  const estavaEscondido = dropdown.classList.contains('hidden');
+  if(estavaEscondido){
+    renderNotificacoes();
+    dropdown.classList.remove('hidden');
+    marcarNotificacoesComoVistas();
+  } else {
+    dropdown.classList.add('hidden');
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.bell-wrap');
+  if(wrap && !wrap.contains(e.target)){
+    document.getElementById('notifDropdown').classList.add('hidden');
+  }
+});
 </script>
 
 </body>
