@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Caderno de Atividades, Painel do Professor</title>
+<title>Caderno de Atividades, Painel da Professora</title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0F1F3D">
@@ -285,22 +285,17 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
   </div>
 
   <div class="masthead">
-    <h1>Painel do Professor</h1>
+    <h1>Painel da Professora</h1>
   </div>
 
   <div class="tabs">
-    <div class="tab active" data-tab="pendentes" onclick="switchTab('pendentes')">Cadastros pendentes</div>
-    <div class="tab" data-tab="alunos" onclick="switchTab('alunos')">Alunos</div>
+    <div class="tab active" data-tab="alunos" onclick="switchTab('alunos')">Alunos</div>
     <div class="tab" data-tab="respostas" onclick="switchTab('respostas')">Respostas</div>
-  </div>
-
-  <!-- PENDENTES -->
-  <div class="panel active" data-panel="pendentes">
-    <div id="pendentesList"></div>
+    <div class="tab" data-tab="pendentes" onclick="switchTab('pendentes')">Cadastros pendentes</div>
   </div>
 
   <!-- ALUNOS -->
-  <div class="panel" data-panel="alunos">
+  <div class="panel active" data-panel="alunos">
     <div class="alunos-toolbar">
       <button class="primary" style="margin-top:0; width:auto;" onclick="abrirModalCadastro()">+ Cadastrar aluno</button>
       <button class="small" onclick="copiarLinkArquetipo(event)">Copiar link do Arquétipo</button>
@@ -381,6 +376,11 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
       </select>
     </div>
     <div id="respostasList"></div>
+  </div>
+
+  <!-- PENDENTES -->
+  <div class="panel" data-panel="pendentes">
+    <div id="pendentesList"></div>
   </div>
 
 </div>
@@ -636,7 +636,7 @@ async function carregarAdmins(){
 }
 
 async function rebaixarAdmin(admin, btn){
-  if(!confirm(`Rebaixar ${admin.nome || admin.email} para aluno? Ele(a) perde acesso ao painel do professor.`)) return;
+  if(!confirm(`Rebaixar ${admin.nome || admin.email} para aluno? Ele(a) perde acesso ao painel da professora.`)) return;
   btn.disabled = true;
   const { error } = await supabaseClient.from('profiles').update({ role: 'student' }).eq('id', admin.id);
   if(error){ alert('Erro: ' + error.message); btn.disabled = false; return; }
@@ -1326,7 +1326,8 @@ async function gerarPdfArquetipo(registro, nomeCompleto){
   }
   adminSession = session;
   adminProfile = profile;
-  carregarPendentes();
+  carregarAlunos();
+  carregarAdmins();
   verificarNotificacoes();
 })();
 
