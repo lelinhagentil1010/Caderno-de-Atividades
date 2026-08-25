@@ -152,7 +152,11 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
 .status.error{ color: var(--red); }
 
 .resp-group{ border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-2); box-shadow: var(--shadow-card); margin-bottom: 14px; overflow: hidden; }
-.resp-group-header{ display:flex; justify-content:space-between; align-items:center; gap: 12px; padding: 16px 20px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.resp-group-header{ display:flex; justify-content:space-between; align-items:center; gap: 12px; padding: 16px 20px; flex-wrap: wrap; border-bottom: 1px solid var(--line); cursor: pointer; }
+.resp-toggle-icon{ color: var(--gold-light); font-size: 12px; transition: transform .18s ease; flex-shrink: 0; }
+.resp-group.collapsed .resp-toggle-icon{ transform: rotate(-90deg); }
+.resp-group.collapsed .resp-group-header{ border-bottom: none; }
+.resp-group.collapsed .resp-items{ display:none; }
 .resp-group-header .nome{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 15px; color: var(--cream); }
 .resp-group-header .email{ font-size: 12.5px; color: var(--cream-dim); margin-top: 2px; }
 .resp-count{ font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--navy); background: var(--gold); border-radius: var(--radius-pill); padding: 4px 12px; white-space: nowrap; }
@@ -409,6 +413,10 @@ function escapeHtml(str){
 
 function formatDate(iso){
   return new Date(iso).toLocaleString('pt-BR');
+}
+
+function toggleRespGroup(header){
+  header.closest('.resp-group').classList.toggle('collapsed');
 }
 
 // ---------------------------------------------------------------
@@ -794,14 +802,17 @@ async function carregarRespostas(aulaId){
   orderedGroups.forEach(([userId, items]) => {
     const perfil = perfilMap[userId] || {};
     const group = document.createElement('div');
-    group.className = 'resp-group';
+    group.className = 'resp-group collapsed';
     group.innerHTML = `
-      <div class="resp-group-header">
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
         <div>
           <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
           ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
         </div>
-        <div class="resp-count">${items.length} resposta${items.length > 1 ? 's' : ''}</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">${items.length} resposta${items.length > 1 ? 's' : ''}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
       </div>
       <div class="resp-items">
         ${items.map(r => `
@@ -840,14 +851,17 @@ async function carregarRoteiros(aulaId){
   roteiros.forEach(r => {
     const perfil = perfilMap[r.user_id] || {};
     const card = document.createElement('div');
-    card.className = 'resp-group';
+    card.className = 'resp-group collapsed';
     card.innerHTML = `
-      <div class="resp-group-header">
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
         <div>
           <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
           ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
         </div>
-        <div class="resp-count">Atualizado ${formatDate(r.updated_at)}</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">Atualizado ${formatDate(r.updated_at)}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
       </div>
       <div class="resp-items">
         <div class="resp-item">
@@ -995,14 +1009,17 @@ async function carregarAvatarEspecialista(){
   el.innerHTML = '';
   data.forEach(registro => {
     const card = document.createElement('div');
-    card.className = 'resp-group';
+    card.className = 'resp-group collapsed';
     card.innerHTML = `
-      <div class="resp-group-header">
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
         <div>
           <div class="nome">${escapeHtml(registro.nome || registro.email || '(desconhecido)')}</div>
           <div class="email">${escapeHtml(registro.email || '')}</div>
         </div>
-        <div class="resp-count">${new Date(registro.concluido_em || registro.created_at).toLocaleDateString('pt-BR')}</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">${new Date(registro.concluido_em || registro.created_at).toLocaleDateString('pt-BR')}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
       </div>
       <div class="resp-items">
         <div class="resp-item">
@@ -1154,14 +1171,17 @@ async function carregarArquetipoRespostas(){
   data.forEach(registro => {
     const nomeCompleto = `${registro.contato?.primeiro_nome || ''} ${registro.contato?.sobrenome || ''}`.trim();
     const card = document.createElement('div');
-    card.className = 'resp-group';
+    card.className = 'resp-group collapsed';
     card.innerHTML = `
-      <div class="resp-group-header">
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
         <div>
           <div class="nome">${escapeHtml(nomeCompleto || registro.contato?.email || '(desconhecido)')}</div>
           <div class="email">${escapeHtml(registro.contato?.email || '')}</div>
         </div>
-        <div class="resp-count">${new Date(registro.concluido_em).toLocaleDateString('pt-BR')}</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">${new Date(registro.concluido_em).toLocaleDateString('pt-BR')}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
       </div>
       <div class="resp-items">
         <div class="resp-item">
