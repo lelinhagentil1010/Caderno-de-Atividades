@@ -220,15 +220,6 @@ button:disabled{ opacity: 0.35; cursor: not-allowed; }
       <div class="status" id="resultStatus"></div>
     </div>
 
-    <!-- BLOQUEADO -->
-    <div id="blockedScreen" class="hidden">
-      <div class="blocked">
-        <div class="result-icon">🔒</div>
-        <div class="result-title">Ainda não disponível</div>
-        <p class="result-sub">Essa atividade ainda não foi liberada pela professora.</p>
-      </div>
-    </div>
-
   </div>
 
 </div>
@@ -552,13 +543,6 @@ document.getElementById('downloadBtn').addEventListener('click', async () => {
   const result = await requireApprovedSession('../index.html');
   if(!result) return;
   const { session, profile } = result;
-
-  if(profile.role !== 'admin'){
-    document.getElementById('questionScreen').classList.add('hidden');
-    document.getElementById('resultScreen').classList.add('hidden');
-    document.getElementById('blockedScreen').classList.remove('hidden');
-    return;
-  }
 
   currentUserId = session.user.id;
   respostas.nome = profile.nome || '';

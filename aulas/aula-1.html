@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 1, Identidade, ÊNFASE</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+
+.app{
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  background: var(--navy-2);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+
+.masthead{ text-align:center; margin-bottom: 32px; }
+.eyebrow{ font-family:'Poppins', sans-serif; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Poppins', sans-serif; font-weight:700; font-size: clamp(26px, 4.4vw, 36px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.5; max-width: 520px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.progress{ display:flex; gap: 6px; justify-content:center; margin-bottom: 26px; }
+.dot{ width: 9px; height: 9px; border-radius: 50%; background: var(--navy-3); transition: background .2s ease; }
+.dot.active{ background: var(--gold); }
+.dot.done{ background: var(--gold-light); }
+
+.step-label{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 10px; text-align:center; }
+.step-title{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: clamp(19px, 3vw, 23px); line-height: 1.4; color: var(--cream); margin-bottom: 6px; text-align:center; }
+.step-intro{ text-align:center; color: var(--cream-dim); font-size: 14px; margin-bottom: 22px; }
+
+.field{ margin-bottom: 20px; }
+.field:last-child{ margin-bottom: 0; }
+.field label{
+  display:block;
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--gold-light);
+  margin-bottom: 8px;
+}
+
+input[type=text], textarea, select{
+  width:100%;
+  background: var(--navy-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 13px 15px;
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+}
+textarea{ min-height: 92px; resize: vertical; }
+input:focus, textarea:focus, select:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
+
+.radio-group{ display:flex; flex-direction:column; gap: 12px; }
+.radio-option{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  padding: 15px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--navy-3);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.radio-option:hover{ border-color: var(--gold-dim); }
+.radio-option input{ width: 18px; height: 18px; accent-color: var(--gold); flex-shrink: 0; }
+.radio-option span{ font-size: 15px; color: var(--cream); }
+.radio-option.selected{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+
+.diag-table-wrap{ overflow-x: auto; margin-bottom: 22px; border-radius: var(--radius-md); border: 1px solid var(--line); }
+table.diag-table{ width: 100%; border-collapse: collapse; min-width: 480px; }
+table.diag-table th{
+  background: var(--navy-3);
+  color: var(--gold-light);
+  font-family:'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align:left;
+  padding: 12px 14px;
+}
+table.diag-table td{ padding: 10px 14px; border-top: 1px solid var(--line); vertical-align: middle; }
+table.diag-table tr:nth-child(even) td{ background: rgba(255,255,255,0.02); }
+table.diag-table .eixo-nome{ font-weight: 500; color: var(--cream); white-space: nowrap; }
+table.diag-table select{ min-width: 68px; }
+table.diag-table input[type=text]{ min-width: 160px; }
+
+.field-error{ font-size: 12.5px; color: var(--red); margin-top: 10px; min-height: 16px; text-align:center; }
+
+.nav{ display:flex; justify-content: space-between; gap: 14px; margin-top: 26px; }
+button{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  padding: 13px 26px;
+  border-radius: var(--radius-pill);
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+button.primary:hover{ background: var(--gold-light); box-shadow: 0 8px 20px rgba(201,162,39,0.25); transform: translateY(-1px); }
+button:disabled{ opacity: 0.35; cursor: not-allowed; }
+
+.hidden{ display:none !important; }
+
+.result-title{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: clamp(20px, 3.2vw, 26px); color: var(--cream); margin: 0 0 8px; text-align:center; }
+.result-sub{ color: var(--cream-dim); font-size: 14px; text-align:center; margin: 0 0 24px; }
+.result-icon{ width: 56px; height: 56px; margin: 0 auto 18px; border-radius: var(--radius-pill); background: rgba(201,162,39,0.12); display:flex; align-items:center; justify-content:center; font-size: 26px; }
+.result-actions{ display:flex; gap: 12px; flex-wrap: wrap; justify-content:center; margin-top: 24px; }
+
+.result-summary{ text-align:left; margin-top: 4px; }
+.summary-block{ margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.summary-block:last-of-type{ border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.summary-block h3{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold-light); margin: 0 0 10px; }
+.summary-line{ font-size: 14.5px; color: var(--cream); margin-bottom: 8px; line-height: 1.5; }
+.summary-line:last-child{ margin-bottom: 0; }
+.summary-line strong{ color: var(--gold-light); font-weight: 500; }
+
+.quote-block{
+  margin-top: 26px;
+  padding: 22px 24px;
+  border-left: 3px solid var(--gold);
+  background: rgba(201,162,39,0.06);
+  border-radius: var(--radius-sm);
+  font-family:'Poppins', sans-serif;
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--gold-light);
+  text-align:center;
+}
+
+.status{ font-size: 13px; color: var(--cream-dim); margin-top: 14px; min-height: 18px; text-align:center; }
+.status.error{ color: var(--red); }
+
+/* Desktop grande */
+@media (min-width: 1440px){
+  .app{ max-width: 820px; }
+}
+
+/* Tablet */
+@media (max-width: 1024px){
+  .app{ padding: 28px 20px 70px; }
+}
+
+/* Mobile */
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+  .nav{ flex-direction: column-reverse; }
+  .nav button{ width: 100%; }
+  .result-actions{ flex-direction: column; width: 100%; }
+  .result-actions button{ width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="ÊNFASE" class="logo">
+    <div style="display:flex; gap:10px;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Aula 1</div>
+    <h1>Identidade</h1>
+    <p class="quote">Quem você é e o que você comunica hoje. Responda com sinceridade, esse diagnóstico é o ponto de partida.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="card">
+
+    <!-- TELA DE PERGUNTAS -->
+    <div id="questionScreen">
+      <div class="progress" id="progress"></div>
+      <div class="step-label" id="stepLabel">ESPAÇO 1 DE 5</div>
+      <div id="stepContent"></div>
+      <div class="field-error" id="fieldError"></div>
+      <div class="nav">
+        <button id="backBtn">Voltar</button>
+        <button class="primary" id="nextBtn">Avançar</button>
+      </div>
+    </div>
+
+    <!-- TELA DE RESULTADO -->
+    <div id="resultScreen" class="hidden">
+      <div class="result-icon">✓</div>
+      <div class="result-title">Diagnóstico concluído</div>
+      <div class="result-sub" id="resultSub"></div>
+
+      <div class="result-summary" id="resultSummary"></div>
+
+      <div class="quote-block">"Você não precisa ser mais competente. Precisa ser mais claro sobre a competência que já tem."</div>
+
+      <div class="result-actions">
+        <button class="primary" id="downloadBtn">Baixar PDF</button>
+        <button id="restartBtn">Refazer atividade</button>
+      </div>
+      <div class="status" id="resultStatus"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+const OPCOES_CAMADAS = [
+  'o que construo de propósito',
+  'o que escapa sem querer',
+  'o vazio',
+];
+
+const EIXOS = [
+  { id: 'clareza', label: 'Clareza' },
+  { id: 'consistencia', label: 'Consistência' },
+  { id: 'frequencia', label: 'Frequência e presença' },
+  { id: 'prova', label: 'Prova de competência' },
+  { id: 'alinhamento', label: 'Alinhamento percebido' },
+];
+
+const TOTAL_STEPS = 5;
+let current = 0;
+const respostas = {};
+let currentUserId = null;
+let registroAtual = null;
+
+const progressEl = document.getElementById('progress');
+const stepLabel = document.getElementById('stepLabel');
+const stepContent = document.getElementById('stepContent');
+const fieldError = document.getElementById('fieldError');
+const backBtn = document.getElementById('backBtn');
+const nextBtn = document.getElementById('nextBtn');
+const questionScreen = document.getElementById('questionScreen');
+const resultScreen = document.getElementById('resultScreen');
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function renderProgress(){
+  progressEl.innerHTML = '';
+  for(let i = 0; i < TOTAL_STEPS; i++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : i < current ? ' done' : '');
+    progressEl.appendChild(d);
+  }
+}
+
+// ---------------------------------------------------------------
+// RENDER DE CADA ESPAÇO
+// ---------------------------------------------------------------
+function renderStep(){
+  fieldError.textContent = '';
+  stepLabel.textContent = `ESPAÇO ${current + 1} DE ${TOTAL_STEPS}`;
+  renderProgress();
+
+  if(current === 0){
+    stepContent.innerHTML = `
+      <div class="step-title">As três camadas</div>
+      <p class="step-intro">Hoje, minha comunicação é dominada por:</p>
+      <div class="radio-group" id="radioGroup">
+        ${OPCOES_CAMADAS.map((op, i) => `
+          <label class="radio-option" data-value="${escapeHtml(op)}">
+            <input type="radio" name="camada" value="${escapeHtml(op)}">
+            <span>${escapeHtml(op)}</span>
+          </label>
+        `).join('')}
+      </div>
+    `;
+    const grupo = document.getElementById('radioGroup');
+    grupo.querySelectorAll('.radio-option').forEach(label => {
+      const input = label.querySelector('input');
+      input.checked = respostas.camada_dominante === label.dataset.value;
+      label.classList.toggle('selected', input.checked);
+      label.addEventListener('click', () => {
+        grupo.querySelectorAll('.radio-option').forEach(l => l.classList.remove('selected'));
+        label.classList.add('selected');
+        input.checked = true;
+        fieldError.textContent = '';
+      });
+    });
+  }
+
+  else if(current === 1){
+    stepContent.innerHTML = `
+      <div class="step-title">Meu diferencial</div>
+      <div class="field">
+        <label>Meu jeito diferente é:</label>
+        <textarea id="f_diferencial_jeito" placeholder="Descreva o que te torna diferente...">${escapeHtml(respostas.diferencial_jeito)}</textarea>
+      </div>
+      <div class="field">
+        <label>Isso vem de:</label>
+        <textarea id="f_diferencial_origem" placeholder="De onde vem esse jeito diferente...">${escapeHtml(respostas.diferencial_origem)}</textarea>
+      </div>
+      <div class="field">
+        <label>Isso me permite entregar:</label>
+        <textarea id="f_diferencial_entrega" placeholder="O que esse diferencial te permite entregar...">${escapeHtml(respostas.diferencial_entrega)}</textarea>
+      </div>
+    `;
+  }
+
+  else if(current === 2){
+    stepContent.innerHTML = `
+      <div class="step-title">Meu público real</div>
+      <div class="field">
+        <label>O maior desejo real do meu público é:</label>
+        <textarea id="f_publico_desejo" placeholder="O que ele mais quer...">${escapeHtml(respostas.publico_desejo)}</textarea>
+      </div>
+      <div class="field">
+        <label>O maior medo que ele carrega antes de me procurar é:</label>
+        <textarea id="f_publico_medo" placeholder="O que ele mais teme...">${escapeHtml(respostas.publico_medo)}</textarea>
+      </div>
+    `;
+  }
+
+  else if(current === 3){
+    stepContent.innerHTML = `
+      <div class="step-title">A sensação que quero deixar</div>
+      <div class="field">
+        <label>A sensação que eu quero que as pessoas sintam depois de qualquer contato comigo é:</label>
+        <textarea id="f_sensacao_desejada" placeholder="Descreva essa sensação...">${escapeHtml(respostas.sensacao_desejada)}</textarea>
+      </div>
+    `;
+  }
+
+  else if(current === 4){
+    stepContent.innerHTML = `
+      <div class="step-title">Diagnóstico dos 5 eixos</div>
+      <div class="diag-table-wrap">
+        <table class="diag-table">
+          <thead>
+            <tr><th>Eixo</th><th>Nota (1–5)</th><th>Exemplo concreto</th></tr>
+          </thead>
+          <tbody>
+            ${EIXOS.map(eixo => `
+              <tr>
+                <td class="eixo-nome">${escapeHtml(eixo.label)}</td>
+                <td>
+                  <select id="f_diag_${eixo.id}_nota">
+                    <option value="">-</option>
+                    ${[1,2,3,4,5].map(n => `<option value="${n}" ${respostas['diag_' + eixo.id + '_nota'] === String(n) ? 'selected' : ''}>${n}</option>`).join('')}
+                  </select>
+                </td>
+                <td><input type="text" id="f_diag_${eixo.id}_exemplo" placeholder="Exemplo concreto" value="${escapeHtml(respostas['diag_' + eixo.id + '_exemplo'])}"></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div class="field">
+        <label>Maior gap identificado hoje:</label>
+        <textarea id="f_maior_gap" placeholder="Qual é o maior gap...">${escapeHtml(respostas.maior_gap)}</textarea>
+      </div>
+    `;
+  }
+
+  backBtn.disabled = current === 0;
+  nextBtn.textContent = current === TOTAL_STEPS - 1 ? 'Concluir diagnóstico' : 'Avançar';
+}
+
+// ---------------------------------------------------------------
+// COLETA E VALIDAÇÃO DE CADA ESPAÇO
+// ---------------------------------------------------------------
+function coletarStep(){
+  if(current === 0){
+    const marcado = document.querySelector('input[name="camada"]:checked');
+    respostas.camada_dominante = marcado ? marcado.value : '';
+  } else if(current === 1){
+    respostas.diferencial_jeito = document.getElementById('f_diferencial_jeito').value.trim();
+    respostas.diferencial_origem = document.getElementById('f_diferencial_origem').value.trim();
+    respostas.diferencial_entrega = document.getElementById('f_diferencial_entrega').value.trim();
+  } else if(current === 2){
+    respostas.publico_desejo = document.getElementById('f_publico_desejo').value.trim();
+    respostas.publico_medo = document.getElementById('f_publico_medo').value.trim();
+  } else if(current === 3){
+    respostas.sensacao_desejada = document.getElementById('f_sensacao_desejada').value.trim();
+  } else if(current === 4){
+    EIXOS.forEach(eixo => {
+      respostas['diag_' + eixo.id + '_nota'] = document.getElementById(`f_diag_${eixo.id}_nota`).value;
+      respostas['diag_' + eixo.id + '_exemplo'] = document.getElementById(`f_diag_${eixo.id}_exemplo`).value.trim();
+    });
+    respostas.maior_gap = document.getElementById('f_maior_gap').value.trim();
+  }
+}
+
+function validarStep(){
+  if(current === 0){
+    if(!respostas.camada_dominante){
+      fieldError.textContent = 'Escolha uma das três opções.';
+      return false;
+    }
+  } else if(current === 1){
+    if(!respostas.diferencial_jeito || !respostas.diferencial_origem || !respostas.diferencial_entrega){
+      fieldError.textContent = 'Preencha os três campos.';
+      return false;
+    }
+  } else if(current === 2){
+    if(!respostas.publico_desejo || !respostas.publico_medo){
+      fieldError.textContent = 'Preencha os dois campos.';
+      return false;
+    }
+  } else if(current === 3){
+    if(!respostas.sensacao_desejada){
+      fieldError.textContent = 'Esse campo precisa de uma resposta.';
+      return false;
+    }
+  } else if(current === 4){
+    const faltando = EIXOS.some(eixo => !respostas['diag_' + eixo.id + '_nota'] || !respostas['diag_' + eixo.id + '_exemplo']);
+    if(faltando || !respostas.maior_gap){
+      fieldError.textContent = 'Preencha a nota e um exemplo concreto para cada eixo, e o maior gap identificado.';
+      return false;
+    }
+  }
+  return true;
+}
+
+nextBtn.addEventListener('click', async () => {
+  coletarStep();
+  if(!validarStep()) return;
+
+  if(current < TOTAL_STEPS - 1){
+    current++;
+    await salvarProgresso();
+    renderStep();
+  } else {
+    await concluirDiagnostico();
+  }
+});
+
+backBtn.addEventListener('click', () => {
+  coletarStep();
+  if(current > 0){
+    current--;
+    renderStep();
+  }
+});
+
+document.getElementById('restartBtn').addEventListener('click', () => {
+  current = 0;
+  Object.keys(respostas).forEach(k => delete respostas[k]);
+  resultScreen.classList.add('hidden');
+  questionScreen.classList.remove('hidden');
+  document.getElementById('resultStatus').textContent = '';
+  renderStep();
+});
+
+// ---------------------------------------------------------------
+// SALVAR / CARREGAR
+// ---------------------------------------------------------------
+async function salvarProgresso(){
+  try{
+    await supabaseClient.from('identidade_aula1').upsert({
+      user_id: currentUserId,
+      nome: respostas.nome || null,
+      respostas: { ...respostas },
+      passo_atual: current,
+      concluido: false
+    }, { onConflict: 'user_id' });
+  } catch(e){
+    console.error('Não foi possível salvar o progresso', e);
+  }
+}
+
+async function concluirDiagnostico(){
+  nextBtn.disabled = true;
+  nextBtn.textContent = 'Salvando...';
+
+  const { data, error } = await supabaseClient
+    .from('identidade_aula1')
+    .upsert({
+      user_id: currentUserId,
+      nome: respostas.nome || null,
+      respostas: { ...respostas },
+      passo_atual: TOTAL_STEPS,
+      concluido: true,
+      concluido_em: new Date().toISOString()
+    }, { onConflict: 'user_id' })
+    .select()
+    .single();
+
+  nextBtn.disabled = false;
+  nextBtn.textContent = 'Concluir diagnóstico';
+
+  if(error){
+    fieldError.textContent = 'Não foi possível salvar. Tente novamente.';
+    return;
+  }
+
+  registroAtual = data;
+  mostrarResultado();
+}
+
+function renderResumo(){
+  const r = registroAtual.respostas || {};
+  const eixoLinhas = EIXOS.map(eixo => {
+    const nota = r['diag_' + eixo.id + '_nota'] || '-';
+    const exemplo = r['diag_' + eixo.id + '_exemplo'] || '-';
+    return `<div class="summary-line"><strong>${escapeHtml(eixo.label)} (nota ${escapeHtml(nota)}):</strong> ${escapeHtml(exemplo)}</div>`;
+  }).join('');
+
+  document.getElementById('resultSummary').innerHTML = `
+    <div class="summary-block">
+      <h3>Espaço 1, as três camadas</h3>
+      <div class="summary-line">${escapeHtml(r.camada_dominante)}</div>
+    </div>
+    <div class="summary-block">
+      <h3>Espaço 2, meu diferencial</h3>
+      <div class="summary-line"><strong>Meu jeito diferente é:</strong> ${escapeHtml(r.diferencial_jeito)}</div>
+      <div class="summary-line"><strong>Isso vem de:</strong> ${escapeHtml(r.diferencial_origem)}</div>
+      <div class="summary-line"><strong>Isso me permite entregar:</strong> ${escapeHtml(r.diferencial_entrega)}</div>
+    </div>
+    <div class="summary-block">
+      <h3>Espaço 3, meu público real</h3>
+      <div class="summary-line"><strong>Maior desejo:</strong> ${escapeHtml(r.publico_desejo)}</div>
+      <div class="summary-line"><strong>Maior medo:</strong> ${escapeHtml(r.publico_medo)}</div>
+    </div>
+    <div class="summary-block">
+      <h3>Espaço 4, a sensação que quero deixar</h3>
+      <div class="summary-line">${escapeHtml(r.sensacao_desejada)}</div>
+    </div>
+    <div class="summary-block">
+      <h3>Espaço 5, diagnóstico dos 5 eixos</h3>
+      ${eixoLinhas}
+      <div class="summary-line" style="margin-top:10px;"><strong>Maior gap identificado:</strong> ${escapeHtml(r.maior_gap)}</div>
+    </div>
+  `;
+}
+
+function mostrarResultado(){
+  questionScreen.classList.add('hidden');
+  resultScreen.classList.remove('hidden');
+  const data = new Date(registroAtual.concluido_em || registroAtual.created_at);
+  document.getElementById('resultSub').textContent = `Concluído em ${data.toLocaleString('pt-BR')}`;
+  renderResumo();
+}
+
+async function carregarDiagnostico(){
+  const { data, error } = await supabaseClient
+    .from('identidade_aula1')
+    .select('*')
+    .eq('user_id', currentUserId)
+    .maybeSingle();
+  if(error){
+    console.error('Não foi possível carregar o diagnóstico salvo', error);
+    renderStep();
+    return;
+  }
+  if(data && data.concluido){
+    registroAtual = data;
+    mostrarResultado();
+  } else if(data){
+    Object.assign(respostas, data.respostas || {});
+    current = Math.min(data.passo_atual || 0, TOTAL_STEPS - 1);
+    renderStep();
+  } else {
+    renderStep();
+  }
+}
+
+// ---------------------------------------------------------------
+// GERAÇÃO DE PDF
+// ---------------------------------------------------------------
+function svgToPngDataUrl(url, width, height){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function gerarPdfIdentidade(registro, nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+
+  try{
+    const logoDataUrl = await svgToPngDataUrl('../assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeAluno || ''}`, margin, y);
+  y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){
+    doc.text(`Email: ${emailAluno}`, margin, y);
+    y += 6;
+  }
+  const dataConclusao = new Date(registro.concluido_em || registro.created_at).toLocaleString('pt-BR');
+  doc.text(`Concluído em: ${dataConclusao}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+
+  function escreverBloco(titulo, linhas){
+    checarQuebra(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(201, 162, 39);
+    doc.text(titulo, margin, y);
+    y += 8;
+
+    linhas.forEach(([label, valor]) => {
+      checarQuebra(20);
+      if(label){
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(15, 31, 61);
+        const labelLines = doc.splitTextToSize(label, maxWidth);
+        doc.text(labelLines, margin, y);
+        y += labelLines.length * 5.2 + 1;
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(40, 40, 40);
+      const valorLines = doc.splitTextToSize(String(valor || ''), maxWidth);
+      valorLines.forEach(line => {
+        checarQuebra(14);
+        doc.text(line, margin, y);
+        y += 5.2;
+      });
+      y += 5;
+    });
+    y += 3;
+  }
+
+  const r = registro.respostas || {};
+
+  escreverBloco('ESPAÇO 1, AS TRÊS CAMADAS', [
+    ['Hoje, minha comunicação é dominada por:', r.camada_dominante],
+  ]);
+
+  escreverBloco('ESPAÇO 2, MEU DIFERENCIAL', [
+    ['Meu jeito diferente é:', r.diferencial_jeito],
+    ['Isso vem de:', r.diferencial_origem],
+    ['Isso me permite entregar:', r.diferencial_entrega],
+  ]);
+
+  escreverBloco('ESPAÇO 3, MEU PÚBLICO REAL', [
+    ['O maior desejo real do meu público é:', r.publico_desejo],
+    ['O maior medo que ele carrega antes de me procurar é:', r.publico_medo],
+  ]);
+
+  escreverBloco('ESPAÇO 4, A SENSAÇÃO QUE QUERO DEIXAR', [
+    [null, r.sensacao_desejada],
+  ]);
+
+  escreverBloco('ESPAÇO 5, DIAGNÓSTICO DOS 5 EIXOS', [
+    ...EIXOS.map(eixo => [`${eixo.label} (nota ${r['diag_' + eixo.id + '_nota'] || '-'}):`, r['diag_' + eixo.id + '_exemplo']]),
+    ['Maior gap identificado hoje:', r.maior_gap],
+  ]);
+
+  checarQuebra(30);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(11.5);
+  doc.setTextColor(201, 162, 39);
+  const fraseLines = doc.splitTextToSize('"Você não precisa ser mais competente. Precisa ser mais claro sobre a competência que já tem."', maxWidth);
+  doc.text(fraseLines, margin, y);
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`identidade-aula1-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('downloadBtn');
+  const status = document.getElementById('resultStatus');
+  btn.disabled = true;
+  status.textContent = 'Gerando PDF...';
+  status.className = 'status';
+  try{
+    await gerarPdfIdentidade(registroAtual, respostas.nome, respostas.email);
+    status.textContent = '';
+  } catch(e){
+    status.textContent = 'Não foi possível gerar o PDF. Tente novamente.';
+    status.className = 'status error';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  const { session, profile } = result;
+
+  currentUserId = session.user.id;
+  respostas.nome = profile.nome || '';
+  respostas.email = profile.email || '';
+  await carregarDiagnostico();
+})();
+</script>
+
+</body>
+</html>

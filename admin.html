@@ -371,6 +371,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
         <option value="arquetipo:respostas">Arquétipo · Respostas</option>
         <option value="avatar:especialista">Pesquisa · Avatar e Especialista</option>
         <option value="roteiro:aula-0">Aula 0 · Minha Narrativa</option>
+        <option value="identidade:aula-1">Aula 1 · Identidade</option>
         <option value="headlines:aula-2">Aula 2 · Caderno de Gatilhos</option>
         <option value="roteiro:aula-2">Aula 2 · Estrutura de Roteiro</option>
       </select>
@@ -402,6 +403,7 @@ function onAulaSelectChange(){
   if(tipo === 'roteiro') carregarRoteiros(aulaId);
   else if(tipo === 'avatar') carregarAvatarEspecialista();
   else if(tipo === 'arquetipo') carregarArquetipoRespostas();
+  else if(tipo === 'identidade') carregarIdentidade();
   else carregarRespostas(aulaId);
 }
 
@@ -1040,6 +1042,186 @@ async function carregarAvatarEspecialista(){
     };
     el.appendChild(card);
   });
+}
+
+// ---------------------------------------------------------------
+// IDENTIDADE — AULA 1
+// ---------------------------------------------------------------
+const EIXOS_IDENTIDADE = [
+  { id: 'clareza', label: 'Clareza' },
+  { id: 'consistencia', label: 'Consistência' },
+  { id: 'frequencia', label: 'Frequência e presença' },
+  { id: 'prova', label: 'Prova de competência' },
+  { id: 'alinhamento', label: 'Alinhamento percebido' },
+];
+
+async function carregarIdentidade(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('identidade_aula1')
+    .select('*')
+    .eq('concluido', true)
+    .order('concluido_em', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno concluiu essa atividade ainda.</div>'; return; }
+
+  const userIds = [...new Set(data.map(r => r.user_id))];
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  el.innerHTML = '';
+  data.forEach(registro => {
+    const perfil = perfilMap[registro.user_id] || {};
+    const card = document.createElement('div');
+    card.className = 'resp-group collapsed';
+    card.innerHTML = `
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
+        <div>
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          <div class="email">${escapeHtml(perfil.email || '')}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">${new Date(registro.concluido_em || registro.created_at).toLocaleDateString('pt-BR')}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <button class="small baixar-pdf-identidade">Baixar PDF</button>
+        </div>
+      </div>
+    `;
+    card.querySelector('.baixar-pdf-identidade').onclick = async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+      try{
+        await gerarPdfIdentidade(registro, perfil.nome || perfil.email, perfil.email);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Baixar PDF';
+      }
+    };
+    el.appendChild(card);
+  });
+}
+
+async function gerarPdfIdentidade(registro, nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+
+  try{
+    const logoDataUrl = await svgToPngDataUrl('assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeAluno || ''}`, margin, y);
+  y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){
+    doc.text(`Email: ${emailAluno}`, margin, y);
+    y += 6;
+  }
+  const dataConclusao = new Date(registro.concluido_em || registro.created_at).toLocaleString('pt-BR');
+  doc.text(`Concluído em: ${dataConclusao}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+
+  function escreverBloco(titulo, linhas){
+    checarQuebra(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(201, 162, 39);
+    doc.text(titulo, margin, y);
+    y += 8;
+
+    linhas.forEach(([label, valor]) => {
+      checarQuebra(20);
+      if(label){
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(15, 31, 61);
+        const labelLines = doc.splitTextToSize(label, maxWidth);
+        doc.text(labelLines, margin, y);
+        y += labelLines.length * 5.2 + 1;
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(40, 40, 40);
+      const valorLines = doc.splitTextToSize(String(valor || ''), maxWidth);
+      valorLines.forEach(line => {
+        checarQuebra(14);
+        doc.text(line, margin, y);
+        y += 5.2;
+      });
+      y += 5;
+    });
+    y += 3;
+  }
+
+  const r = registro.respostas || {};
+
+  escreverBloco('ESPAÇO 1, AS TRÊS CAMADAS', [
+    ['Hoje, minha comunicação é dominada por:', r.camada_dominante],
+  ]);
+
+  escreverBloco('ESPAÇO 2, MEU DIFERENCIAL', [
+    ['Meu jeito diferente é:', r.diferencial_jeito],
+    ['Isso vem de:', r.diferencial_origem],
+    ['Isso me permite entregar:', r.diferencial_entrega],
+  ]);
+
+  escreverBloco('ESPAÇO 3, MEU PÚBLICO REAL', [
+    ['O maior desejo real do meu público é:', r.publico_desejo],
+    ['O maior medo que ele carrega antes de me procurar é:', r.publico_medo],
+  ]);
+
+  escreverBloco('ESPAÇO 4, A SENSAÇÃO QUE QUERO DEIXAR', [
+    [null, r.sensacao_desejada],
+  ]);
+
+  escreverBloco('ESPAÇO 5, DIAGNÓSTICO DOS 5 EIXOS', [
+    ...EIXOS_IDENTIDADE.map(eixo => [`${eixo.label} (nota ${r['diag_' + eixo.id + '_nota'] || '-'}):`, r['diag_' + eixo.id + '_exemplo']]),
+    ['Maior gap identificado hoje:', r.maior_gap],
+  ]);
+
+  checarQuebra(30);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(11.5);
+  doc.setTextColor(201, 162, 39);
+  const fraseLines = doc.splitTextToSize('"Você não precisa ser mais competente. Precisa ser mais claro sobre a competência que já tem."', maxWidth);
+  doc.text(fraseLines, margin, y);
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`identidade-aula1-${nomeArquivo || 'aluno'}.pdf`);
 }
 
 // ---------------------------------------------------------------
