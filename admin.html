@@ -373,7 +373,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
         <option value="roteiro:aula-0">Aula 0 · Minha Narrativa</option>
         <option value="identidade:aula-1">Aula 1 · Identidade</option>
         <option value="headlines:aula-2">Aula 2 · Caderno de Gatilhos</option>
-        <option value="roteiro:aula-2">Aula 2 · Estrutura de Roteiro</option>
+        <option value="roteiro2:aula-2">Aula 2 · Estrutura de Roteiro</option>
       </select>
     </div>
     <div id="respostasList"></div>
@@ -401,6 +401,7 @@ function switchTab(name){
 function onAulaSelectChange(){
   const [tipo, aulaId] = document.getElementById('aulaSelect').value.split(':');
   if(tipo === 'roteiro') carregarRoteiros(aulaId);
+  else if(tipo === 'roteiro2') carregarRoteirosAula2();
   else if(tipo === 'avatar') carregarAvatarEspecialista();
   else if(tipo === 'arquetipo') carregarArquetipoRespostas();
   else if(tipo === 'identidade') carregarIdentidade();
@@ -892,6 +893,84 @@ async function carregarRoteiros(aulaId){
       if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
     };
     el.appendChild(card);
+  });
+}
+
+// ---------------------------------------------------------------
+// ESTRUTURA DE ROTEIRO — AULA 2 (aluno pode salvar mais de um)
+// ---------------------------------------------------------------
+async function carregarRoteirosAula2(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data: roteiros, error } = await supabaseClient
+    .from('roteiros_aula2')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!roteiros || roteiros.length === 0){ el.innerHTML = '<div class="empty">Nenhum roteiro enviado ainda para esta aula.</div>'; return; }
+
+  const userIds = [...new Set(roteiros.map(r => r.user_id))];
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  const groups = new Map();
+  roteiros.forEach(r => {
+    if(!groups.has(r.user_id)) groups.set(r.user_id, []);
+    groups.get(r.user_id).push(r);
+  });
+  const orderedGroups = [...groups.entries()].sort((a, b) => new Date(b[1][0].created_at) - new Date(a[1][0].created_at));
+
+  el.innerHTML = '';
+  orderedGroups.forEach(([userId, items]) => {
+    const perfil = perfilMap[userId] || {};
+    const group = document.createElement('div');
+    group.className = 'resp-group collapsed';
+    group.innerHTML = `
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
+        <div>
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">${items.length} roteiro${items.length > 1 ? 's' : ''}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
+      </div>
+      <div class="resp-items">
+        ${items.map(r => `
+          <div class="resp-item" data-id="${r.id}">
+            <div class="texto" style="white-space:pre-wrap; font-style:normal;">${escapeHtml(r.texto)}</div>
+            <div class="quando">${formatDate(r.created_at)}</div>
+            <div class="field" style="margin-top:14px; margin-bottom:0;">
+              <label>Correção / comentário</label>
+              <textarea class="comentario-input" rows="3">${escapeHtml(r.comentario_professor || '')}</textarea>
+            </div>
+            <div class="actions" style="margin-top:10px;">
+              <button class="small salvar-comentario">Salvar comentário</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    group.querySelectorAll('.resp-item').forEach(itemEl => {
+      const id = itemEl.dataset.id;
+      itemEl.querySelector('.salvar-comentario').onclick = async (e) => {
+        const btn = e.target;
+        const textarea = itemEl.querySelector('.comentario-input');
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+        const { error } = await supabaseClient
+          .from('roteiros_aula2')
+          .update({ comentario_professor: textarea.value })
+          .eq('id', id);
+        btn.disabled = false;
+        btn.textContent = error ? 'Erro, tentar de novo' : 'Salvo!';
+        if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
+      };
+    });
+    el.appendChild(group);
   });
 }
 

@@ -100,14 +100,17 @@ html,body{
 .card.locked{ cursor: default; opacity: 0.5; }
 .card.locked:hover{ transform:none; border-color: var(--line); box-shadow: var(--shadow-card); }
 .card .num{
-  width: 34px; height: 34px;
+  align-self: flex-start;
+  padding: 6px 14px;
   border-radius: var(--radius-pill);
   background: rgba(201,162,39,0.14);
   color: var(--gold-light);
   display:flex; align-items:center; justify-content:center;
   font-family:'Poppins', sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   margin-bottom: 14px;
 }
 .card.locked .num{ background: rgba(244,239,227,0.08); color: var(--cream-dim); }
@@ -189,10 +192,10 @@ html,body{
 // soAdmin: true = só aparece disponível pra quem tem role 'admin'
 // requerFlag: 'nome_da_coluna' = só aparece disponível se profiles[nome_da_coluna] === true (ou role admin) — liberação individual por aluno
 const AULAS = [
-  { id: 'avatar-especialista', numero: '★', titulo: 'Avatar e Especialista', descricao: 'Pesquisa inicial sobre seu público e sua identidade como especialista.', ativo: true, url: 'aulas/avatar-especialista.html' },
-  { id: 'aula-0', numero: 0, titulo: 'Narrativa', descricao: 'Responda 6 perguntas e monte o texto da sua própria história.', ativo: true, url: 'aulas/aula-0.html' },
-  { id: 'aula-1', numero: 1, titulo: 'Identidade', descricao: 'Diagnóstico dos 5 eixos: quem você é e o que você comunica hoje.', ativo: true, url: 'aulas/aula-1.html' },
-  { id: 'aula-2', numero: 2, titulo: 'Anatomia Viral', descricao: 'Monte headlines combinando gatilhos mentais e templates.', ativo: true, url: 'aulas/aula-2.html' },
+  { id: 'avatar-especialista', numero: 'Diagnóstico', titulo: 'Avatar e Especialista', descricao: 'Pesquisa inicial sobre seu público e sua identidade como especialista.', ativo: true, url: 'aulas/avatar-especialista.html' },
+  { id: 'aula-0', numero: 'Aula 0', titulo: 'Narrativa', descricao: 'Responda 6 perguntas e monte o texto da sua própria história.', ativo: true, url: 'aulas/aula-0.html' },
+  { id: 'aula-1', numero: 'Aula 1', titulo: 'Identidade', descricao: 'Diagnóstico dos 5 eixos: quem você é e o que você comunica hoje.', ativo: true, url: 'aulas/aula-1.html' },
+  { id: 'aula-2', numero: 'Aula 2', titulo: 'Anatomia Viral', descricao: 'Monte headlines combinando gatilhos mentais e templates.', ativo: true, url: 'aulas/aula-2.html' },
 ];
 
 let currentProfile = null;

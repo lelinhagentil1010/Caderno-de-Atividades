@@ -444,32 +444,9 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
   <div class="inner-card">
   <div class="stepper" id="stepper"></div>
 
-  <!-- STEP 1: AVATAR -->
+  <!-- STEP 1: GATILHOS -->
   <div class="panel" data-step="1">
     <div class="step-label">Passo 1</div>
-    <h2 class="step-title">Antes de escrever, lembre quem escuta</h2>
-    <p class="step-sub">Puxe o que você já escreveu na Aula 1. Toda headline boa nasce daqui.</p>
-
-    <div class="field">
-      <label for="medo">Medo real do seu público</label>
-      <div class="hint">O que ele teme que aconteça se não resolver isso.</div>
-      <textarea id="medo" rows="2" placeholder="Ex: ser visto como incompetente na frente dos colegas"></textarea>
-    </div>
-
-    <div class="field">
-      <label for="desejo">Desejo real do seu público</label>
-      <div class="hint">O que ele quer, de verdade, por trás do pedido óbvio.</div>
-      <textarea id="desejo" rows="2" placeholder="Ex: ser reconhecido como referência na sua área"></textarea>
-    </div>
-
-    <div class="actions">
-      <button class="primary" onclick="continuarDoAvatar()">Continuar</button>
-    </div>
-  </div>
-
-  <!-- STEP 2: GATILHOS -->
-  <div class="panel" data-step="2">
-    <div class="step-label">Passo 2</div>
     <h2 class="step-title">Escolha 1, 2 ou 3 gatilhos</h2>
     <p class="step-sub">Quando combinados, sustentam a atenção do início ao fim, mas um só também pode funcionar.</p>
 
@@ -477,27 +454,26 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     <div class="limit-note" id="limitNote">0 de 3 selecionados</div>
 
     <div class="actions">
-      <button onclick="goTo(1)">Voltar</button>
-      <button class="primary" id="toStep3" onclick="goTo(3)" disabled>Ver templates compatíveis</button>
+      <button class="primary" id="toStep2" onclick="goTo(2)" disabled>Ver templates compatíveis</button>
     </div>
   </div>
 
-  <!-- STEP 3: TEMPLATES -->
-  <div class="panel" data-step="3">
-    <div class="step-label">Passo 3</div>
+  <!-- STEP 2: TEMPLATES -->
+  <div class="panel" data-step="2">
+    <div class="step-label">Passo 2</div>
     <h2 class="step-title">Templates para a sua combinação</h2>
     <p class="step-sub" id="comboSummary"></p>
 
     <div class="template-list" id="templateList"></div>
 
     <div class="actions">
-      <button onclick="goTo(2)">Voltar</button>
+      <button onclick="goTo(1)">Voltar</button>
     </div>
   </div>
 
-  <!-- STEP 4: BUILDER -->
-  <div class="panel" data-step="4">
-    <div class="step-label">Passo 4</div>
+  <!-- STEP 3: BUILDER -->
+  <div class="panel" data-step="3">
+    <div class="step-label">Passo 3</div>
     <h2 class="step-title">Monte a headline</h2>
     <p class="step-sub">Preencha os espaços. Seja específico, quanto mais específico, mais forte.</p>
 
@@ -511,7 +487,7 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     </div>
 
     <div class="actions">
-      <button onclick="goTo(3)">Trocar template</button>
+      <button onclick="goTo(2)">Trocar template</button>
       <button class="primary" onclick="saveHeadline()">Salvar no caderno</button>
     </div>
     <div class="status" id="saveStatus"></div>
@@ -730,8 +706,8 @@ Ao receber esta mensagem, confirme que entendeu o método e pergunte meu nicho e
       </div>
 
       <div class="field" style="margin-top:26px;">
-        <label for="roteiroTexto">Roteiro</label>
-        <div class="hint">Cole aqui o roteiro gerado pela IA (ou escreva o seu). Salvar de novo substitui a versão anterior.</div>
+        <label for="roteiroTexto">Novo roteiro</label>
+        <div class="hint">Cole aqui o roteiro gerado pela IA (ou escreva o seu). Você pode salvar quantos roteiros quiser, cada um fica guardado separadamente.</div>
         <textarea id="roteiroTexto" rows="10" placeholder="Cole ou escreva seu roteiro aqui..."></textarea>
       </div>
       <div class="actions">
@@ -739,9 +715,12 @@ Ao receber esta mensagem, confirme que entendeu o método e pergunte meu nicho e
       </div>
       <div class="status" id="roteiroStatus"></div>
 
-      <div class="feedback-box" id="feedbackBox" style="display:none;">
-        <div class="label">Correção da professora</div>
-        <div class="texto" id="feedbackText"></div>
+      <div class="inner-card vault" style="margin-top:26px;">
+        <div class="vault-header">
+          <h2>Seus roteiros salvos</h2>
+          <span class="count" id="roteiroVaultCount"></span>
+        </div>
+        <div id="roteiroVaultList"></div>
       </div>
     </div>
   </div>
@@ -751,7 +730,6 @@ Ao receber esta mensagem, confirme que entendeu o método e pergunte meu nicho e
 <script src="../js/supabase-client.js"></script>
 <script>
 const AULA_ID = 'aula-2';
-const ROTEIRO_AULA_ID = 'aula-2';
 let currentUserId = null;
 
 // ---------------------------------------------------------------
@@ -880,16 +858,15 @@ const GATILHO_MAP = Object.fromEntries(GATILHOS.map(g => [g.id, g.name]));
 // ESTADO
 // ---------------------------------------------------------------
 let state = {
-  medo: '',
-  desejo: '',
   selectedGatilhos: [],
   selectedTemplate: null,
+  filledValues: {},
   currentStep: 1,
   vault: []
 };
 
-const STEPS = [1,2,3,4];
-const STEP_LABELS = { 1:'Avatar', 2:'Gatilhos', 3:'Templates', 4:'Headline' };
+const STEPS = [1,2,3];
+const STEP_LABELS = { 1:'Gatilhos', 2:'Templates', 3:'Headline' };
 
 // ---------------------------------------------------------------
 // STORAGE — Supabase (permanente, entre aparelhos, por aluno logado)
@@ -953,9 +930,9 @@ function renderStepper(){
 }
 
 function maxReachableStep(){
-  if(state.selectedTemplate) return 4;
-  if(state.selectedGatilhos.length > 0) return 3;
-  return 2;
+  if(state.selectedTemplate) return 3;
+  if(state.selectedGatilhos.length > 0) return 2;
+  return 1;
 }
 
 function goTo(step){
@@ -963,24 +940,52 @@ function goTo(step){
   document.querySelectorAll('.panel').forEach(p => {
     p.classList.toggle('active', Number(p.dataset.step) === step);
   });
-  if(step === 3) renderTemplates();
-  if(step === 4) renderBuilder();
+  if(step === 2) renderTemplates();
+  if(step === 3) renderBuilder();
   renderStepper();
+  salvarRascunhoBuilder();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
 // ---------------------------------------------------------------
-// STEP 1: AVATAR
+// RASCUNHO DO GERADOR — retoma exatamente de onde o aluno parou
 // ---------------------------------------------------------------
-document.getElementById('medo').addEventListener('input', e => state.medo = e.target.value);
-document.getElementById('desejo').addEventListener('input', e => state.desejo = e.target.value);
+let rascunhoTimer = null;
 
-async function continuarDoAvatar(){
-  goTo(2);
+async function salvarRascunhoBuilder(){
+  try{
+    await supabaseClient.from('headline_builder_draft').upsert({
+      user_id: currentUserId,
+      estado: {
+        selectedGatilhos: state.selectedGatilhos,
+        selectedTemplateId: state.selectedTemplate ? state.selectedTemplate.id : null,
+        filledValues: state.filledValues || {},
+        currentStep: state.currentStep
+      }
+    }, { onConflict: 'user_id' });
+  } catch(e){
+    console.error('Não foi possível salvar o rascunho da headline', e);
+  }
+}
+
+async function carregarRascunhoBuilder(){
+  const { data, error } = await supabaseClient
+    .from('headline_builder_draft')
+    .select('*')
+    .eq('user_id', currentUserId)
+    .maybeSingle();
+  if(error || !data || !data.estado) return;
+  const est = data.estado;
+  state.selectedGatilhos = est.selectedGatilhos || [];
+  if(est.selectedTemplateId){
+    state.selectedTemplate = TEMPLATES.find(t => t.id === est.selectedTemplateId) || null;
+  }
+  state.filledValues = est.filledValues || {};
+  state.currentStep = Math.min(est.currentStep || 1, maxReachableStep());
 }
 
 // ---------------------------------------------------------------
-// STEP 2: GATILHOS
+// STEP 1: GATILHOS
 // ---------------------------------------------------------------
 function renderGatilhos(){
   const grid = document.getElementById('gatilhoGrid');
@@ -1004,6 +1009,7 @@ function toggleGatilho(id){
     state.selectedGatilhos.push(id);
   }
   renderGatilhos();
+  salvarRascunhoBuilder();
 }
 
 function updateLimitNote(){
@@ -1011,11 +1017,11 @@ function updateLimitNote(){
   const note = document.getElementById('limitNote');
   note.textContent = `${n} de 3 selecionados`;
   note.className = 'limit-note' + (n >= 1 ? ' warn' : '');
-  document.getElementById('toStep3').disabled = n < 1;
+  document.getElementById('toStep2').disabled = n < 1;
 }
 
 // ---------------------------------------------------------------
-// STEP 3: TEMPLATES
+// STEP 2: TEMPLATES
 // ---------------------------------------------------------------
 function renderTemplates(){
   const names = state.selectedGatilhos.map(id => GATILHO_MAP[id]).join(' + ');
@@ -1043,14 +1049,14 @@ function renderTemplates(){
     card.onclick = () => {
       state.selectedTemplate = t;
       state.filledValues = {};
-      goTo(4);
+      goTo(3);
     };
     list.appendChild(card);
   });
 }
 
 // ---------------------------------------------------------------
-// STEP 4: BUILDER
+// STEP 3: BUILDER
 // ---------------------------------------------------------------
 function renderBuilder(){
   const t = state.selectedTemplate;
@@ -1066,22 +1072,18 @@ function renderBuilder(){
     wrap.className = 'blank-field';
     const inputId = 'blank_' + i;
 
-    let prefill = '';
-    const lower = blank.toLowerCase();
-    if(lower.includes('medo') && state.medo) prefill = state.medo;
-    if(lower.includes('desejo') && state.desejo) prefill = state.desejo;
-
     wrap.innerHTML = `<label for="${inputId}">${blank}</label>
       <div class="blank-hint">Só essa parte, o resto da frase já está pronto acima.</div>
-      <input type="text" id="${inputId}" placeholder="Ex: ${BLANK_EXAMPLES[blank] || '...'}" value="${state.filledValues[blank] || prefill}">`;
+      <input type="text" id="${inputId}" placeholder="Ex: ${BLANK_EXAMPLES[blank] || '...'}" value="${state.filledValues[blank] || ''}">`;
     container.appendChild(wrap);
 
     const input = wrap.querySelector('input');
     input.addEventListener('input', e => {
       state.filledValues[blank] = e.target.value;
       updateResult();
+      clearTimeout(rascunhoTimer);
+      rascunhoTimer = setTimeout(salvarRascunhoBuilder, 600);
     });
-    if(prefill) state.filledValues[blank] = prefill;
   });
 
   updateResult();
@@ -1204,30 +1206,28 @@ function copyAll(){
 // INIT
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------
-// ESTRUTURA DE ROTEIRO
+// ESTRUTURA DE ROTEIRO — o aluno pode salvar quantos quiser
 // ---------------------------------------------------------------
-async function loadRoteiro(){
+let roteirosVault = [];
+
+async function loadRoteiros(){
   const { data, error } = await supabaseClient
-    .from('roteiros')
+    .from('roteiros_aula2')
     .select('*')
-    .eq('aula_id', ROTEIRO_AULA_ID)
     .eq('user_id', currentUserId)
-    .maybeSingle();
+    .order('created_at', { ascending: true });
   if(error){
-    console.error('Não foi possível carregar o roteiro salvo', error);
-    return;
+    console.error('Não foi possível carregar os roteiros salvos', error);
+    roteirosVault = [];
+  } else {
+    roteirosVault = data;
   }
-  if(data){
-    document.getElementById('roteiroTexto').value = data.texto;
-    if(data.comentario_professor){
-      document.getElementById('feedbackText').textContent = data.comentario_professor;
-      document.getElementById('feedbackBox').style.display = 'block';
-    }
-  }
+  renderRoteiroVault();
 }
 
 async function salvarRoteiro(){
-  const texto = document.getElementById('roteiroTexto').value.trim();
+  const textarea = document.getElementById('roteiroTexto');
+  const texto = textarea.value.trim();
   const status = document.getElementById('roteiroStatus');
   if(!texto){
     status.textContent = 'Escreva ou cole o roteiro antes de salvar.';
@@ -1236,12 +1236,74 @@ async function salvarRoteiro(){
   }
   status.textContent = 'Salvando...';
   status.className = 'status';
-  const { error } = await supabaseClient
-    .from('roteiros')
-    .upsert({ aula_id: ROTEIRO_AULA_ID, user_id: currentUserId, texto }, { onConflict: 'aula_id,user_id' });
-  status.textContent = error ? 'Não foi possível salvar. Tente novamente.' : 'Roteiro salvo, a professora pode revisar.';
-  status.className = error ? 'status error' : 'status';
+  const { data, error } = await supabaseClient
+    .from('roteiros_aula2')
+    .insert({ user_id: currentUserId, texto })
+    .select()
+    .single();
+  if(error){
+    status.textContent = 'Não foi possível salvar. Tente novamente.';
+    status.className = 'status error';
+    return;
+  }
+  roteirosVault.push(data);
+  renderRoteiroVault();
+  textarea.value = '';
+  status.textContent = 'Roteiro salvo, a professora pode revisar.';
+  status.className = 'status';
   setTimeout(() => { status.textContent = ''; }, 3000);
+}
+
+function renderRoteiroVault(){
+  const list = document.getElementById('roteiroVaultList');
+  const count = document.getElementById('roteiroVaultCount');
+  list.innerHTML = '';
+  count.textContent = roteirosVault.length > 0 ? `${roteirosVault.length} roteiro${roteirosVault.length > 1 ? 's' : ''}` : '';
+
+  if(roteirosVault.length === 0){
+    list.innerHTML = '<div class="vault-empty">Nenhum roteiro salvo ainda. Cole ou escreva o primeiro acima.</div>';
+    return;
+  }
+
+  roteirosVault.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'vault-item';
+    row.style.flexDirection = 'column';
+    row.style.alignItems = 'stretch';
+    const quando = new Date(item.created_at).toLocaleString('pt-BR');
+    row.innerHTML = `
+      <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; width:100%;">
+        <div style="flex:1; min-width:200px;">
+          <div class="txt" style="white-space:pre-wrap;">${escapeHtml(item.texto)}</div>
+          <div class="meta">Salvo em ${quando}</div>
+        </div>
+        <div class="vault-item-actions">
+          <button class="remove-btn delete-roteiro">excluir</button>
+        </div>
+      </div>
+      ${item.comentario_professor ? `
+        <div class="feedback-box" style="margin-top:14px; width:100%;">
+          <div class="label">Correção da professora</div>
+          <div class="texto">${escapeHtml(item.comentario_professor)}</div>
+        </div>
+      ` : ''}
+    `;
+    row.querySelector('.delete-roteiro').onclick = async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'excluindo...';
+      const { error } = await supabaseClient.from('roteiros_aula2').delete().eq('id', item.id);
+      if(error){
+        btn.disabled = false;
+        btn.textContent = 'excluir';
+        alert('Não foi possível excluir. Tente novamente.');
+        return;
+      }
+      roteirosVault.splice(i, 1);
+      renderRoteiroVault();
+    };
+    list.appendChild(row);
+  });
 }
 
 function copyPrompt(){
@@ -1254,11 +1316,12 @@ function copyPrompt(){
   if(!result) return;
   currentUserId = result.session.user.id;
 
+  await loadVault();
+  await loadRoteiros();
+  await carregarRascunhoBuilder();
   renderGatilhos();
   renderStepper();
-  await loadVault();
-  await loadRoteiro();
-  goTo(1);
+  goTo(state.currentStep);
 })();
 </script>
 
