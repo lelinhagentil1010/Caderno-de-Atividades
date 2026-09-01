@@ -137,25 +137,6 @@ button:disabled{ opacity: 0.35; cursor: not-allowed; }
 
 .hidden{ display:none !important; }
 
-/* escala (Likert) */
-.escala-row{ display:flex; justify-content:center; gap: 10px; margin-top: 4px; }
-.escala-btn{
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  border: 1px solid var(--gold-dim);
-  background: var(--navy-3);
-  color: var(--cream);
-  font-family:'Poppins', sans-serif;
-  font-weight: 700;
-  font-size: 17px;
-  cursor: pointer;
-  transition: all .15s ease;
-  padding: 0;
-}
-.escala-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.12); }
-.escala-btn.selected{ background: var(--gold); color: var(--navy); border-color: var(--gold); }
-.escala-labels{ display:flex; justify-content:space-between; margin-top: 12px; font-size: 12px; color: var(--cream-dim); font-style: italic; }
-
 /* multipla escolha */
 .opcoes-list{ display:flex; flex-direction:column; gap: 12px; }
 .opcao-btn{
@@ -201,13 +182,6 @@ button:disabled{ opacity: 0.35; cursor: not-allowed; }
   .card{ padding: 22px 18px; }
   .nav{ flex-direction: column-reverse; }
   .nav button{ width: 100%; }
-  .escala-btn{ width: 42px; height: 42px; font-size: 15px; }
-  .escala-row{ gap: 6px; }
-}
-
-@media (max-width: 360px){
-  .escala-btn{ width: 36px; height: 36px; font-size: 13px; }
-  .escala-row{ gap: 4px; }
 }
 </style>
 </head>
@@ -280,84 +254,54 @@ const CONTATO_FIXOS = [
 ];
 
 const GRUPO_A = [
-  "Eu me sinto mais eu mesmo quando estou resolvendo um problema que ninguém mais conseguiu resolver.",
-  "Prefiro manter minha rotina estável a testar algo novo sem necessidade.",
-  "Quando alguém está sofrendo perto de mim, é quase automático querer cuidar.",
-  "Gosto de ser a pessoa que assume o controle quando tudo desmorona.",
-  "Rir de mim mesmo em público não me incomoda, às vezes eu provoco isso.",
-  "Acredito que existe sempre uma explicação lógica por trás das coisas, mesmo quando parecem inexplicáveis.",
-  "Prefiro ambientes onde ninguém está competindo por status ou aparência.",
-  "Já fui descrito como alguém \"intenso demais\" por pessoas próximas.",
-  "Tenho facilidade em fazer as pessoas se sentirem especiais e desejadas.",
-  "Não me canso de aprender coisas novas, mesmo fora da minha área.",
-  "Prefiro seguir regras estabelecidas a inventar meu próprio caminho.",
-  "Sinto que fui colocado aqui para proteger quem não consegue se proteger sozinho.",
-  "Tenho prazer em criar coisas do zero, mesmo sem saber exatamente onde vai dar.",
-  "Confio mais em dados e estrutura do que em intuição.",
-  "Já me disseram que tenho uma energia contagiante em ambientes sociais.",
-  "Prefiro dizer a verdade difícil a manter todo mundo confortável.",
-  "Gosto de estar no comando e decidir por onde o grupo vai.",
-  "Quando algo está errado no sistema, minha vontade é quebrar a regra, não pedir permissão.",
-  "Sinto satisfação profunda quando alguém me diz que eu mudei a vida dele.",
-  "Prefiro ser visto como alguém confiável e presente a alguém brilhante e distante.",
-  "Tenho facilidade em simplificar o que é complicado para os outros entenderem.",
-  "Já abri mão de segurança financeira ou estabilidade para viver algo novo.",
-  "Fico incomodado quando sinto que estou sendo apenas mais um na multidão.",
-  "Prefiro liderar pelo exemplo a liderar pela imposição.",
-  "Tenho facilidade em fazer amigos em qualquer ambiente novo.",
-  "Não tenho medo de parecer estranho se isso significa ser autêntico.",
-  "Gosto de criar experiências bonitas, sejam visuais, emocionais ou sensoriais.",
-  "Prefiro resolver um problema sozinho a delegar para alguém.",
-  "Acredito que a vida deveria ser mais leve do que as pessoas fazem parecer.",
-  "Sinto que tenho uma missão maior do que o meu trabalho do dia a dia.",
-  "Tenho dificuldade em aceitar autoridade que não fez por merecer.",
-  "Prefiro ambientes organizados e previsíveis a ambientes caóticos e criativos.",
-  "Já fui procurado por pessoas que queriam minha opinião antes de decidir algo importante.",
-  "Tenho um desconforto genuíno com desigualdade ou injustiça.",
-  "Gosto de ser a pessoa que enxerga o potencial que os outros ainda não veem em si mesmos.",
-  "Prefiro construir algo com minhas próprias mãos a comprar pronto.",
-  "Sinto que minha função é trazer leveza para momentos tensos.",
-  "Não gosto de seguir tendência só porque todo mundo está seguindo.",
-  "Tenho facilidade em perdoar e recomeçar relações que deram errado.",
-  "Prefiro assumir o risco de errar a nunca ter tentado.",
-  "Sinto orgulho genuíno quando algo que criei impacta muita gente.",
-  "Acredito que regras existem para servir as pessoas, não o contrário.",
-  "Já me chamaram de \"cabeça fria\" em momentos de crise.",
-  "Tenho facilidade em me conectar emocionalmente com desconhecidos.",
-  "Prefiro ambientes simples e sem pretensão a lugares sofisticados demais.",
-  "Sinto que tenho responsabilidade de manter tudo funcionando quando ninguém mais assume.",
-  "Gosto de romper padrões só para ver o que acontece.",
-  "Tenho facilidade em explicar coisas complexas usando metáforas ou histórias.",
-  "Prefiro proteger meu círculo próximo a expandir minha rede de contatos.",
-  "Já fui procurado por alguém que queria \"a mesma transformação\" que eu tive.",
-  "Gosto de estar no controle das decisões financeiras e estratégicas da minha vida ou negócio.",
-  "Sinto prazer genuíno em fazer os outros rirem, mesmo à minha própria custa.",
-  "Prefiro qualidade artesanal a produção em escala.",
-  "Tenho facilidade em confiar nas pessoas antes delas provarem que merecem.",
-  "Já me senti sufocado em ambientes muito rígidos ou burocráticos.",
-  "Sinto que minha palavra tem peso, as pessoas escutam quando eu falo.",
-  "Gosto de experimentar coisas novas antes delas ficarem populares.",
-  "Prefiro um relacionamento profundo a vários relacionamentos superficiais.",
-  "Tenho facilidade em identificar o que está por trás do comportamento das pessoas.",
-  "Já fui a pessoa que quebrou uma regra do grupo porque achava injusta.",
-  "Sinto que meu papel é dar estrutura para caos alheio.",
-  "Gosto de ser reconhecido pela beleza ou sensibilidade daquilo que eu faço.",
-  "Prefiro estar sempre em movimento a ficar parado num lugar só.",
-  "Tenho facilidade em fazer as pessoas relaxarem em momentos de tensão.",
-  "Já abandonei um caminho seguro porque ele não fazia mais sentido pra mim.",
-  "Sinto que fui feito para provar que o extraordinário é possível.",
-  "Gosto de cuidar dos detalhes que ninguém mais percebe.",
-  "Prefiro pertencer a um grupo comum a ser visto como diferente dos outros.",
-  "Tenho facilidade em transformar uma situação ruim em algo positivo com humor.",
-  "Sinto que existe algo maior acontecendo através de mim quando estou no auge do meu trabalho.",
-  "Prefiro liderar com autoridade clara a liderar de forma horizontal e consensual.",
-  "Já me disseram que sou \"intenso demais\" ou \"grande demais\" para o ambiente em que estava.",
+  { pergunta: "Você entra num projeto novo e ninguém assumiu a liderança. O que acontece naturalmente?", opcoes: ["Eu assumo a direção e organizo quem faz o quê", "Eu colaboro com boa vontade e confio que as coisas vão se encaixar"] },
+  { pergunta: "Um fim de semana inteiro livre, sem obrigação nenhuma. O que você faz?", opcoes: ["Vou atrás de um lugar ou experiência que nunca vivi", "Mergulho em algo que estou criando, do meu jeito"] },
+  { pergunta: "Alguém chega até você com um problema sério. Sua primeira reação:", opcoes: ["Entender a fundo o que está acontecendo antes de responder", "Aliviar o peso da pessoa primeiro, entender vem depois"] },
+  { pergunta: "O ambiente está pesado, todo mundo tenso perto de um prazo. Seu papel:", opcoes: ["Puxo a responsabilidade pra mim e vou pra cima do problema", "Quebro a tensão pra equipe respirar e voltar a funcionar"] },
+  { pergunta: "O que mais te incomoda num grupo de trabalho?", opcoes: ["Regras que existem só porque sempre existiram", "Frieza, relações sem verdade e sem vínculo"] },
+  { pergunta: "Como você prefere ser visto por quem te contrata?", opcoes: ["Alguém que mexe com a forma como a pessoa se enxerga", "Alguém de confiança, sem mistério, que fala a língua do cliente"] },
+  { pergunta: "Qual desconforto profissional te tira o sono mais rápido?", opcoes: ["Ver algo importante funcionando sem padrão e sem controle", "Ficar preso na mesma rotina por tempo demais"] },
+  { pergunta: "Diante de uma decisão importante, você:", opcoes: ["Reúne informação até ter certeza", "Segue o que parece certo e confia que vai dar certo"] },
+  { pergunta: "No fim de um trabalho, o que te dá mais orgulho?", opcoes: ["Ter superado um desafio que exigiu muito de mim", "Ter feito algo com a minha marca, que ninguém faria igual"] },
+  { pergunta: "Você presencia uma injustiça acontecendo com alguém. Sua reação:", opcoes: ["Confronto quem está errado, mesmo comprando briga", "Cuido primeiro de quem foi atingido"] },
+  { pergunta: "Numa conversa importante, seu maior talento é:", opcoes: ["Fazer a pessoa enxergar algo que ela não via", "Fazer a pessoa relaxar e se abrir"] },
+  { pergunta: "Num evento social, você é a pessoa que:", opcoes: ["Circula bem com todo mundo, sem se achar mais que ninguém", "Cria conversas profundas com poucas pessoas"] },
+  { pergunta: "Quando pedem sua opinião de especialista, você entrega:", opcoes: ["A direção: o que fazer, em que ordem, com que critério", "O raciocínio: explico até a pessoa poder decidir com clareza"] },
+  { pergunta: "O que te atrai num desafio novo?", opcoes: ["Provar que sou capaz onde outros falharam", "Descobrir o que existe do outro lado, mesmo sem garantia"] },
+  { pergunta: "Uma regra te parece claramente errada. Você:", opcoes: ["Descumpre e assume as consequências", "Segue por enquanto e confia que as coisas vão melhorar"] },
+  { pergunta: "No auge do seu trabalho, a sensação é de:", opcoes: ["Notar que a pessoa saiu diferente de como chegou", "Dar forma a algo que só existia na minha cabeça"] },
+  { pergunta: "No dia a dia, o que as pessoas mais valorizam em você?", opcoes: ["Ser simples, acessível, sem pose", "Estar presente quando precisam de mim"] },
+  { pergunta: "O que você leva para qualquer relação?", opcoes: ["Intensidade, presença e vínculo de verdade", "Leveza, riso e bom humor mesmo nos dias ruins"] },
+  { pergunta: "Numa crise séria, seu papel natural é:", opcoes: ["Organizar o caos: definir prioridade, papéis e plano", "Ir pra linha de frente e resolver com as próprias mãos"] },
+  { pergunta: "O que te faz discordar publicamente de algo?", opcoes: ["Quando o consenso está confortável demais pra ser verdade", "Quando os dados dizem outra coisa"] },
+  { pergunta: "Quando você aprende algo novo, está buscando:", opcoes: ["O que muda a forma como eu e os outros enxergamos as coisas", "A experiência de pisar em território desconhecido"] },
+  { pergunta: "Seu jeito de gerar confiança é:", opcoes: ["Ser igual a quem te escuta, sem distância", "Ser transparente e acreditar no melhor das pessoas"] },
+  { pergunta: "O que não pode faltar naquilo que você entrega?", opcoes: ["Emoção: a pessoa precisa se sentir tocada", "Estética e autoria: precisa ter beleza e assinatura"] },
+  { pergunta: "Alguém que você gosta está mal. Você:", opcoes: ["Traz leveza pra pessoa sair do fundo do poço", "Acolhe e assume parte do peso"] },
+  { pergunta: "Sua relação com poder:", opcoes: ["Poder serve pra estruturar e proteger o que funciona", "Poder serve pra ser questionado quando vira abuso"] },
+  { pergunta: "Como você transforma a vida de alguém?", opcoes: ["Despertando algo que já existia dentro dela", "Lutando junto até ela atravessar o problema"] },
+  { pergunta: "Como você explica algo difícil?", opcoes: ["Com a linguagem mais simples e cotidiana possível", "Com profundidade, contexto e fundamento"] },
+  { pergunta: "O que te faz sentir vivo de verdade?", opcoes: ["Conexão intensa com alguém ou algo que eu amo", "Movimento, estrada, o que eu ainda não conheço"] },
+  { pergunta: "Seu jeito de atravessar dias difíceis:", opcoes: ["Rindo, inclusive de mim mesmo", "Confiando que amanhã melhora"] },
+  { pergunta: "Apareceu um tempo livre inesperado hoje. Você usa pra:", opcoes: ["Cuidar de alguém ou de algo que anda precisando de você", "Tirar uma ideia sua do papel"] },
+  { pergunta: "Que tipo de autoridade é a sua?", opcoes: ["A de quem estrutura, decide e responde pelo resultado", "A de quem enxerga e revela o que os outros não veem"] },
+  { pergunta: "Seu incômodo com \"o sistema\" é:", opcoes: ["Quando ele exclui e complica a vida das pessoas comuns", "Quando ele precisa ser quebrado, não ajustado"] },
+  { pergunta: "Pelo que você quer ser admirado?", opcoes: ["Pela forma como faço as pessoas se sentirem", "Pela coragem com que enfrento o que precisa ser enfrentado"] },
+  { pergunta: "Numa apresentação sua, o que prende as pessoas?", opcoes: ["O humor e a energia", "O conteúdo e a clareza do raciocínio"] },
+  { pergunta: "Na hora de decidir uma grande mudança de vida, o que pesa mais?", opcoes: ["Quem depende de mim e precisa de estabilidade", "O medo de morrer sem ter vivido o que eu queria"] },
+  { pergunta: "Quando você começa algo do zero:", opcoes: ["Já imagina formas, detalhes e um resultado final único", "Começa leve, sem medo, acreditando que vai dar certo"] },
+  { pergunta: "Num grupo que funciona bem, seu papel é:", opcoes: ["O de referência que dá o norte", "O de igual que mantém todo mundo junto"] },
+  { pergunta: "Quando você está de corpo e alma presente com alguém:", opcoes: ["A pessoa se sente única, desejada, importante", "A pessoa sai diferente de como chegou"] },
+  { pergunta: "Seu humor serve pra:", opcoes: ["Unir: rir junto, aliviar, aproximar", "Cutucar: expor o absurdo que todo mundo finge não ver"] },
+  { pergunta: "Sacrifício, pra você, é:", opcoes: ["Abrir mão do meu conforto pra cuidar de quem eu preciso cuidar", "Pagar o preço que a missão exige, sem reclamar"] },
+  { pergunta: "Seu processo de trabalho é movido por:", opcoes: ["Imaginação: ver o que ainda não existe", "Compreensão: entender a fundo o que já existe"] },
+  { pergunta: "Sua ideia de vida boa:", opcoes: ["Paz, simplicidade e harmonia com quem eu amo", "Liberdade pra ir aonde eu quiser, quando eu quiser"] },
 ];
 
 const GRUPO_B = [
   { pergunta: "Quando encontro um problema difícil, meu primeiro instinto é:", opcoes: ["Estudar, pesquisar e entender profundamente antes de agir", "Sentir intuitivamente qual é o caminho e agir na hora certa"] },
-  { pergunta: "As pessoas me procuram principalmente para:", opcoes: ["Entender uma situação com mais clareza e lógica", "Viver uma experiência de transformação que parece quase mágica"] },
-  { pergunta: "Meu maior orgulho profissional é:", opcoes: ["Saber mais sobre o meu assunto do que praticamente qualquer um", "Provocar mudanças que a própria pessoa não sabia que eram possíveis"] },
+  { pergunta: "As pessoas me procuram principalmente para:", opcoes: ["Entender uma situação com mais clareza e lógica", "Sair de uma conversa comigo enxergando a situação de outro jeito"] },
+  { pergunta: "Meu maior orgulho profissional é:", opcoes: ["Saber mais sobre o meu assunto do que praticamente qualquer um", "Ver alguém fazer o que dizia não conseguir"] },
   { pergunta: "Quando assumo o controle de uma situação difícil, é porque:", opcoes: ["Alguém precisa agir e enfrentar o problema de frente, e esse alguém sou eu", "Falta estrutura e organização, e eu sei como colocar ordem"] },
   { pergunta: "Eu me sinto mais realizado quando:", opcoes: ["Supero um desafio que exigiu coragem e sacrifício pessoal", "Construo um sistema ou legado que continua funcionando sem mim"] },
   { pergunta: "Minha maior força em uma crise é:", opcoes: ["Agir rápido e assumir o risco que ninguém mais quer assumir", "Manter a cabeça fria e organizar quem está em pânico"] },
@@ -375,15 +319,20 @@ const GRUPO_C = [
 ];
 
 const GRUPO_D = [
-  "Descreva uma situação em que você agiu de um jeito que te surpreendeu, positivamente ou negativamente. O que aconteceu?",
-  "Se seu trabalho fosse um personagem de filme ou livro, qual seria e por quê?",
-  "Qual crítica ou apelido as pessoas mais próximas já te deram, mesmo que de brincadeira, que você sente que tem um fundo de verdade?",
+  "Conte uma situação em que você agiu de um jeito que te surpreendeu, para o bem ou para o mal. O que aconteceu e o que você fez?",
+  "Qual foi a decisão mais difícil que você já tomou na sua vida profissional? Por que ela foi difícil?",
+  "Descreva um momento em que você pensou: é para isso que eu nasci. Onde você estava, o que estava fazendo e o que sentiu?",
+  "Qual crítica ou apelido as pessoas mais próximas já te deram, mesmo de brincadeira, que você sente que tem um fundo de verdade?",
+  "O que te tira do sério no seu mercado? O que você vê os outros fazendo que você se recusa a fazer?",
+  "Se seu trabalho fosse um personagem de filme, série ou livro, qual seria e por quê?",
+  "O que você mais teme que digam sobre você pelas suas costas?",
+  "Se você pudesse ser lembrado por uma única coisa daqui a vinte anos, o que seria?",
 ];
 
 // monta a lista única de passos
 const STEPS = [];
 CONTATO_FIXOS.forEach(c => STEPS.push({ id: c.id, tipo: c.tipo, label: c.label, pergunta: c.label, placeholder: c.placeholder, grupo: 'contato' }));
-GRUPO_A.forEach((texto, i) => STEPS.push({ id: `a_${i+1}`, tipo: 'escala', pergunta: texto, grupo: 'A' }));
+GRUPO_A.forEach((q, i) => STEPS.push({ id: `a_${i+1}`, tipo: 'escolha', pergunta: q.pergunta, opcoes: q.opcoes, grupo: 'A' }));
 GRUPO_B.forEach((q, i) => STEPS.push({ id: `b_${i+1}`, tipo: 'escolha', pergunta: q.pergunta, opcoes: q.opcoes, grupo: 'B' }));
 GRUPO_C.forEach((q, i) => STEPS.push({ id: `c_${i+1}`, tipo: 'escolha', pergunta: q.pergunta, opcoes: q.opcoes, grupo: 'C' }));
 GRUPO_D.forEach((texto, i) => STEPS.push({ id: `d_${i+1}`, tipo: 'texto', pergunta: texto, grupo: 'D' }));
@@ -432,18 +381,6 @@ function renderStep(){
     document.getElementById('stepField').value = respostas[step.id] || '';
     nextBtn.classList.remove('hidden');
     document.getElementById('stepField').focus();
-  } else if(step.tipo === 'escala'){
-    const selecionado = respostas[step.id];
-    let html = '<div class="escala-row">';
-    for(let n = 1; n <= 5; n++){
-      html += `<button type="button" class="escala-btn${selecionado == n ? ' selected' : ''}" data-valor="${n}">${n}</button>`;
-    }
-    html += '</div><div class="escala-labels"><span>Discordo totalmente</span><span>Concordo totalmente</span></div>';
-    fieldWrap.innerHTML = html;
-    fieldWrap.querySelectorAll('.escala-btn').forEach(btn => {
-      btn.onclick = () => { respostas[step.id] = btn.dataset.valor; avancar(); };
-    });
-    nextBtn.classList.add('hidden');
   } else if(step.tipo === 'escolha'){
     const selecionado = respostas[step.id];
     let html = '<div class="opcoes-list">';
@@ -474,7 +411,7 @@ function validarStepAtual(){
     else respostas[step.id] = val;
     return true;
   }
-  // escala/escolha já são salvas no clique
+  // escolha já é salva no clique
   if(!respostas[step.id]){ fieldError.textContent = 'Selecione uma opção antes de continuar.'; return false; }
   return true;
 }
