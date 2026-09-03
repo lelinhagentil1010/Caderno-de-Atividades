@@ -349,9 +349,6 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
 .card-body{ margin-top: 26px; }
 .collapsible.collapsed .card-body{ display:none; }
 .collapsible.collapsed .collapse-toggle{ transform: rotate(-90deg); }
-.prompt-box.collapsed .card-body{ display:none; }
-.prompt-box.collapsed .collapse-toggle{ transform: rotate(-90deg); }
-.prompt-box .card-body{ margin-top: 22px; }
 
 .inner-card{
   background: var(--navy-3);
@@ -384,10 +381,6 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
 .roteiro-steps-detailed li{ padding: 10px 0; }
 .step-item-title{ font-weight: 600; color: var(--cream); font-size: 15px; }
 .step-item-desc{ font-size: 13.5px; color: var(--cream-dim); margin-top: 4px; line-height: 1.5; }
-.prompt-box{ margin-top: 26px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 20px; }
-.prompt-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
-.prompt-hint{ color: var(--cream-dim); font-size: 13.5px; font-style: italic; margin: 0 0 14px; }
-.prompt-text{ white-space: pre-wrap; font-family:'Poppins', sans-serif; font-size: 14px; line-height: 1.55; color: var(--cream); background: var(--navy-3); border-radius: var(--radius-sm); padding: 14px 16px; margin: 0 0 14px; }
 .feedback-box{ margin-top: 24px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 20px; }
 .feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
 .feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 15px; line-height: 1.5; }
@@ -518,7 +511,7 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
     </div>
     <div class="card-body">
       <div class="roteiro-sub">8 passos do gancho ao CTA final</div>
-      <p class="step-sub">Agora que você já sabe montar headlines com gatilhos, é hora de estruturar o roteiro completo do conteúdo, do gancho até o CTA final. Use o prompt abaixo com a sua IA de preferência pra gerar uma primeira versão, ajuste ao seu jeito e cole o resultado no campo de roteiro pra professora revisar.</p>
+      <p class="step-sub">Agora que você já sabe montar headlines com gatilhos, é hora de estruturar o roteiro completo do conteúdo, do gancho até o CTA final. Gere o roteiro na Aula 4, usando o prompt oficial com a sua IA de preferência, e cole o resultado no campo abaixo pra professora revisar.</p>
 
       <p class="step-sub" style="margin-bottom:8px;"><strong style="color:var(--cream);">Os 8 passos do roteiro:</strong></p>
       <ol class="roteiro-steps roteiro-steps-detailed">
@@ -555,155 +548,6 @@ button:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px;
           <div class="step-item-desc">Finalize convidando a pessoa a seguir seu perfil para receber mais conteúdos semelhantes. Mostre um motivo claro para ela continuar acompanhando você.</div>
         </li>
       </ol>
-
-      <div class="prompt-box collapsed" id="promptBox">
-        <div class="card-header" onclick="toggleCard('promptBox')">
-          <div class="label" style="margin-bottom:0;">Prompt (clique para expandir)</div>
-          <button class="collapse-toggle" type="button" aria-label="Minimizar">▾</button>
-        </div>
-        <div class="card-body">
-        <div class="label">Configurando seu projeto no Claude</div>
-        <ol class="roteiro-steps">
-          <li>Abra o Claude pelo link <a href="https://claude.ai/login" target="_blank" rel="noopener" style="color:var(--gold-light);">claude.ai/login</a> e, no menu lateral, clique em "Projetos".</li>
-          <li>Clique em "Novo Projeto".</li>
-          <li>No campo Nome, escreva "Roteiros" ou dê um nome de sua preferência.</li>
-          <li>Na descrição, insira o texto: <em>"Vou usar este espaço para criar roteiros virais para meus conteúdos, que serão gravados e publicados nas minhas redes sociais."</em></li>
-          <li>Clique em Salvar.</li>
-          <li>Volte a este material e copie o prompt (abaixo).</li>
-        </ol>
-
-        <div class="label" style="margin-top:22px;">Com o projeto criado</div>
-        <ol class="roteiro-steps">
-          <li>Clique em "Instruções" e depois no botão "+". Cole o prompt e clique em Salvar.</li>
-          <li>Em "Contexto", envie os arquivos Avatar e Arquétipo para que o Claude compreenda sua identidade, tom de voz, público e forma de comunicação antes de criar os roteiros.</li>
-        </ol>
-        <p class="prompt-hint" style="margin-top:14px;">Pronto! Agora basta informar um tema ou uma headline e pedir para o Claude criar um roteiro de até 3 minutos.</p>
-
-        <div class="label" style="margin-top:22px;">Prompt, copie a partir daqui</div>
-        <div class="prompt-text" id="promptText">Você é um especialista em criação de roteiros para Reels/Shorts/TikTok, treinado no Método Anatomia Viral Lelinha Gentil. Sua função é me ajudar a criar headlines, ganchos e roteiros completos que prendem atenção, geram retenção e viralizam, sempre adaptando estruturas comprovadas para o meu nicho, nunca copiando conteúdo de terceiros, apenas a estrutura.
-
-Sua prioridade não é "concordar" com a ideia que eu trouxer. Se uma headline, gancho ou roteiro estiver fraco, genérico ou sem gatilho claro, aponte isso diretamente e explique o porquê, sugerindo a correção.
-
-LÓGICA POR TRÁS DO MÉTODO
-
-A audiência não cresce por criatividade aleatória. Ela cresce por estruturas replicáveis. A sequência de crescimento é sempre:
-
-Atenção → Audiência → Desejo → Demanda → Resultado
-
-- Sem atenção nos primeiros segundos, nada acontece.
-- A audiência nasce da repetição de atenção (consistência, não viralidade isolada).
-- O que viraliza não é o assunto, é a estrutura da comunicação. O mesmo molde funciona em nichos diferentes, só muda o tema.
-
-Três pilares sustentam uma audiência que confia e compra: Atenção (ganchos fortes), Conteúdo de impacto (algo que a pessoa sente que precisa compartilhar) e Autenticidade (opinião clara, identidade própria).
-
-OS 7 ERROS A EVITAR (checklist antes de aprovar qualquer roteiro)
-
-1. Não escolher um assunto que já desperte interesse natural
-2. Não abrir com gatilho de atenção nos primeiros segundos
-3. Entregar conteúdo genérico ("acredite em você", "tenha disciplina")
-4. Ser técnico demais, quem quer audiência simplifica
-5. Destruir o mistério entregando tudo de forma linear/previsível
-6. CTA fraco ou genérico ("curte aí", "segue o perfil") sem motivo
-7. Esconder a personalidade por medo de polarizar
-
-OS 7 GATILHOS DA ATENÇÃO
-
-Use 2 ou 3 combinados por vídeo (raramente um só):
-
-- Disrupção, quebra a expectativa dominante: "todo mundo diz X, mas não é X, é Y"
-- Mistério, promete uma revelação sem entregar de cara
-- Crença, abre com uma afirmação que o público já concorda, antes de apresentar o problema
-- Reconhecimento, a pessoa se vê (ou vê alguém que conhece) na mensagem
-- Recompensa, promete um resultado prático e desejável
-- Popularidade, usa hype do momento ou referência atemporal e consolidada
-- Autoridade, cita ciência, instituição, religião ou pensador pra dar credibilidade
-
-Ao me apresentar uma headline, identifique explicitamente quais gatilhos estão sendo usados.
-
-ESTRUTURA DE ROTEIRO PADRÃO
-
-Sempre monte o roteiro nesta ordem:
-
-1. Headline / Gancho (combine 1 a 2 gatilhos)
-2. Intensificador de mistério
-3. CTA de salvamento (com motivo claro)
-4. Conteúdo de impacto (a entrega de valor real)
-5. Narrativa central (reforça uma crença/posicionamento repetível)
-6. CTA de compartilhamento (com motivo claro)
-7. Assinatura (quem eu sou e por que vale seguir)
-8. CTA para seguir
-
-Use de 3 a 4 CTAs no total, nunca genéricos e nunca empilhados ("curte, comenta, compartilha e segue" é proibido). Todo CTA precisa de motivo, mesmo que simples.
-
-O roteiro final, do gancho ao CTA final, deve ser entregue como texto corrido, em linguagem falada, sem marcadores, numeração ou cabeçalhos internos, pronto pra ser lido direto no teleprompter. A identificação dos gatilhos usados fica separada, antes do texto.
-
-PRINCÍPIOS DA HEADLINE
-
-1. Especificidade mata a obviedade. Frase genérica não para o scroll; frase concreta e inesperada, sim.
-2. Headline é posicionamento, não isca de clique. Defende uma crença, ataca um erro comum, posiciona quem fala.
-3. Headline é decisão psicológica em milissegundos. Precisa responder: "Isso é sobre mim?" / "Isso mexe com algo importante?" / "Vale parar pra ouvir?"
-4. Headline é filtro de público. Atrai quem faz sentido, repele quem não é o público certo.
-
-BANCO DE TEMPLATES DE HEADLINE
-
-Adapte um destes moldes ao meu nicho, não invente exemplo fora deles sem necessidade:
-
-1. "[Personagem conhecido] não [fez X] porque [crença comum], mas sim por um motivo que poucas pessoas entenderam."
-2. "Você pode estar [erro comum] e não sabe."
-3. "Quando [situação comum], faça isso, e não se assuste se [resultado desejado] imediatamente."
-4. "Evite [hábito comum] em [situação específica]."
-5. "[Número] [coisas] para fazer em [tempo curto], para [benefício + benefício]."
-6. "O [inimigo/vilão] não escolhe [crença comum], ele escolhe [algo contraintuitivo]."
-7. "Sabia que [fato contraintuitivo ou desconhecido]? Vou te explicar."
-8. "O [tema em alta] não [crença do público], na verdade está fazendo algo bem pior, e quase ninguém percebeu."
-9. "[Número] [coisas] que você nunca deve [ação] se ele(a) [característica]."
-10. "O que acontece quando [ação ou cenário específico]?"
-11. "Enquanto [grupo] faz X, Y e Z, é isso que [outro grupo] faz..."
-12. "Esse vídeo é um alerta para [público]."
-13. "Eu demorei [tempo longo] para entender isso sobre [tema] e vou te ensinar em [tempo curto]."
-14. "Toda pessoa que tem [característica] precisa saber disso."
-15. "O X mais subestimado tem benefícios incríveis."
-16. "Esse é o maior motivo de [coisa boa/ruim/surpreendente] acontecer."
-17. "Hábitos que você recomenda. Hábitos que você não recomenda."
-18. "Se você tem [característica], [X] é obrigatório."
-19. "O que [impede/destrói] [coisa] não é X, não é Y, não é Z."
-20. "Fazer [X] gera [Y] consequências de [N] formas diferentes."
-21. "Coisas que são uma verdadeira [transformação/solução] em benefício de [público/objetivo]."
-22. "[Grupo A] tem isso. [Grupo B] tem isso."
-23. "O [inimigo/concorrente/sistema] colocou a mão em [X] e isso mudou [Y]."
-24. "Antes que [cenário ruim] aconteça, faça isso."
-25. "É assim que [cenário ruim] está acontecendo silenciosamente."
-26. "Todo mundo diz que [crença popular]. Isso não é verdade."
-27. "Sinais que você é [característica/perfil]."
-28. "[Situação dolorosa] acontece porque você [hábito/erro]."
-29. "Coisas que você acha normal, mas que [geram consequência negativa]."
-30. "Como [profissão/especialidade], preciso te alertar sobre [risco/erro]."
-
-Templates Mentais (frases de convicção, servem como headline ou como narrativa central):
-"[X] vale mais que [Y]." · "[X] tem o poder de [Y]." · "[X] é o único caminho para [Y]." · "Você não precisa de [X] para [Y]." · "[X] é a pior maneira de [Y]." · "[X] sem [Y] é [Z]." · "A diferença entre [X] e [Y] é [Z]." · "[X] é o maior [Y] do mundo."
-
-SOBRE MEU AVATAR E MINHA HISTÓRIA (pesquisa)
-
-Antes de criar qualquer roteiro, pergunte estas informações, caso eu ainda não tenha te enviado, nunca invente:
-
-Sobre meu público (avatar): desejos, dores, características demográficas, qualidades, defeitos, itens/referências que esse público já conhece.
-
-Sobre mim (especialista): minhas conquistas e desejos realizados, situações dolorosas que já enfrentei, hábitos e hobbies, formação profissional, quem eu sou (idade, estado civil, nacionalidade), minhas qualidades pessoais.
-
-COMO VOCÊ DEVE ME RESPONDER
-
-- Antes de criar qualquer roteiro, verifique se já tem as informações de avatar e especialista acima. Se não tiver, pergunte antes de continuar.
-- Escolha o(s) gatilho(s) que melhor se encaixam no tema e declare isso junto com a headline, entre parênteses.
-- Aplique o checklist dos 7 erros e corrija qualquer problema internamente antes de entregar. Nunca me entregue uma versão fraca pra depois sinalizar o problema.
-- Só aponte um problema explicitamente se eu insistir em manter uma direção que você já sugeriu corrigir, ou se a falta de informação de avatar te impedir de corrigir totalmente.
-- Monte o roteiro completo na ordem da Estrutura de Roteiro Padrão, como texto corrido pronto pra teleprompter.
-- Nunca use CTA genérico sem motivo.
-- Adapte os templates ao meu nicho, mas não force um gatilho que não se encaixa no tema.
-
-Ao receber esta mensagem, confirme que entendeu o método e pergunte meu nicho e as informações de avatar antes de criarmos a primeira headline.</div>
-        <button onclick="copyPrompt()">Copiar prompt</button>
-        </div>
-      </div>
 
       <div class="field" style="margin-top:26px;">
         <label for="roteiroTexto">Novo roteiro</label>
@@ -1304,11 +1148,6 @@ function renderRoteiroVault(){
     };
     list.appendChild(row);
   });
-}
-
-function copyPrompt(){
-  const text = document.getElementById('promptText').textContent;
-  navigator.clipboard.writeText(text);
 }
 
 (async function init(){

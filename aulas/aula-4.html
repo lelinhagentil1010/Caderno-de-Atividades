@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aula 4, Inteligência Artificial, ÊNFASE</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+
+.app{
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  background: var(--navy-2);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+
+.masthead{ text-align:center; margin-bottom: 32px; }
+.eyebrow{ font-family:'Poppins', sans-serif; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Poppins', sans-serif; font-weight:700; font-size: clamp(26px, 4.4vw, 36px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.5; max-width: 560px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.roteiro-sub{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin: 0 0 10px; }
+.roteiro-steps{ margin: 16px 0 0; padding-left: 22px; }
+.roteiro-steps li{ padding: 6px 0; color: var(--cream); font-size: 15px; line-height: 1.5; }
+.roteiro-steps li::marker{ color: var(--gold-light); font-weight: 700; }
+
+.card-header{ display:flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
+.collapse-toggle{
+  width: 32px; height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--gold-dim);
+  background: var(--navy-3);
+  color: var(--gold-light);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.collapse-toggle:hover{ border-color: var(--gold); }
+
+.prompt-box{ margin-top: 30px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 20px; }
+.prompt-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.prompt-box .card-body{ margin-top: 22px; }
+.prompt-box.collapsed .card-body{ display:none; }
+.prompt-box.collapsed .collapse-toggle{ transform: rotate(-90deg); }
+.prompt-text{ white-space: pre-wrap; font-family:'Poppins', sans-serif; font-size: 14px; line-height: 1.55; color: var(--cream); background: var(--navy-3); border-radius: var(--radius-sm); padding: 14px 16px; margin: 0 0 14px; }
+
+button{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  padding: 13px 26px;
+  border-radius: var(--radius-pill);
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+
+/* Desktop grande */
+@media (min-width: 1440px){
+  .app{ max-width: 960px; }
+}
+
+/* Tablet */
+@media (max-width: 1024px){
+  .app{ padding: 28px 20px 70px; }
+}
+
+/* Mobile */
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="ÊNFASE" class="logo">
+    <div style="display:flex; gap:10px;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Aula 4</div>
+    <h1>Inteligência Artificial</h1>
+    <p class="quote">Use o prompt oficial do Método Anatomia Viral para montar seu projeto de IA e gerar roteiros completos.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="card">
+
+    <div class="roteiro-sub">Parte 1 — Crença Central e gatilho</div>
+    <ul class="roteiro-steps">
+      <li>Reabra o Espaço 2 (diferencial) e o Espaço 4 (sensação que quer deixar) do Caderno Mentoria ÊNFASE — Aula 1.</li>
+      <li>Escreva sua Crença Central na fôrma: "[Sua área] não é sobre [crença comum]. É sobre [o que você realmente defende]."</li>
+      <li>Exemplo: "Autoridade não é sobre competência. É sobre percepção."</li>
+      <li>Na headline que a Lelinha te der em aula (pensada pro seu segmento), identifique: qual modelo está por trás dela? Qual gatilho ela realmente dispara?</li>
+    </ul>
+
+    <div class="roteiro-sub" style="margin-top:32px;">Parte 2 — Montar o Projeto</div>
+    <ul class="roteiro-steps">
+      <li>Crie o Projeto na sua ferramenta de IA, com título e descrição.</li>
+      <li>Cole o prompt oficial nas instruções.</li>
+      <li>Suba os documentos: Caderno Mentoria ÊNFASE (Aula 1), sua Crença Central, as respostas de Aula 0 — Minha Narrativa, e o arquétipo (se já tiver).</li>
+      <li>Peça um roteiro completo sobre um tema seu, informando só o tema, sem especificar gatilho nem estrutura, a IA já faz isso sozinha.</li>
+    </ul>
+
+    <div class="roteiro-sub" style="margin-top:32px;">Como usar esse prompt</div>
+    <ol class="roteiro-steps">
+      <li>Copie todo o texto que está abaixo, na seção "Prompt, copie a partir daqui", e cole como a primeira mensagem numa conversa nova com a sua IA (ChatGPT, Claude ou outra).</li>
+      <li>A IA vai te perguntar informações sobre o seu público (avatar) e sobre você como especialista, caso ainda não tenha esses dados. Responda com o máximo de detalhe e verdade possível, quanto mais específico, melhor o roteiro. Se você já tem essa pesquisa pronta (feita numa aula ou sessão individual), cole ela também.</li>
+      <li>Depois disso, diga o tema ou assunto que você quer abordar no vídeo. Pode ser algo simples como "quero um vídeo sobre [tema do meu nicho]".</li>
+      <li>A IA vai te devolver a headline (já avisando qual gatilho de atenção está usando) e o roteiro completo, pronto pra teleprompter.</li>
+      <li>Revise sempre antes de gravar. Se algo parecer fraco, genérico ou sem gancho forte logo no início, não aceite, peça pra corrigir. A IA foi instruída a te dar retorno honesto, não só concordar.</li>
+      <li>Quer testar variações? É só pedir: "me dá outra versão dessa headline com um gatilho diferente" ou "quero um roteiro mais curto".</li>
+    </ol>
+
+    <div class="prompt-box collapsed" id="promptBox">
+      <div class="card-header" onclick="toggleCard('promptBox')">
+        <div class="label" style="margin-bottom:0;">Prompt (clique para expandir)</div>
+        <button class="collapse-toggle" type="button" aria-label="Minimizar">▾</button>
+      </div>
+      <div class="card-body">
+        <div class="label">Prompt, copie a partir daqui</div>
+        <div class="prompt-text" id="promptText">Você é um especialista em criação de roteiros para Reels/Shorts/TikTok, treinado no Método Anatomia Viral Lelinha Gentil. Sua função é me ajudar a criar headlines, ganchos e roteiros completos que prendem atenção, geram retenção e viralizam, sempre adaptando estruturas comprovadas para o meu nicho — nunca copiando conteúdo de terceiros, apenas a estrutura.
+
+Sua prioridade não é "concordar" com a ideia que eu trouxer. Se uma headline, gancho ou roteiro estiver fraco, genérico ou sem gatilho claro, aponte isso diretamente e explique o porquê, sugerindo a correção.
+
+LÓGICA POR TRÁS DO MÉTODO
+
+A audiência não cresce por criatividade aleatória. Ela cresce por estruturas replicáveis. A sequência de crescimento é sempre:
+
+Atenção → Audiência → Desejo → Demanda → Resultado
+
+- Sem atenção nos primeiros segundos, nada acontece.
+- A audiência nasce da repetição de atenção (consistência, não viralidade isolada).
+- O que viraliza não é o assunto, é a estrutura da comunicação. O mesmo molde funciona em nichos diferentes — só muda o tema.
+
+Três pilares sustentam uma audiência que confia e compra: Atenção (ganchos fortes), Conteúdo de impacto (algo que a pessoa sente que precisa compartilhar) e Autenticidade (opinião clara, identidade própria).
+
+OS 7 ERROS A EVITAR (checklist antes de aprovar qualquer roteiro)
+
+1. Não escolher um assunto que já desperte interesse natural
+2. Não abrir com gatilho de atenção nos primeiros segundos
+3. Entregar conteúdo genérico ("acredite em você", "tenha disciplina")
+4. Ser técnico demais — quem quer audiência simplifica
+5. Destruir o suspense entregando tudo de forma linear/previsível
+6. CTA fraco ou genérico ("curte aí", "segue o perfil") sem motivo
+7. Esconder a personalidade por medo de polarizar
+
+OS 7 GATILHOS DA ATENÇÃO
+
+Use 2 ou 3 combinados por vídeo, ou 1 só — não é regra fixa, depende do que a headline pede:
+
+- Ruptura — quebra a expectativa dominante: "todo mundo diz X, mas não é X, é Y"
+- Suspense — promete uma revelação sem entregar de cara
+- Crença — abre com uma afirmação que o público já concorda, antes de apresentar o problema
+- Identificação — a pessoa se vê (ou vê alguém que conhece) na mensagem
+- Retribuição — promete um resultado prático e desejável
+- Popularidade — usa hype do momento ou referência atemporal e consolidada (inclui aproveitar um assunto do momento)
+- Credibilidade — cita ciência, instituição, ou vivência real pra dar peso à fala
+
+Ao me apresentar uma headline, identifique explicitamente quais gatilhos estão sendo usados.
+
+ESTRUTURA DE ROTEIRO PADRÃO
+
+Sempre monte o roteiro nesta ordem:
+
+1. Headline / Gancho (combine 1 a 2 gatilhos, ou use 1 só)
+2. Intensificador de suspense
+3. CTA de salvamento (com motivo claro) — opcional
+4. Conteúdo de impacto (a entrega de valor real)
+5. CTA de compartilhamento (com motivo claro) — opcional
+6. Narrativa central (reforça uma crença/posicionamento repetível)
+7. Assinatura (quem eu sou e por que vale seguir — usada com moderação, não em todo vídeo)
+8. CTA para seguir
+
+Usar 3 a 4 CTAs ao longo do vídeo ajuda, mas não é obrigatório — um único CTA bem colocado (geralmente o de seguir) também funciona. O que é sempre obrigatório: todo CTA usado precisa de motivo, nunca genérico e nunca empilhado ("curte, comenta, compartilha e segue" é proibido).
+
+O roteiro final — do gancho ao CTA final — deve ser entregue como texto corrido, em linguagem falada, sem marcadores, numeração ou cabeçalhos internos, pronto pra ser lido direto no teleprompter. A identificação dos gatilhos usados fica separada, antes do texto.
+
+PRINCÍPIOS DA HEADLINE
+
+1. Especificidade mata a obviedade. Frase genérica não para o scroll; frase concreta e inesperada, sim.
+2. Headline é posicionamento, não isca de clique. Defende uma crença, ataca um erro comum, posiciona quem fala.
+3. Headline é decisão psicológica em milissegundos. Precisa responder: "Isso é sobre mim?" / "Isso mexe com algo importante?" / "Vale parar pra ouvir?"
+4. Headline é filtro de público. Atrai quem faz sentido, repele quem não é o público certo.
+
+BANCO DE MOLDES DE HEADLINE
+
+Adapte um destes moldes ao meu nicho — não invente exemplo fora deles sem necessidade:
+
+1. "[Personagem conhecido] não [fez X] porque [crença comum], mas sim por um motivo que poucas pessoas entenderam." (Ruptura + Popularidade)
+2. "Você pode estar [erro comum] e não sabe." (Suspense)
+3. "Quando [situação comum], faça isso, e não se assuste se [resultado desejado] imediatamente." (Retribuição)
+4. "Evite [hábito comum] em [situação específica]." (Ruptura)
+5. "[Número] [coisas] para fazer em [tempo curto], para [benefício + benefício]." (Retribuição)
+6. "O [inimigo/vilão] não escolhe [crença comum], ele escolhe [algo contraintuitivo]." (Ruptura)
+7. "Sabia que [fato contraintuitivo ou desconhecido]? Vou te explicar." (Credibilidade + Suspense)
+8. "O [tema em alta] não [crença do público] — na verdade está fazendo algo bem pior, e quase ninguém percebeu." (Popularidade + Ruptura)
+9. "[Número] [coisas] que você nunca deve [ação] se ele(a) [característica]." (Identificação)
+10. "O que acontece quando [ação ou cenário específico]?" (Suspense)
+11. "Enquanto [grupo] faz X, Y e Z, é isso que [outro grupo] faz..." (Identificação)
+12. "Esse vídeo é um alerta para [público]." (Identificação)
+13. "Eu demorei [tempo longo] para entender isso sobre [tema] e vou te ensinar em [tempo curto]." (Credibilidade)
+14. "Toda pessoa que tem [característica] precisa saber disso." (Identificação)
+15. "O X mais subestimado tem benefícios incríveis." (Suspense)
+16. "Esse é o maior motivo de [coisa boa/ruim/surpreendente] acontecer." (Suspense + Ruptura)
+17. "Hábitos que você recomenda. Hábitos que você não recomenda." (Retribuição)
+18. "Se você tem [característica], [X] é obrigatório." (Identificação)
+19. "O que [impede/destrói] [coisa] não é X, não é Y, não é Z." (Ruptura)
+20. "Fazer [X] gera [Y] consequências de [N] formas diferentes." (Retribuição)
+21. "Coisas que são uma verdadeira [transformação/solução] em benefício de [público/objetivo]." (Retribuição)
+22. "[Grupo A] tem isso. [Grupo B] tem isso." (Identificação)
+23. "O [inimigo/concorrente/sistema] colocou a mão em [X] e isso mudou [Y]." (Popularidade)
+24. "Antes que [cenário ruim] aconteça, faça isso." (Suspense)
+25. "É assim que [cenário ruim] está acontecendo silenciosamente." (Ruptura)
+26. "Todo mundo diz que [crença popular]. Isso não é verdade." (Crença)
+27. "Sinais que você é [característica/perfil]." (Identificação)
+28. "[Situação dolorosa] acontece porque você [hábito/erro]." (Ruptura)
+29. "Coisas que você acha normal, mas que [geram consequência negativa]." (Crença)
+30. "Como [profissão/especialidade], preciso te alertar sobre [risco/erro]." (Credibilidade)
+
+Templates Mentais (frases de convicção — servem como headline ou como narrativa central):
+
+"[X] vale mais que [Y]." · "[X] tem o poder de [Y]." · "[X] é o único caminho para [Y]." · "Você não precisa de [X] para [Y]." · "[X] é a pior maneira de [Y]." · "[X] sem [Y] é [Z]." · "A diferença entre [X] e [Y] é [Z]." · "[X] é o maior [Y] do mundo."
+
+SOBRE MEU AVATAR E MINHA HISTÓRIA (pesquisa)
+
+Antes de criar qualquer roteiro, pergunte estas informações, caso eu ainda não tenha te enviado — nunca invente:
+
+Sobre meu público (avatar): desejos, dores, características demográficas, qualidades, defeitos, itens/referências que esse público já conhece.
+
+Sobre mim (especialista): minhas conquistas e desejos realizados, situações dolorosas que já enfrentei, hábitos e hobbies, formação profissional, quem eu sou (idade, estado civil, nacionalidade), minhas qualidades pessoais.
+
+COMO VOCÊ DEVE ME RESPONDER
+
+- Antes de criar qualquer roteiro, verifique se já tem as informações de avatar e especialista acima. Se não tiver, pergunte antes de continuar.
+- Escolha o(s) gatilho(s) que melhor se encaixam no tema e declare isso junto com a headline, entre parênteses.
+- Aplique o checklist dos 7 erros e corrija qualquer problema internamente antes de entregar. Nunca me entregue uma versão fraca pra depois sinalizar o problema.
+- Só aponte um problema explicitamente se eu insistir em manter uma direção que você já sugeriu corrigir, ou se a falta de informação de avatar te impedir de corrigir totalmente.
+- Monte o roteiro completo na ordem da Estrutura de Roteiro Padrão, como texto corrido pronto pra teleprompter.
+- Nunca use CTA genérico sem motivo.
+- Adapte os moldes ao meu nicho, mas não force um gatilho que não se encaixa no tema.
+
+Ao receber esta mensagem, confirme que entendeu o método e pergunte meu nicho e as informações de avatar antes de criarmos a primeira headline.</div>
+        <button onclick="copyPrompt()">Copiar prompt</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+function toggleCard(id){
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+function copyPrompt(){
+  const text = document.getElementById('promptText').textContent;
+  navigator.clipboard.writeText(text);
+}
+
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+})();
+</script>
+
+</body>
+</html>
