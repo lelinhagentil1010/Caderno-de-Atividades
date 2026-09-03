@@ -122,7 +122,7 @@ html,body{
 .field{ margin-bottom: 20px; }
 .field label{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 14px; color: var(--gold-light); margin-bottom: 8px; }
 .field .hint{ color: var(--cream-dim); font-size: 13px; margin-bottom: 10px; font-style: italic; }
-textarea{
+input[type=text], textarea{
   width:100%;
   background: var(--navy-3);
   border: 1px solid var(--line);
@@ -134,7 +134,8 @@ textarea{
   line-height: 1.55;
   resize: vertical;
 }
-textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input[type=text]:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input[type=text]::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
 textarea::placeholder{ color: rgba(244,239,227,0.32); }
 
 .actions{ display:flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
@@ -228,6 +229,15 @@ button:disabled{ opacity: 0.35; cursor: not-allowed; }
       <li>Exemplo: "Autoridade não é sobre competência. É sobre percepção."</li>
       <li>Na headline que a Lelinha te der em aula (pensada pro seu segmento), identifique: qual modelo está por trás dela? Qual gatilho ela realmente dispara?</li>
     </ul>
+
+    <div class="field" style="margin-top:20px;">
+      <label for="headlineDadaInput">Headline que a Lelinha te deu em aula</label>
+      <input type="text" id="headlineDadaInput" placeholder="Cole a headline aqui...">
+    </div>
+    <div class="field">
+      <label for="modeloGatilhoInput">Sua resposta: qual modelo está por trás dela? Qual gatilho ela realmente dispara?</label>
+      <textarea id="modeloGatilhoInput" rows="4" placeholder="Escreva sua resposta aqui..."></textarea>
+    </div>
 
     <div class="roteiro-sub" style="margin-top:32px;">Parte 2 — Montar o Projeto</div>
     <ol class="roteiro-steps">
@@ -446,6 +456,36 @@ function escapeHtml(str){
   div.textContent = str || '';
   return div.innerHTML;
 }
+
+// ---------------------------------------------------------------
+// PARTE 1 — headline dada em aula + resposta (rascunho local, por navegador)
+// ---------------------------------------------------------------
+const PARTE1_STORAGE_KEY = 'enfase_aula4_parte1_headline_gatilho';
+
+function carregarRascunhoParte1(){
+  try{
+    const salvo = JSON.parse(localStorage.getItem(PARTE1_STORAGE_KEY) || '{}');
+    document.getElementById('headlineDadaInput').value = salvo.headline || '';
+    document.getElementById('modeloGatilhoInput').value = salvo.resposta || '';
+  } catch(e){
+    console.error('Não foi possível carregar o rascunho da Parte 1', e);
+  }
+}
+
+function salvarRascunhoParte1(){
+  try{
+    localStorage.setItem(PARTE1_STORAGE_KEY, JSON.stringify({
+      headline: document.getElementById('headlineDadaInput').value,
+      resposta: document.getElementById('modeloGatilhoInput').value
+    }));
+  } catch(e){
+    console.error('Não foi possível salvar o rascunho da Parte 1', e);
+  }
+}
+
+document.getElementById('headlineDadaInput').addEventListener('input', salvarRascunhoParte1);
+document.getElementById('modeloGatilhoInput').addEventListener('input', salvarRascunhoParte1);
+carregarRascunhoParte1();
 
 // ---------------------------------------------------------------
 // SALVAR HEADLINE + ROTEIRO (em duas etapas)
