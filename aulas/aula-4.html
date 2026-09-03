@@ -220,21 +220,29 @@ button:disabled{ opacity: 0.35; cursor: not-allowed; }
     <div class="rule"></div>
   </div>
 
+  <div style="background: rgba(201,162,39,0.1); border: 1px solid var(--gold-dim); border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 24px;">
+    <strong style="color: var(--gold-light);">Importante, antes de continuar:</strong>
+    <ol style="margin: 10px 0 0; padding-left: 20px; color: var(--cream);">
+      <li style="padding: 4px 0;">Termine o Avatar e Especialista (Diagnóstico) e baixe o PDF.</li>
+      <li style="padding: 4px 0;">Preencha a Aula 1 (Identidade) e baixe o PDF.</li>
+    </ol>
+  </div>
+
   <div class="card">
 
     <div class="roteiro-sub">Parte 1 — Crença Central e gatilho</div>
 
-    <div style="background: rgba(201,162,39,0.1); border: 1px solid var(--gold-dim); border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 20px;">
-      <strong style="color: var(--gold-light);">Importante, antes de continuar:</strong>
-      <ol style="margin: 10px 0 0; padding-left: 20px; color: var(--cream);">
-        <li style="padding: 4px 0;">Termine o Avatar e Especialista (Diagnóstico) e baixe o PDF.</li>
-        <li style="padding: 4px 0;">Preencha a Aula 1 (Identidade) e baixe o PDF.</li>
-      </ol>
-    </div>
-
     <ul class="roteiro-steps">
       <li>Escreva sua Crença Central na fôrma: "[Sua área] não é sobre [crença comum]. É sobre [o que você realmente defende]."</li>
       <li>Exemplo: "Autoridade não é sobre competência. É sobre percepção."</li>
+    </ul>
+
+    <div class="field">
+      <label for="crencaCentralInput">Sua Crença Central</label>
+      <textarea id="crencaCentralInput" rows="3" placeholder="Escreva sua Crença Central aqui..."></textarea>
+    </div>
+
+    <ul class="roteiro-steps" style="margin-top:20px;">
       <li>Na headline que a Lelinha te der em aula (pensada pro seu segmento), identifique: qual modelo está por trás dela? Qual gatilho ela realmente dispara?</li>
     </ul>
 
@@ -489,6 +497,7 @@ async function carregarRespostaParte1(){
       .eq('user_id', currentUserId)
       .maybeSingle();
     if(error || !data) return;
+    document.getElementById('crencaCentralInput').value = data.crenca_central || '';
     document.getElementById('headlineDadaInput').value = data.headline || '';
     document.getElementById('modeloGatilhoInput').value = data.resposta || '';
     if(data.comentario_professor){
@@ -504,6 +513,7 @@ async function salvarRespostaParte1(){
   try{
     await supabaseClient.from('analise_headline_aula4').upsert({
       user_id: currentUserId,
+      crenca_central: document.getElementById('crencaCentralInput').value,
       headline: document.getElementById('headlineDadaInput').value,
       resposta: document.getElementById('modeloGatilhoInput').value
     }, { onConflict: 'user_id' });
@@ -517,6 +527,7 @@ function agendarSalvarParte1(){
   parte1Timer = setTimeout(salvarRespostaParte1, 700);
 }
 
+document.getElementById('crencaCentralInput').addEventListener('input', agendarSalvarParte1);
 document.getElementById('headlineDadaInput').addEventListener('input', agendarSalvarParte1);
 document.getElementById('modeloGatilhoInput').addEventListener('input', agendarSalvarParte1);
 
