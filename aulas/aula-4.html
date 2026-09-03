@@ -239,6 +239,11 @@ button:disabled{ opacity: 0.35; cursor: not-allowed; }
       <textarea id="modeloGatilhoInput" rows="4" placeholder="Escreva sua resposta aqui..."></textarea>
     </div>
 
+    <div class="feedback-box" id="parte1FeedbackBox" style="display:none;">
+      <div class="label">Correção da professora</div>
+      <div class="texto" id="parte1FeedbackText"></div>
+    </div>
+
     <div class="roteiro-sub" style="margin-top:32px;">Parte 2 — Montar o Projeto</div>
     <ol class="roteiro-steps">
       <li>Abra o Claude pelo link <a href="https://claude.ai/login" target="_blank" rel="noopener" style="color:var(--gold-light);">claude.ai/login</a> e faça login.</li>
@@ -458,34 +463,48 @@ function escapeHtml(str){
 }
 
 // ---------------------------------------------------------------
-// PARTE 1 — headline dada em aula + resposta (rascunho local, por navegador)
+// PARTE 1 — headline dada em aula + resposta (salva pra professora avaliar)
 // ---------------------------------------------------------------
-const PARTE1_STORAGE_KEY = 'enfase_aula4_parte1_headline_gatilho';
+let parte1Timer = null;
 
-function carregarRascunhoParte1(){
+async function carregarRespostaParte1(){
   try{
-    const salvo = JSON.parse(localStorage.getItem(PARTE1_STORAGE_KEY) || '{}');
-    document.getElementById('headlineDadaInput').value = salvo.headline || '';
-    document.getElementById('modeloGatilhoInput').value = salvo.resposta || '';
+    const { data, error } = await supabaseClient
+      .from('analise_headline_aula4')
+      .select('*')
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    if(error || !data) return;
+    document.getElementById('headlineDadaInput').value = data.headline || '';
+    document.getElementById('modeloGatilhoInput').value = data.resposta || '';
+    if(data.comentario_professor){
+      document.getElementById('parte1FeedbackText').textContent = data.comentario_professor;
+      document.getElementById('parte1FeedbackBox').style.display = 'block';
+    }
   } catch(e){
-    console.error('Não foi possível carregar o rascunho da Parte 1', e);
+    console.error('Não foi possível carregar a resposta salva da Parte 1', e);
   }
 }
 
-function salvarRascunhoParte1(){
+async function salvarRespostaParte1(){
   try{
-    localStorage.setItem(PARTE1_STORAGE_KEY, JSON.stringify({
+    await supabaseClient.from('analise_headline_aula4').upsert({
+      user_id: currentUserId,
       headline: document.getElementById('headlineDadaInput').value,
       resposta: document.getElementById('modeloGatilhoInput').value
-    }));
+    }, { onConflict: 'user_id' });
   } catch(e){
-    console.error('Não foi possível salvar o rascunho da Parte 1', e);
+    console.error('Não foi possível salvar a resposta da Parte 1', e);
   }
 }
 
-document.getElementById('headlineDadaInput').addEventListener('input', salvarRascunhoParte1);
-document.getElementById('modeloGatilhoInput').addEventListener('input', salvarRascunhoParte1);
-carregarRascunhoParte1();
+function agendarSalvarParte1(){
+  clearTimeout(parte1Timer);
+  parte1Timer = setTimeout(salvarRespostaParte1, 700);
+}
+
+document.getElementById('headlineDadaInput').addEventListener('input', agendarSalvarParte1);
+document.getElementById('modeloGatilhoInput').addEventListener('input', agendarSalvarParte1);
 
 // ---------------------------------------------------------------
 // SALVAR HEADLINE + ROTEIRO (em duas etapas)
@@ -677,6 +696,7 @@ function renderRoteiroIAVault(){
   const result = await requireApprovedSession('../index.html');
   if(!result) return;
   currentUserId = result.session.user.id;
+  await carregarRespostaParte1();
   await loadRoteirosIA();
   await carregarRascunhoIA();
 })();

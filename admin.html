@@ -374,6 +374,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
         <option value="identidade:aula-1">Aula 1 · Identidade</option>
         <option value="headlines:aula-2">Aula 2 · Caderno de Gatilhos</option>
         <option value="roteiro2:aula-2">Aula 2 · Estrutura de Roteiro</option>
+        <option value="analise4:aula-4">Aula 4 · Parte 1, Headline e Gatilho</option>
         <option value="roteiro4:aula-4">Aula 4 · Headline e Roteiro (IA)</option>
       </select>
     </div>
@@ -404,6 +405,7 @@ function onAulaSelectChange(){
   if(tipo === 'roteiro') carregarRoteiros(aulaId);
   else if(tipo === 'roteiro2') carregarRoteirosAula2();
   else if(tipo === 'roteiro4') carregarRoteirosAula4();
+  else if(tipo === 'analise4') carregarAnaliseHeadlineAula4();
   else if(tipo === 'avatar') carregarAvatarEspecialista();
   else if(tipo === 'arquetipo') carregarArquetipoRespostas();
   else if(tipo === 'identidade') carregarIdentidade();
@@ -1052,6 +1054,72 @@ async function carregarRoteirosAula4(){
       };
     });
     el.appendChild(group);
+  });
+}
+
+// ---------------------------------------------------------------
+// AULA 4 — PARTE 1, HEADLINE E GATILHO
+// ---------------------------------------------------------------
+async function carregarAnaliseHeadlineAula4(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('analise_headline_aula4')
+    .select('*')
+    .order('updated_at', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno respondeu ainda.</div>'; return; }
+
+  const userIds = [...new Set(data.map(r => r.user_id))];
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  el.innerHTML = '';
+  data.forEach(r => {
+    const perfil = perfilMap[r.user_id] || {};
+    const card = document.createElement('div');
+    card.className = 'resp-group collapsed';
+    card.innerHTML = `
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
+        <div>
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">Atualizado ${formatDate(r.updated_at)}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <div class="texto" style="font-weight:600; color:var(--gold-light); font-style:normal;">${escapeHtml(r.headline || '(sem headline)')}</div>
+          <div class="texto" style="white-space:pre-wrap; font-style:normal; margin-top:8px;">${escapeHtml(r.resposta || '(sem resposta)')}</div>
+          <div class="field" style="margin-top:14px; margin-bottom:0;">
+            <label>Correção / comentário</label>
+            <textarea class="comentario-input" rows="3">${escapeHtml(r.comentario_professor || '')}</textarea>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="small salvar-comentario">Salvar comentário</button>
+          </div>
+        </div>
+      </div>
+    `;
+    card.querySelector('.salvar-comentario').onclick = async (e) => {
+      const btn = e.target;
+      const textarea = card.querySelector('.comentario-input');
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      const { error } = await supabaseClient
+        .from('analise_headline_aula4')
+        .update({ comentario_professor: textarea.value })
+        .eq('user_id', r.user_id);
+      btn.disabled = false;
+      btn.textContent = error ? 'Erro, tentar de novo' : 'Salvo!';
+      if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
+    };
+    el.appendChild(card);
   });
 }
 
