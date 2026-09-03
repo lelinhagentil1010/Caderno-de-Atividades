@@ -149,20 +149,6 @@ textarea::placeholder{ color: rgba(244,239,227,0.32); }
 .status{ font-size: 12.5px; color: var(--cream-dim); margin-top: 10px; min-height: 18px; }
 .status.error{ color: var(--red); }
 
-.vault-header{ display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
-.vault-header h2{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 18px; letter-spacing: 0.01em; color: var(--gold-light); margin:0; }
-.vault-header .count{ font-size: 13px; color: var(--cream-dim); }
-.vault-empty{ color: var(--cream-dim); font-style: italic; }
-.vault-item{ padding: 16px 0; border-bottom: 1px solid var(--line); }
-.vault-item:last-child{ border-bottom: none; }
-.vault-item .headline-txt{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 16px; color: var(--gold-light); margin-bottom: 8px; line-height: 1.4; }
-.vault-item .roteiro-txt{ font-family:'Poppins', sans-serif; font-size: 14.5px; line-height: 1.5; color: var(--cream); white-space: pre-wrap; }
-.vault-item .meta{ font-size: 12px; color: var(--cream-dim); margin-top: 8px; }
-.vault-item-actions{ display:flex; gap: 8px; margin-top: 12px; }
-.remove-btn{ background: none; color: var(--cream-dim); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); border-radius: var(--radius-pill); cursor: pointer; }
-.remove-btn:hover{ color: var(--gold-light); border-color: var(--gold-dim); background:none; }
-.remove-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
-
 .feedback-box{ margin-top: 14px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 16px; }
 .feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
 .feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 14.5px; line-height: 1.5; }
@@ -432,7 +418,7 @@ Ao receber esta mensagem no início de uma conversa nova, confirme que entendeu 
     </div>
 
     <div class="roteiro-sub" style="margin-top:32px;">Salve sua headline e roteiro</div>
-    <p style="color:var(--cream-dim); font-size:14px; margin:0 0 24px;">Depois que a IA te devolver a headline e o roteiro completos, salve os dois aqui. Você pode salvar quantos pares quiser, cada um fica guardado separadamente.</p>
+    <p style="color:var(--cream-dim); font-size:14px; margin:0 0 24px;">Depois que a IA te devolver a headline e o roteiro completos, salve os dois aqui. Essa aula guarda só um roteiro de teste, pra confirmar que seu projeto de IA está funcionando, salvar de novo substitui o anterior. Pra gravar e publicar vários vídeos, use a Aula 3.</p>
 
     <div class="mini-stepper">
       <div class="mini-dot active" data-step="1">1</div>
@@ -463,14 +449,11 @@ Ao receber esta mensagem no início de uma conversa nova, confirme que entendeu 
     </div>
     <div class="status" id="roteiroIAStatus"></div>
 
-  </div>
-
-  <div class="card" style="margin-top:28px;">
-    <div class="vault-header">
-      <h2>Seus roteiros salvos</h2>
-      <span class="count" id="roteiroIAVaultCount"></span>
+    <div class="feedback-box" id="roteiroIAFeedbackBox" style="display:none;">
+      <div class="label">Correção da professora</div>
+      <div class="texto" id="roteiroIAFeedbackText"></div>
     </div>
-    <div id="roteiroIAVaultList"></div>
+
   </div>
 
 </div>
@@ -540,12 +523,10 @@ document.getElementById('headlineDadaInput').addEventListener('input', agendarSa
 document.getElementById('modeloGatilhoInput').addEventListener('input', agendarSalvarParte1);
 
 // ---------------------------------------------------------------
-// SALVAR HEADLINE + ROTEIRO (em duas etapas)
+// SALVAR HEADLINE + ROTEIRO (um só registro por aluno)
 // ---------------------------------------------------------------
 let currentUserId = null;
-let rascunhoIATimer = null;
-const formIA = { headline: '', texto: '' };
-let roteirosIAVault = [];
+let roteiroFinalTimer = null;
 
 function setMiniStep(step){
   document.querySelectorAll('.mini-dot').forEach(d => {
@@ -556,9 +537,9 @@ function setMiniStep(step){
 }
 
 function irParaRoteiro(){
-  formIA.headline = document.getElementById('headlineInput').value.trim();
+  const headline = document.getElementById('headlineInput').value.trim();
   const status = document.getElementById('roteiroIAStatus');
-  if(!formIA.headline){
+  if(!headline){
     status.textContent = 'Cole a headline antes de avançar.';
     status.className = 'status error';
     return;
@@ -567,159 +548,68 @@ function irParaRoteiro(){
   status.className = 'status';
   document.getElementById('formStep1').classList.add('hidden');
   document.getElementById('formStep2').classList.remove('hidden');
-  document.getElementById('roteiroInput').value = formIA.texto || '';
   setMiniStep(2);
-  salvarRascunhoIA();
 }
 
 function voltarParaHeadline(){
-  formIA.texto = document.getElementById('roteiroInput').value.trim();
   document.getElementById('formStep2').classList.add('hidden');
   document.getElementById('formStep1').classList.remove('hidden');
   setMiniStep(1);
-  salvarRascunhoIA();
 }
 
-document.getElementById('headlineInput').addEventListener('input', () => {
-  clearTimeout(rascunhoIATimer);
-  rascunhoIATimer = setTimeout(() => {
-    formIA.headline = document.getElementById('headlineInput').value.trim();
-    salvarRascunhoIA();
-  }, 600);
-});
-document.getElementById('roteiroInput').addEventListener('input', () => {
-  clearTimeout(rascunhoIATimer);
-  rascunhoIATimer = setTimeout(() => {
-    formIA.texto = document.getElementById('roteiroInput').value.trim();
-    salvarRascunhoIA();
-  }, 600);
-});
-
-async function salvarRascunhoIA(){
-  const step = document.getElementById('formStep2').classList.contains('hidden') ? 1 : 2;
+async function salvarRoteiroFinal(){
   try{
-    await supabaseClient.from('roteiro_ia_draft').upsert({
+    await supabaseClient.from('roteiro_final_aula4').upsert({
       user_id: currentUserId,
-      estado: { headline: formIA.headline, texto: formIA.texto, step }
+      headline: document.getElementById('headlineInput').value,
+      texto: document.getElementById('roteiroInput').value
     }, { onConflict: 'user_id' });
   } catch(e){
-    console.error('Não foi possível salvar o rascunho', e);
+    console.error('Não foi possível salvar o roteiro', e);
   }
 }
 
-async function carregarRascunhoIA(){
-  const { data, error } = await supabaseClient
-    .from('roteiro_ia_draft')
-    .select('*')
-    .eq('user_id', currentUserId)
-    .maybeSingle();
-  if(error || !data || !data.estado) return;
-  formIA.headline = data.estado.headline || '';
-  formIA.texto = data.estado.texto || '';
-  document.getElementById('headlineInput').value = formIA.headline;
-  document.getElementById('roteiroInput').value = formIA.texto;
-  if(data.estado.step === 2){
-    document.getElementById('formStep1').classList.add('hidden');
-    document.getElementById('formStep2').classList.remove('hidden');
-    setMiniStep(2);
-  }
+function agendarSalvarRoteiroFinal(){
+  clearTimeout(roteiroFinalTimer);
+  roteiroFinalTimer = setTimeout(salvarRoteiroFinal, 700);
 }
+
+document.getElementById('headlineInput').addEventListener('input', agendarSalvarRoteiroFinal);
+document.getElementById('roteiroInput').addEventListener('input', agendarSalvarRoteiroFinal);
 
 async function salvarRoteiroIA(){
-  formIA.texto = document.getElementById('roteiroInput').value.trim();
+  const texto = document.getElementById('roteiroInput').value.trim();
   const status = document.getElementById('roteiroIAStatus');
-  if(!formIA.texto){
+  if(!texto){
     status.textContent = 'Cole o roteiro antes de salvar.';
     status.className = 'status error';
     return;
   }
   status.textContent = 'Salvando...';
   status.className = 'status';
-
-  const { data, error } = await supabaseClient
-    .from('roteiros_aula4')
-    .insert({ user_id: currentUserId, headline: formIA.headline, texto: formIA.texto })
-    .select()
-    .single();
-
-  if(error){
-    status.textContent = 'Não foi possível salvar. Tente novamente.';
-    status.className = 'status error';
-    return;
-  }
-
-  roteirosIAVault.push(data);
-  renderRoteiroIAVault();
-
-  formIA.headline = '';
-  formIA.texto = '';
-  document.getElementById('headlineInput').value = '';
-  document.getElementById('roteiroInput').value = '';
-  document.getElementById('formStep2').classList.add('hidden');
-  document.getElementById('formStep1').classList.remove('hidden');
-  setMiniStep(1);
-  await supabaseClient.from('roteiro_ia_draft').delete().eq('user_id', currentUserId);
-
-  status.textContent = 'Salvo! Pode colar outra headline e roteiro.';
+  await salvarRoteiroFinal();
+  status.textContent = 'Salvo!';
   status.className = 'status';
   setTimeout(() => { status.textContent = ''; }, 3000);
 }
 
-async function loadRoteirosIA(){
-  const { data, error } = await supabaseClient
-    .from('roteiros_aula4')
-    .select('*')
-    .eq('user_id', currentUserId)
-    .order('created_at', { ascending: true });
-  roteirosIAVault = error ? [] : data;
-  renderRoteiroIAVault();
-}
-
-function renderRoteiroIAVault(){
-  const list = document.getElementById('roteiroIAVaultList');
-  const count = document.getElementById('roteiroIAVaultCount');
-  list.innerHTML = '';
-  count.textContent = roteirosIAVault.length > 0 ? `${roteirosIAVault.length} roteiro${roteirosIAVault.length > 1 ? 's' : ''}` : '';
-
-  if(roteirosIAVault.length === 0){
-    list.innerHTML = '<div class="vault-empty">Nenhum roteiro salvo ainda. Cole a headline e o roteiro acima.</div>';
-    return;
+async function carregarRoteiroFinal(){
+  try{
+    const { data, error } = await supabaseClient
+      .from('roteiro_final_aula4')
+      .select('*')
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    if(error || !data) return;
+    document.getElementById('headlineInput').value = data.headline || '';
+    document.getElementById('roteiroInput').value = data.texto || '';
+    if(data.comentario_professor){
+      document.getElementById('roteiroIAFeedbackText').textContent = data.comentario_professor;
+      document.getElementById('roteiroIAFeedbackBox').style.display = 'block';
+    }
+  } catch(e){
+    console.error('Não foi possível carregar o roteiro salvo', e);
   }
-
-  roteirosIAVault.forEach((item, i) => {
-    const row = document.createElement('div');
-    row.className = 'vault-item';
-    const quando = new Date(item.created_at).toLocaleString('pt-BR');
-    row.innerHTML = `
-      <div class="headline-txt">${escapeHtml(item.headline)}</div>
-      <div class="roteiro-txt">${escapeHtml(item.texto)}</div>
-      <div class="meta">Salvo em ${quando}</div>
-      <div class="vault-item-actions">
-        <button class="remove-btn delete-roteiro-ia">excluir</button>
-      </div>
-      ${item.comentario_professor ? `
-        <div class="feedback-box">
-          <div class="label">Correção da professora</div>
-          <div class="texto">${escapeHtml(item.comentario_professor)}</div>
-        </div>
-      ` : ''}
-    `;
-    row.querySelector('.delete-roteiro-ia').onclick = async (e) => {
-      const btn = e.target;
-      btn.disabled = true;
-      btn.textContent = 'excluindo...';
-      const { error } = await supabaseClient.from('roteiros_aula4').delete().eq('id', item.id);
-      if(error){
-        btn.disabled = false;
-        btn.textContent = 'excluir';
-        alert('Não foi possível excluir. Tente novamente.');
-        return;
-      }
-      roteirosIAVault.splice(i, 1);
-      renderRoteiroIAVault();
-    };
-    list.appendChild(row);
-  });
 }
 
 // ---------------------------------------------------------------
@@ -730,8 +620,7 @@ function renderRoteiroIAVault(){
   if(!result) return;
   currentUserId = result.session.user.id;
   await carregarRespostaParte1();
-  await loadRoteirosIA();
-  await carregarRascunhoIA();
+  await carregarRoteiroFinal();
 })();
 </script>
 

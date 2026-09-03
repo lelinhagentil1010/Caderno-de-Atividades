@@ -374,8 +374,9 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
         <option value="identidade:aula-1">Aula 1 · Identidade</option>
         <option value="headlines:aula-2">Aula 2 · Caderno de Gatilhos</option>
         <option value="roteiro2:aula-2">Aula 2 · Estrutura de Roteiro</option>
+        <option value="roteiro3:aula-3">Aula 3 · Desafio 100 Vídeos</option>
         <option value="analise4:aula-4">Aula 4 · Parte 1, Crença Central e Gatilho</option>
-        <option value="roteiro4:aula-4">Aula 4 · Headline e Roteiro (IA)</option>
+        <option value="roteiro4:aula-4">Aula 4 · Headline e Roteiro</option>
       </select>
     </div>
     <div id="respostasList"></div>
@@ -404,7 +405,8 @@ function onAulaSelectChange(){
   const [tipo, aulaId] = document.getElementById('aulaSelect').value.split(':');
   if(tipo === 'roteiro') carregarRoteiros(aulaId);
   else if(tipo === 'roteiro2') carregarRoteirosAula2();
-  else if(tipo === 'roteiro4') carregarRoteirosAula4();
+  else if(tipo === 'roteiro3') carregarRoteirosAula3();
+  else if(tipo === 'roteiro4') carregarRoteiroFinalAula4();
   else if(tipo === 'analise4') carregarAnaliseHeadlineAula4();
   else if(tipo === 'avatar') carregarAvatarEspecialista();
   else if(tipo === 'arquetipo') carregarArquetipoRespostas();
@@ -999,17 +1001,17 @@ async function carregarRoteirosAula2(){
 // ---------------------------------------------------------------
 // AULA 4 — HEADLINE + ROTEIRO (IA)
 // ---------------------------------------------------------------
-async function carregarRoteirosAula4(){
+async function carregarRoteirosAula3(){
   const el = document.getElementById('respostasList');
   el.innerHTML = '<div class="empty">Carregando...</div>';
 
   const { data: roteiros, error } = await supabaseClient
-    .from('roteiros_aula4')
+    .from('roteiros_aula3')
     .select('*')
     .order('created_at', { ascending: false });
 
   if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
-  if(!roteiros || roteiros.length === 0){ el.innerHTML = '<div class="empty">Nenhum roteiro enviado ainda para esta aula.</div>'; return; }
+  if(!roteiros || roteiros.length === 0){ el.innerHTML = '<div class="empty">Nenhum vídeo salvo ainda para esta aula.</div>'; return; }
 
   const userIds = [...new Set(roteiros.map(r => r.user_id))];
   const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
@@ -1034,7 +1036,7 @@ async function carregarRoteirosAula4(){
           ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
         </div>
         <div style="display:flex; align-items:center; gap:10px;">
-          <div class="resp-count">${items.length} roteiro${items.length > 1 ? 's' : ''}</div>
+          <div class="resp-count">${items.length} de 100 vídeos</div>
           <span class="resp-toggle-icon">▾</span>
         </div>
       </div>
@@ -1044,6 +1046,7 @@ async function carregarRoteirosAula4(){
             <div class="texto" style="font-weight:600; color:var(--gold-light); font-style:normal;">${escapeHtml(r.headline)}</div>
             <div class="texto" style="white-space:pre-wrap; font-style:normal; margin-top:8px;">${escapeHtml(r.texto)}</div>
             <div class="quando">${formatDate(r.created_at)}</div>
+            ${r.link_publicacao ? `<div class="quando" style="margin-top:6px;">Link: <a href="${escapeHtml(r.link_publicacao)}" target="_blank" rel="noopener" style="color:var(--gold-light);">${escapeHtml(r.link_publicacao)}</a></div>` : '<div class="quando" style="margin-top:6px; font-style:italic;">Ainda sem link de gravação/publicação</div>'}
             <div class="field" style="margin-top:14px; margin-bottom:0;">
               <label>Correção / comentário</label>
               <textarea class="comentario-input" rows="3">${escapeHtml(r.comentario_professor || '')}</textarea>
@@ -1063,7 +1066,7 @@ async function carregarRoteirosAula4(){
         btn.disabled = true;
         btn.textContent = 'Salvando...';
         const { error } = await supabaseClient
-          .from('roteiros_aula4')
+          .from('roteiros_aula3')
           .update({ comentario_professor: textarea.value })
           .eq('id', id);
         btn.disabled = false;
@@ -1072,6 +1075,72 @@ async function carregarRoteirosAula4(){
       };
     });
     el.appendChild(group);
+  });
+}
+
+// ---------------------------------------------------------------
+// AULA 4 — HEADLINE + ROTEIRO (um só por aluno)
+// ---------------------------------------------------------------
+async function carregarRoteiroFinalAula4(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('roteiro_final_aula4')
+    .select('*')
+    .order('updated_at', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno salvou um roteiro ainda.</div>'; return; }
+
+  const userIds = [...new Set(data.map(r => r.user_id))];
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  el.innerHTML = '';
+  data.forEach(r => {
+    const perfil = perfilMap[r.user_id] || {};
+    const card = document.createElement('div');
+    card.className = 'resp-group collapsed';
+    card.innerHTML = `
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
+        <div>
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">Atualizado ${formatDate(r.updated_at)}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <div class="texto" style="font-weight:600; color:var(--gold-light); font-style:normal;">${escapeHtml(r.headline || '(sem headline)')}</div>
+          <div class="texto" style="white-space:pre-wrap; font-style:normal; margin-top:8px;">${escapeHtml(r.texto || '(sem roteiro)')}</div>
+          <div class="field" style="margin-top:14px; margin-bottom:0;">
+            <label>Correção / comentário</label>
+            <textarea class="comentario-input" rows="3">${escapeHtml(r.comentario_professor || '')}</textarea>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="small salvar-comentario">Salvar comentário</button>
+          </div>
+        </div>
+      </div>
+    `;
+    card.querySelector('.salvar-comentario').onclick = async (e) => {
+      const btn = e.target;
+      const textarea = card.querySelector('.comentario-input');
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      const { error } = await supabaseClient
+        .from('roteiro_final_aula4')
+        .update({ comentario_professor: textarea.value })
+        .eq('user_id', r.user_id);
+      btn.disabled = false;
+      btn.textContent = error ? 'Erro, tentar de novo' : 'Salvo!';
+      if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
+    };
+    el.appendChild(card);
   });
 }
 
