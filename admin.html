@@ -653,27 +653,45 @@ async function rebaixarAdmin(admin, btn){
 
 async function alternarArquetipoHabilitado(aluno, checkbox){
   checkbox.disabled = true;
+  const payload = { arquetipo_habilitado: checkbox.checked };
+  // marcar a caixa também aprova o cadastro, se ainda não tiver sido aprovado
+  if(checkbox.checked && aluno.status !== 'approved') payload.status = 'approved';
   const { error } = await supabaseClient
     .from('profiles')
-    .update({ arquetipo_habilitado: checkbox.checked })
+    .update(payload)
     .eq('id', aluno.id);
   checkbox.disabled = false;
   if(error){
     checkbox.checked = !checkbox.checked;
     alert('Erro: ' + error.message);
+    return;
   }
+  Object.assign(aluno, payload);
+  atualizarStatusExibidoNoModal(aluno);
 }
 
 async function alternarCadernoHabilitado(aluno, checkbox){
   checkbox.disabled = true;
+  const payload = { caderno_habilitado: checkbox.checked };
+  // marcar a caixa também aprova o cadastro, se ainda não tiver sido aprovado
+  if(checkbox.checked && aluno.status !== 'approved') payload.status = 'approved';
   const { error } = await supabaseClient
     .from('profiles')
-    .update({ caderno_habilitado: checkbox.checked })
+    .update(payload)
     .eq('id', aluno.id);
   checkbox.disabled = false;
   if(error){
     checkbox.checked = !checkbox.checked;
     alert('Erro: ' + error.message);
+    return;
+  }
+  Object.assign(aluno, payload);
+  atualizarStatusExibidoNoModal(aluno);
+}
+
+function atualizarStatusExibidoNoModal(aluno){
+  if(alunoAtualModal && alunoAtualModal.id === aluno.id){
+    document.getElementById('verAlunoStatus').textContent = statusLabel[aluno.status] || aluno.status;
   }
 }
 
