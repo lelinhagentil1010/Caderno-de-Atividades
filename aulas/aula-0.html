@@ -14,6 +14,7 @@
 <link rel="icon" href="../icon-192.png">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
@@ -211,7 +212,7 @@ button:disabled{ opacity: 0.35; cursor: not-allowed; }
       <div class="result-actions">
         <button class="primary" id="saveBtn">Salvar narrativa</button>
         <button id="copyBtn">Copiar texto</button>
-        <button id="downloadBtn">Baixar como .txt</button>
+        <button id="downloadBtn">Baixar PDF</button>
         <button id="restartBtn">Recomeçar</button>
       </div>
       <div class="status" id="narrativaStatus"></div>
@@ -230,6 +231,8 @@ button:disabled{ opacity: 0.35; cursor: not-allowed; }
 <script>
 const ROTEIRO_AULA_ID = 'aula-0';
 let currentUserId = null;
+let alunoNome = '';
+let alunoEmail = '';
 
 const questions = [
   "Antes de me tornar quem sou hoje, o meu maior desafio profissional foi...",
@@ -313,14 +316,113 @@ document.getElementById("copyBtn").addEventListener("click", () => {
   setTimeout(() => { status.textContent = ""; }, 2000);
 });
 
-document.getElementById("downloadBtn").addEventListener("click", () => {
-  const blob = new Blob([finalText.value], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "minha_narrativa.txt";
-  a.click();
-  URL.revokeObjectURL(url);
+function svgToPngDataUrl(url, width, height){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function gerarPdfNarrativa(texto, nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+
+  try{
+    const logoDataUrl = await svgToPngDataUrl('../assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeAluno || ''}`, margin, y);
+  y += 7;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){
+    doc.text(`Email: ${emailAluno}`, margin, y);
+    y += 6;
+  }
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(201, 162, 39);
+  checarQuebra(24);
+  doc.text('MINHA NARRATIVA', margin, y);
+  y += 9;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11.5);
+  doc.setTextColor(40, 40, 40);
+  texto.split(/\n+/).forEach(paragrafo => {
+    if(!paragrafo.trim()){ return; }
+    const linhas = doc.splitTextToSize(paragrafo.trim(), maxWidth);
+    linhas.forEach(linha => {
+      checarQuebra(14);
+      doc.text(linha, margin, y);
+      y += 5.6;
+    });
+    y += 4;
+  });
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`minha-narrativa-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+document.getElementById("downloadBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("downloadBtn");
+  const status = document.getElementById("narrativaStatus");
+  const texto = finalText.value.trim();
+  if(!texto){
+    status.textContent = 'Escreva sua narrativa antes de baixar.';
+    status.className = 'status error';
+    return;
+  }
+  btn.disabled = true;
+  status.textContent = 'Gerando PDF...';
+  status.className = 'status';
+  try{
+    await gerarPdfNarrativa(texto, alunoNome, alunoEmail);
+    status.textContent = '';
+  } catch(e){
+    status.textContent = 'Não foi possível gerar o PDF. Tente novamente.';
+    status.className = 'status error';
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 document.getElementById("restartBtn").addEventListener("click", () => {
@@ -397,6 +499,8 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
   const result = await requireApprovedSession('../index.html');
   if(!result) return;
   currentUserId = result.session.user.id;
+  alunoNome = result.profile.nome || '';
+  alunoEmail = result.profile.email || '';
   await loadNarrativa();
 })();
 </script>
