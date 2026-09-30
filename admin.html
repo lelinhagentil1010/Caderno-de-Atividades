@@ -377,6 +377,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
         <option value="roteiro3:aula-3">Aula 3 · Gravação de Conteúdo</option>
         <option value="analise4:aula-4">Aula 4 · Parte 1, Crença Central e Gatilho</option>
         <option value="roteiro4:aula-4">Aula 4 · Headline e Roteiro</option>
+        <option value="publico:pesquisa">Público e Pesquisa de Conteúdo</option>
       </select>
     </div>
     <div id="respostasList"></div>
@@ -407,6 +408,7 @@ function onAulaSelectChange(){
   else if(tipo === 'roteiro2') carregarRoteirosAula2();
   else if(tipo === 'roteiro3') carregarRoteirosAula3();
   else if(tipo === 'roteiro4') carregarRoteiroFinalAula4();
+  else if(tipo === 'publico') carregarPublicoPesquisa();
   else if(tipo === 'analise4') carregarAnaliseHeadlineAula4();
   else if(tipo === 'avatar') carregarAvatarEspecialista();
   else if(tipo === 'arquetipo') carregarArquetipoRespostas();
@@ -1142,6 +1144,259 @@ async function carregarRoteiroFinalAula4(){
     };
     el.appendChild(card);
   });
+}
+
+// ---------------------------------------------------------------
+// PÚBLICO E PESQUISA DE CONTEÚDO
+// ---------------------------------------------------------------
+const PUBLICO_PESQUISA_ROTULOS = {
+  ex1_tema_que_eu_postaria: 'Ex.1 · O tema que eu postaria',
+  ex1_pergunta_do_cliente: 'Ex.1 · A pergunta que meu cliente faria',
+  ex2_cliente_diz_que_quer: 'Ex.2 · Meu cliente diz que quer...',
+  ex2_quer_de_verdade: 'Ex.2 · Mas o que ele quer de verdade é...',
+  ex2_medo_que_aconteca: 'Ex.2 · E o que ele mais tem medo que aconteça é...',
+  ex3_degrau_a: 'Ex.3 · Degrau A', ex3_degrau_b: 'Ex.3 · Degrau B', ex3_degrau_c: 'Ex.3 · Degrau C',
+  ex3_degrau_d: 'Ex.3 · Degrau D', ex3_degrau_e: 'Ex.3 · Degrau E',
+  ex3_autoavaliacao_degrau: 'Ex.3 · Autoavaliação (degrau dos próprios posts)',
+  ex4_motor_a: 'Ex.4 · Motor A', ex4_motor_b: 'Ex.4 · Motor B', ex4_motor_c: 'Ex.4 · Motor C', ex4_motor_d: 'Ex.4 · Motor D',
+  ex4_motor_mais_comum: 'Ex.4 · Motor mais comum nos clientes (autoavaliação)',
+  ex5_pergunta_1: 'Ex.5 · Pergunta 1', ex5_pergunta_2: 'Ex.5 · Pergunta 2', ex5_pergunta_3: 'Ex.5 · Pergunta 3',
+  pr1_cliente_e: 'Pr.1 · Meu cliente é...', pr1_quer: 'Pr.1 · Quer...', pr1_tem_medo_de: 'Pr.1 · Tem medo de...',
+  pr1_acredita_que: 'Pr.1 · Acredita que...', pr1_quando_fala_do_problema_diz: 'Pr.1 · Quando fala do problema, diz...',
+  pr1_motor: 'Pr.1 · O que move ele', pr1_frase_completa: 'Pr.1 · Frase completa',
+  pr2_o_que_digitei: 'Pr.2 · O que digitei na busca', pr2_sugestao_1: 'Pr.2 · Sugestão 1', pr2_sugestao_2: 'Pr.2 · Sugestão 2',
+  pr2_sugestao_3: 'Pr.2 · Sugestão 3', pr2_onde_encontrei: 'Pr.2 · Onde encontrei',
+  pr3_primeira_pauta: 'Pr.3 · Primeira pauta', pr3_degrau_primeira_pauta: 'Pr.3 · Degrau dessa pauta',
+  pr4_roteiro_ia: 'Pr.4 · Roteiro da IA', pr4_soa_como_cliente: 'Pr.4 · Soa como o cliente fala?',
+  pr4_frase_reescrita: 'Pr.4 · Frase reescrita',
+  tarefa_pauta_7: 'Tarefa · Pauta 7', tarefa_pauta_8: 'Tarefa · Pauta 8', tarefa_pauta_9: 'Tarefa · Pauta 9', tarefa_pauta_10: 'Tarefa · Pauta 10',
+  tarefa_link_video: 'Tarefa · Link do vídeo gravado',
+};
+
+async function carregarPublicoPesquisa(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('publico_pesquisa_conteudo')
+    .select('*')
+    .order('updated_at', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno começou essa atividade ainda.</div>'; return; }
+
+  const userIds = [...new Set(data.map(r => r.user_id))];
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  el.innerHTML = '';
+  data.forEach(r => {
+    const perfil = perfilMap[r.user_id] || {};
+    const respostas = r.respostas || {};
+    const linhas = Object.keys(PUBLICO_PESQUISA_ROTULOS)
+      .filter(chave => respostas[chave])
+      .map(chave => `<div class="texto" style="margin-top:8px; font-style:normal;"><strong style="color:var(--gold-light);">${escapeHtml(PUBLICO_PESQUISA_ROTULOS[chave])}:</strong> ${escapeHtml(String(respostas[chave]))}</div>`)
+      .join('');
+    const card = document.createElement('div');
+    card.className = 'resp-group collapsed';
+    card.innerHTML = `
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
+        <div>
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">Atualizado ${formatDate(r.updated_at)}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <button class="small baixar-pdf-publico">Baixar PDF</button>
+          ${linhas || '<div class="texto" style="font-style:italic; margin-top:10px;">Ainda sem respostas preenchidas.</div>'}
+          <div class="field" style="margin-top:14px; margin-bottom:0;">
+            <label>Correção / comentário</label>
+            <textarea class="comentario-input" rows="3">${escapeHtml(r.comentario_professor || '')}</textarea>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="small salvar-comentario">Salvar comentário</button>
+          </div>
+        </div>
+      </div>
+    `;
+    card.querySelector('.baixar-pdf-publico').onclick = async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+      try{
+        await gerarPdfPublicoPesquisa(respostas, perfil.nome || perfil.email, perfil.email);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Baixar PDF';
+      }
+    };
+    card.querySelector('.salvar-comentario').onclick = async (e) => {
+      const btn = e.target;
+      const textarea = card.querySelector('.comentario-input');
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      const { error } = await supabaseClient
+        .from('publico_pesquisa_conteudo')
+        .update({ comentario_professor: textarea.value })
+        .eq('user_id', r.user_id);
+      btn.disabled = false;
+      btn.textContent = error ? 'Erro, tentar de novo' : 'Salvo!';
+      if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
+    };
+    el.appendChild(card);
+  });
+}
+
+const PUBLICO_PESQUISA_MOTOR_OPCOES = [
+  { value: 'estabilidade', label: 'Estabilidade' },
+  { value: 'pertencimento', label: 'Pertencimento' },
+  { value: 'conquista', label: 'Conquista' },
+  { value: 'liberdade', label: 'Liberdade' },
+];
+const PUBLICO_PESQUISA_ONDE_OPCOES = [
+  { value: 'google', label: 'Google' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'pessoas_tambem_perguntam', label: 'As pessoas também perguntam' },
+];
+const PUBLICO_PESQUISA_EX3 = [
+  { chave: 'ex3_degrau_a', frase: 'Esse cansaço depois do almoço que você acha normal pode não ser normal.', correta: '1' },
+  { chave: 'ex3_degrau_b', frase: 'Por que sua janela deixa entrar tanto barulho, mesmo fechada.', correta: '2' },
+  { chave: 'ex3_degrau_c', frase: 'Consultoria, contador ou planilha: o que resolve o caixa da sua empresa?', correta: '3' },
+  { chave: 'ex3_degrau_d', frase: 'Como funciona a primeira reunião com a nossa equipe.', correta: '4' },
+  { chave: 'ex3_degrau_e', frase: 'Abrimos as datas de outubro para o pacote de aniversário de casamento.', correta: '5' },
+];
+const PUBLICO_PESQUISA_EX4 = [
+  { chave: 'ex4_motor_a', frase: '"Quero uma janela que dure 30 anos sem me dar dor de cabeça."', correta: 'estabilidade' },
+  { chave: 'ex4_motor_b', frase: '"Quero um lugar especial para comemorar nossos 10 anos juntos."', correta: 'pertencimento' },
+  { chave: 'ex4_motor_c', frase: '"Quero bater a meta este ano e provar que eu consigo."', correta: 'conquista' },
+  { chave: 'ex4_motor_d', frase: '"Quero sumir do mundo por três dias."', correta: 'liberdade' },
+];
+const PUBLICO_PESQUISA_PR3_PAUTAS = [
+  { origem: 'ex5_pergunta_1', chave: 'pr3_degrau_ex5_pergunta_1' },
+  { origem: 'ex5_pergunta_2', chave: 'pr3_degrau_ex5_pergunta_2' },
+  { origem: 'ex5_pergunta_3', chave: 'pr3_degrau_ex5_pergunta_3' },
+  { origem: 'pr2_sugestao_1', chave: 'pr3_degrau_pr2_sugestao_1' },
+  { origem: 'pr2_sugestao_2', chave: 'pr3_degrau_pr2_sugestao_2' },
+  { origem: 'pr2_sugestao_3', chave: 'pr3_degrau_pr2_sugestao_3' },
+];
+function publicoPesquisaRotuloOpcao(opcoes, valor){
+  const op = opcoes.find(o => o.value === valor);
+  return op ? op.label : (valor || '-');
+}
+
+async function gerarPdfPublicoPesquisa(r, nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+  try{
+    const logoDataUrl = await svgToPngDataUrl('../assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeAluno || ''}`, margin, y);
+  y += 7;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){ doc.text(`Email: ${emailAluno}`, margin, y); y += 6; }
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+  function escreverBloco(titulo, linhas){
+    checarQuebra(24);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(201, 162, 39);
+    doc.text(titulo, margin, y); y += 8;
+    linhas.forEach(([label, valor]) => {
+      checarQuebra(20);
+      if(label){
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(15, 31, 61);
+        const labelLines = doc.splitTextToSize(label, maxWidth);
+        doc.text(labelLines, margin, y); y += labelLines.length * 5.2 + 1;
+      }
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(40, 40, 40);
+      const valorLines = doc.splitTextToSize(String(valor || '(não preenchido)'), maxWidth);
+      valorLines.forEach(line => { checarQuebra(14); doc.text(line, margin, y); y += 5.2; });
+      y += 5;
+    });
+    y += 3;
+  }
+
+  escreverBloco('EXERCÍCIO 1 · TRADUZA PARA O SEU CLIENTE', [
+    ['O tema que eu postaria:', r.ex1_tema_que_eu_postaria],
+    ['A pergunta que meu cliente faria sobre esse tema:', r.ex1_pergunta_do_cliente],
+  ]);
+  escreverBloco('EXERCÍCIO 2 · COMPLETE A FRASE', [
+    ['Meu cliente diz que quer:', r.ex2_cliente_diz_que_quer],
+    ['Mas o que ele quer de verdade é:', r.ex2_quer_de_verdade],
+    ['E o que ele mais tem medo que aconteça é:', r.ex2_medo_que_aconteca],
+  ]);
+  escreverBloco('EXERCÍCIO 3 · EM QUE DEGRAU ESTÁ?', [
+    ...PUBLICO_PESQUISA_EX3.map(p => [p.frase, `Resposta do aluno: ${r[p.chave] || '-'}  |  Gabarito: ${p.correta}`]),
+    ['Em qual degrau está a maior parte dos seus posts (autoavaliação):', r.ex3_autoavaliacao_degrau],
+  ]);
+  escreverBloco('EXERCÍCIO 4 · QUAL MOTOR?', [
+    ...PUBLICO_PESQUISA_EX4.map(p => [p.frase, `Resposta do aluno: ${publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_MOTOR_OPCOES, r[p.chave])}  |  Gabarito: ${publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_MOTOR_OPCOES, p.correta)}`]),
+    ['Motor que mais aparece nos seus clientes (autoavaliação):', publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_MOTOR_OPCOES, r.ex4_motor_mais_comum)],
+  ]);
+  escreverBloco('EXERCÍCIO 5 · ANOTE AGORA', [
+    ['Pergunta 1:', r.ex5_pergunta_1], ['Pergunta 2:', r.ex5_pergunta_2], ['Pergunta 3:', r.ex5_pergunta_3],
+  ]);
+  escreverBloco('PRÁTICA 1 · SEU CLIENTE EM UMA FRASE', [
+    ['Meu cliente é:', r.pr1_cliente_e], ['Quer:', r.pr1_quer], ['Tem medo de:', r.pr1_tem_medo_de],
+    ['Acredita que:', r.pr1_acredita_que], ['Quando fala do problema, diz:', r.pr1_quando_fala_do_problema_diz],
+    ['O que move ele:', publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_MOTOR_OPCOES, r.pr1_motor)],
+    ['Minha frase completa:', r.pr1_frase_completa],
+  ]);
+  escreverBloco('PRÁTICA 2 · SUA BUSCA', [
+    ['O que eu digitei na busca:', r.pr2_o_que_digitei], ['Sugestão 1:', r.pr2_sugestao_1],
+    ['Sugestão 2:', r.pr2_sugestao_2], ['Sugestão 3:', r.pr2_sugestao_3],
+    ['Onde encontrei:', publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_ONDE_OPCOES, r.pr2_onde_encontrei)],
+  ]);
+  escreverBloco('PRÁTICA 3 · QUAL PAUTA PRIMEIRO?', [
+    ...PUBLICO_PESQUISA_PR3_PAUTAS.map(p => [r[p.origem] || '(pauta não preenchida)', `Degrau: ${r[p.chave] || '-'}`]),
+    ['Minha primeira pauta:', r.pr3_primeira_pauta], ['Degrau dessa pauta:', r.pr3_degrau_primeira_pauta],
+  ]);
+  const linhasPr4 = [
+    ['Roteiro que a IA montou:', r.pr4_roteiro_ia],
+    ['A primeira frase soa como o cliente fala?', r.pr4_soa_como_cliente === 'sim' ? 'Sim' : (r.pr4_soa_como_cliente === 'nao' ? 'Não' : '-')],
+  ];
+  if(r.pr4_soa_como_cliente === 'nao') linhasPr4.push(['Frase reescrita:', r.pr4_frase_reescrita]);
+  escreverBloco('PRÁTICA 4 · LEVE PARA A IA', linhasPr4);
+  escreverBloco('TAREFA · ATÉ O PRÓXIMO ENCONTRO', [
+    ['Pauta 7:', r.tarefa_pauta_7], ['Onde ouvi/encontrei:', r.tarefa_onde_ouvi_7],
+    ['Pauta 8:', r.tarefa_pauta_8], ['Onde ouvi/encontrei:', r.tarefa_onde_ouvi_8],
+    ['Pauta 9:', r.tarefa_pauta_9], ['Onde ouvi/encontrei:', r.tarefa_onde_ouvi_9],
+    ['Pauta 10:', r.tarefa_pauta_10], ['Onde ouvi/encontrei:', r.tarefa_onde_ouvi_10],
+    ['Link do vídeo gravado:', r.tarefa_link_video],
+  ]);
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`publico-pesquisa-${nomeArquivo || 'aluno'}.pdf`);
 }
 
 // ---------------------------------------------------------------

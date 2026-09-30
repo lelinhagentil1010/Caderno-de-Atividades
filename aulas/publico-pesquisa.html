@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Público e Pesquisa de Conteúdo, ÊNFASE</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --green: #3E8E5A;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+
+.app{
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  background: var(--navy-2);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+.link-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+.masthead{ text-align:center; margin-bottom: 32px; }
+.eyebrow{ font-family:'Poppins', sans-serif; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Poppins', sans-serif; font-weight:700; font-size: clamp(26px, 4.4vw, 36px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.5; max-width: 560px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.cards-stack{ display:flex; flex-direction:column; gap: 28px; }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.roteiro-sub{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 0.02em; color: var(--gold-light); margin: 0 0 10px; }
+.card-intro{ color: var(--cream-dim); font-size: 14px; line-height: 1.55; margin: 0 0 18px; white-space: pre-line; }
+
+.callout{ margin: 0 0 18px; padding: 14px 16px; border-left: 3px solid var(--gold-dim); background: rgba(201,162,39,0.05); border-radius: var(--radius-sm); font-size: 13.5px; line-height: 1.5; color: var(--cream-dim); }
+.callout strong{ color: var(--gold-light); }
+
+.field{ margin-bottom: 18px; }
+.field:last-child{ margin-bottom: 0; }
+.field label{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 14px; color: var(--gold-light); margin-bottom: 8px; }
+input[type=text], input[type=url], textarea{
+  width:100%;
+  background: var(--navy-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 13px 15px;
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  resize: vertical;
+}
+input[type=text]:focus, input[type=url]:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
+textarea{ min-height: 90px; }
+textarea.grande{ min-height: 160px; }
+
+.choice-group{ display:flex; flex-wrap:wrap; gap: 10px; }
+.choice-btn{
+  padding: 10px 18px;
+  min-width: 44px;
+  text-align:center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--navy-3);
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor:pointer;
+  transition: all .15s ease;
+}
+.choice-btn:hover{ border-color: var(--gold-dim); background: rgba(201,162,39,0.08); }
+.choice-btn.selected{ border-color: var(--gold); background: linear-gradient(180deg, rgba(201,162,39,0.16), rgba(201,162,39,0.05)); color: var(--gold-light); }
+
+.gabarito-box{ margin-top:12px; border-radius: var(--radius-md); padding: 14px 16px; border:1px solid var(--gold-dim); background: rgba(201,162,39,0.06); }
+.gabarito-box.correta{ border-color: var(--green); background: rgba(62,142,90,0.10); }
+.gabarito-box.incorreta{ border-color: var(--red); background: rgba(194,68,68,0.08); }
+.gabarito-resultado{ font-family:'Poppins', sans-serif; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; color: var(--gold-light); }
+.gabarito-box.correta .gabarito-resultado{ color: var(--green); }
+.gabarito-box.incorreta .gabarito-resultado{ color: var(--red); }
+.gabarito-explicacao{ font-size:14px; color:var(--cream); line-height:1.5; }
+
+.readonly-box{ padding: 12px 14px; border-radius: var(--radius-sm); background: var(--navy-3); border: 1px solid var(--line); color: var(--cream-dim); font-style: italic; font-size: 14px; margin-bottom: 10px; }
+.pauta-item{ margin-bottom: 20px; }
+.pauta-item:last-child{ margin-bottom: 0; }
+.pauta-label{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 13px; color: var(--gold-light); margin-bottom: 6px; }
+
+.status{ font-size: 12.5px; color: var(--cream-dim); margin-top: 10px; min-height: 18px; }
+.status.error{ color: var(--red); }
+
+.hidden{ display:none !important; }
+
+.feedback-box{ margin-bottom: 28px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 16px; }
+.feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 14.5px; line-height: 1.5; }
+
+button{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill);
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+button.primary:hover{ background: var(--gold-light); }
+button:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+.pautas-grid{ display:flex; flex-direction:column; gap: 14px; }
+.pauta-row{ display:flex; gap: 12px; flex-wrap: wrap; }
+.pauta-row .field{ flex:1 1 220px; margin-bottom:0; }
+
+/* Desktop grande */
+@media (min-width: 1440px){
+  .app{ max-width: 960px; }
+}
+/* Tablet */
+@media (max-width: 1024px){
+  .app{ padding: 28px 20px 70px; }
+}
+/* Mobile */
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="ÊNFASE" class="logo">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" id="downloadBtn">Baixar PDF</button>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Pesquisa de Conteúdo</div>
+    <h1>Público e Pesquisa de Conteúdo</h1>
+    <p class="quote">Treine o olhar pro nível de consciência do seu público, o que move ele por dentro, e pautas reais de conteúdo que já estão na sua frente.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="feedback-box hidden" id="comentarioBox">
+    <div class="label">Comentário da professora</div>
+    <div class="texto" id="comentarioTexto"></div>
+  </div>
+
+  <div class="cards-stack">
+
+    <!-- EXERCÍCIO 1 -->
+    <div class="card">
+      <div class="roteiro-sub">Exercício 1 · Traduza para o seu cliente</div>
+      <p class="card-intro">Escreva um tema que você postaria nas redes, do jeito que falaria para um colega de profissão.
+Depois, escreva a pergunta que o seu cliente faria sobre esse mesmo tema, com as palavras dele.</p>
+      <div class="callout"><strong>Exemplo:</strong> Tema que eu postaria: DRE e margem de contribuição. Pergunta do meu cliente: Por que eu vendo tanto e nunca sobra dinheiro?</div>
+      <div class="callout"><strong>Ajuda:</strong> Se a pergunta do cliente ainda tiver palavra técnica, reescreva. Imagine o cliente falando com um amigo, não com você.</div>
+      <div class="field">
+        <label for="field_ex1_tema_que_eu_postaria">O tema que eu postaria</label>
+        <input type="text" id="field_ex1_tema_que_eu_postaria" placeholder="Ex.: DRE e margem de contribuição">
+      </div>
+      <div class="field">
+        <label for="field_ex1_pergunta_do_cliente">A pergunta que meu cliente faria sobre esse tema</label>
+        <input type="text" id="field_ex1_pergunta_do_cliente" placeholder="Ex.: Por que eu vendo tanto e nunca sobra dinheiro?">
+      </div>
+    </div>
+
+    <!-- EXERCÍCIO 2 -->
+    <div class="card">
+      <div class="roteiro-sub">Exercício 2 · Complete a frase</div>
+      <p class="card-intro">Pense no melhor cliente que você já teve e complete as duas frases.</p>
+      <div class="callout"><strong>Exemplo:</strong> Meu cliente diz que quer uma janela nova. Mas o que ele quer de verdade é assistir TV na sala sem ouvir o ônibus passar.</div>
+      <div class="callout"><strong>Ajuda:</strong> Travou? Pergunte: se ele conseguisse isso, o que mudaria no dia a dia dele? Repita a pergunta até chegar numa cena concreta. Evite respostas genéricas como "ter sucesso" ou "ser feliz".</div>
+      <div class="field">
+        <label for="field_ex2_cliente_diz_que_quer">Meu cliente diz que quer...</label>
+        <input type="text" id="field_ex2_cliente_diz_que_quer">
+      </div>
+      <div class="field">
+        <label for="field_ex2_quer_de_verdade">Mas o que ele quer de verdade é...</label>
+        <input type="text" id="field_ex2_quer_de_verdade">
+      </div>
+      <div class="field">
+        <label for="field_ex2_medo_que_aconteca">E o que ele mais tem medo que aconteça é...</label>
+        <input type="text" id="field_ex2_medo_que_aconteca">
+      </div>
+    </div>
+
+    <!-- EXERCÍCIO 3 -->
+    <div class="card">
+      <div class="roteiro-sub">Exercício 3 · Em que degrau está?</div>
+      <p class="card-intro">Os 5 degraus: 1. Não sabe que tem o problema. 2. Sabe do problema. 3. Conhece as soluções. 4. Conhece você. 5. Está pronto para decidir.
+Leia cada frase e marque o degrau de 1 a 5.</p>
+
+      <div class="field">
+        <label>A. "Esse cansaço depois do almoço que você acha normal pode não ser normal."</label>
+        <div class="choice-group" id="grupo_ex3_degrau_a"></div>
+        <div id="gabarito_ex3_degrau_a"></div>
+      </div>
+      <div class="field">
+        <label>B. "Por que sua janela deixa entrar tanto barulho, mesmo fechada."</label>
+        <div class="choice-group" id="grupo_ex3_degrau_b"></div>
+        <div id="gabarito_ex3_degrau_b"></div>
+      </div>
+      <div class="field">
+        <label>C. "Consultoria, contador ou planilha: o que resolve o caixa da sua empresa?"</label>
+        <div class="choice-group" id="grupo_ex3_degrau_c"></div>
+        <div id="gabarito_ex3_degrau_c"></div>
+      </div>
+      <div class="field">
+        <label>D. "Como funciona a primeira reunião com a nossa equipe."</label>
+        <div class="choice-group" id="grupo_ex3_degrau_d"></div>
+        <div id="gabarito_ex3_degrau_d"></div>
+      </div>
+      <div class="field">
+        <label>E. "Abrimos as datas de outubro para o pacote de aniversário de casamento."</label>
+        <div class="choice-group" id="grupo_ex3_degrau_e"></div>
+        <div id="gabarito_ex3_degrau_e"></div>
+      </div>
+      <div class="field">
+        <label>Olhando o seu próprio perfil, em qual degrau está a maior parte dos seus posts?</label>
+        <div class="choice-group" id="grupo_ex3_autoavaliacao_degrau"></div>
+        <div class="callout" style="margin:8px 0 0;">Sem resposta certa aqui, é só uma autoavaliação.</div>
+      </div>
+    </div>
+
+    <!-- EXERCÍCIO 4 -->
+    <div class="card">
+      <div class="roteiro-sub">Exercício 4 · Qual motor?</div>
+      <p class="card-intro">Os 4 motores: Estabilidade (segurança, controle, ordem). Pertencimento (ser aceito, amado, fazer parte). Conquista (vencer, superar, provar valor). Liberdade (descobrir, ser autêntico, ter sentido).
+Leia cada frase de cliente e marque o motor.
+Base: as 4 motivações de Margaret Mark e Carol Pearson, O Herói e o Fora-da-Lei.</p>
+
+      <div class="field">
+        <label>A. "Quero uma janela que dure 30 anos sem me dar dor de cabeça."</label>
+        <div class="choice-group" id="grupo_ex4_motor_a"></div>
+        <div id="gabarito_ex4_motor_a"></div>
+      </div>
+      <div class="field">
+        <label>B. "Quero um lugar especial para comemorar nossos 10 anos juntos."</label>
+        <div class="choice-group" id="grupo_ex4_motor_b"></div>
+        <div id="gabarito_ex4_motor_b"></div>
+      </div>
+      <div class="field">
+        <label>C. "Quero bater a meta este ano e provar que eu consigo."</label>
+        <div class="choice-group" id="grupo_ex4_motor_c"></div>
+        <div id="gabarito_ex4_motor_c"></div>
+      </div>
+      <div class="field">
+        <label>D. "Quero sumir do mundo por três dias."</label>
+        <div class="choice-group" id="grupo_ex4_motor_d"></div>
+        <div id="gabarito_ex4_motor_d"></div>
+      </div>
+      <div class="field">
+        <label>Qual desses motores aparece mais nos seus clientes?</label>
+        <div class="choice-group" id="grupo_ex4_motor_mais_comum"></div>
+        <div class="callout" style="margin:8px 0 0;">Sem resposta certa aqui, é só uma autoavaliação.</div>
+      </div>
+    </div>
+
+    <!-- EXERCÍCIO 5 -->
+    <div class="card">
+      <div class="roteiro-sub">Exercício 5 · Anote agora</div>
+      <p class="card-intro">Escreva 3 perguntas que um cliente fez para você nos últimos 7 dias.
+Do jeito que ele falou, sem corrigir e sem melhorar.</p>
+      <div class="callout"><strong>Ajuda:</strong> Nunca coloque nome ou detalhe que permita reconhecer quem perguntou. A pergunta vira pauta. A pessoa nunca vira caso.</div>
+      <div class="field">
+        <label for="field_ex5_pergunta_1">Pergunta 1</label>
+        <input type="text" id="field_ex5_pergunta_1">
+      </div>
+      <div class="field">
+        <label for="field_ex5_pergunta_2">Pergunta 2</label>
+        <input type="text" id="field_ex5_pergunta_2">
+      </div>
+      <div class="field">
+        <label for="field_ex5_pergunta_3">Pergunta 3</label>
+        <input type="text" id="field_ex5_pergunta_3">
+      </div>
+    </div>
+
+    <!-- PRÁTICA 1 -->
+    <div class="card">
+      <div class="roteiro-sub">Prática 1 · Seu cliente em uma frase</div>
+      <p class="card-intro">Use o que você escreveu nos exercícios anteriores e complete cada parte.</p>
+      <div class="callout"><strong>Exemplo:</strong> "Meu cliente é o dono de uma loja pequena, quer parar de acordar de madrugada preocupado com as contas, tem medo de fechar as portas, acredita que gestão é coisa de empresa grande e, quando fala do problema, diz: 'eu vendo tanto e nunca sobra dinheiro'."</div>
+      <div class="field">
+        <label for="field_pr1_cliente_e">Meu cliente é...</label>
+        <input type="text" id="field_pr1_cliente_e" placeholder="Quem é a pessoa">
+      </div>
+      <div class="field">
+        <label for="field_pr1_quer">Quer...</label>
+        <input type="text" id="field_pr1_quer" placeholder="Desejo real">
+      </div>
+      <div class="field">
+        <label for="field_pr1_tem_medo_de">Tem medo de...</label>
+        <input type="text" id="field_pr1_tem_medo_de" placeholder="Medo real">
+      </div>
+      <div class="field">
+        <label for="field_pr1_acredita_que">Acredita que...</label>
+        <input type="text" id="field_pr1_acredita_que" placeholder="A crença que prende">
+      </div>
+      <div class="field">
+        <label for="field_pr1_quando_fala_do_problema_diz">Quando fala do problema, diz...</label>
+        <input type="text" id="field_pr1_quando_fala_do_problema_diz" placeholder="As palavras dele, entre aspas">
+      </div>
+      <div class="field">
+        <label>O que move ele</label>
+        <div class="choice-group" id="grupo_pr1_motor"></div>
+      </div>
+      <div class="field">
+        <label for="field_pr1_frase_completa">Minha frase completa</label>
+        <div style="margin-bottom:10px;">
+          <button type="button" id="montarFraseBtn">Montar automaticamente</button>
+        </div>
+        <textarea id="field_pr1_frase_completa" class="grande"></textarea>
+        <div class="status" id="pr1Status"></div>
+      </div>
+    </div>
+
+    <!-- PRÁTICA 2 -->
+    <div class="card">
+      <div class="roteiro-sub">Prática 2 · Sua busca</div>
+      <p class="card-intro">Abra o Google ou o YouTube e digite só o começo de uma frase que o seu cliente usaria. Não aperte Enter.
+Leia a lista de sugestões que aparece embaixo da barra de busca.
+No Google, aperte Enter e desça até o quadro "As pessoas também perguntam".
+Escolha 3 sugestões que o seu cliente faria e copie do jeito que estão.</p>
+      <div class="callout"><strong>Ajuda:</strong> Não sabe o que digitar? Use as primeiras palavras da frase "quando fala do problema, diz..." da Prática 1.</div>
+      <div class="field">
+        <label for="field_pr2_o_que_digitei">O que eu digitei na busca</label>
+        <input type="text" id="field_pr2_o_que_digitei">
+      </div>
+      <div class="field">
+        <label for="field_pr2_sugestao_1">Sugestão 1</label>
+        <input type="text" id="field_pr2_sugestao_1">
+      </div>
+      <div class="field">
+        <label for="field_pr2_sugestao_2">Sugestão 2</label>
+        <input type="text" id="field_pr2_sugestao_2">
+      </div>
+      <div class="field">
+        <label for="field_pr2_sugestao_3">Sugestão 3</label>
+        <input type="text" id="field_pr2_sugestao_3">
+      </div>
+      <div class="field">
+        <label>Onde encontrei</label>
+        <div class="choice-group" id="grupo_pr2_onde_encontrei"></div>
+      </div>
+    </div>
+
+    <!-- PRÁTICA 3 -->
+    <div class="card">
+      <div class="roteiro-sub">Prática 3 · Qual pauta primeiro?</div>
+      <p class="card-intro">Você já tem 6 pautas: as 3 perguntas do Exercício 5 e as 3 sugestões da Prática 2.
+Marque o degrau de cada uma, de 1 a 5.
+Escolha uma para ser a primeira, de preferência de degrau 1 ou 2. É onde está a maior parte das pessoas que ainda não te conhecem.</p>
+
+      <div class="pauta-item">
+        <span class="pauta-label">Pergunta 1 (Exercício 5)</span>
+        <div class="readonly-box" id="pauta_ex5_pergunta_1">(ainda não preenchido)</div>
+        <div class="choice-group" id="grupo_pr3_degrau_ex5_pergunta_1"></div>
+      </div>
+      <div class="pauta-item">
+        <span class="pauta-label">Pergunta 2 (Exercício 5)</span>
+        <div class="readonly-box" id="pauta_ex5_pergunta_2">(ainda não preenchido)</div>
+        <div class="choice-group" id="grupo_pr3_degrau_ex5_pergunta_2"></div>
+      </div>
+      <div class="pauta-item">
+        <span class="pauta-label">Pergunta 3 (Exercício 5)</span>
+        <div class="readonly-box" id="pauta_ex5_pergunta_3">(ainda não preenchido)</div>
+        <div class="choice-group" id="grupo_pr3_degrau_ex5_pergunta_3"></div>
+      </div>
+      <div class="pauta-item">
+        <span class="pauta-label">Sugestão 1 (Prática 2)</span>
+        <div class="readonly-box" id="pauta_pr2_sugestao_1">(ainda não preenchido)</div>
+        <div class="choice-group" id="grupo_pr3_degrau_pr2_sugestao_1"></div>
+      </div>
+      <div class="pauta-item">
+        <span class="pauta-label">Sugestão 2 (Prática 2)</span>
+        <div class="readonly-box" id="pauta_pr2_sugestao_2">(ainda não preenchido)</div>
+        <div class="choice-group" id="grupo_pr3_degrau_pr2_sugestao_2"></div>
+      </div>
+      <div class="pauta-item">
+        <span class="pauta-label">Sugestão 3 (Prática 2)</span>
+        <div class="readonly-box" id="pauta_pr2_sugestao_3">(ainda não preenchido)</div>
+        <div class="choice-group" id="grupo_pr3_degrau_pr2_sugestao_3"></div>
+      </div>
+
+      <div class="field">
+        <label for="field_pr3_primeira_pauta">Minha primeira pauta</label>
+        <input type="text" id="field_pr3_primeira_pauta">
+      </div>
+      <div class="field">
+        <label>Degrau dessa pauta</label>
+        <div class="choice-group" id="grupo_pr3_degrau_primeira_pauta"></div>
+      </div>
+    </div>
+
+    <!-- PRÁTICA 4 -->
+    <div class="card">
+      <div class="roteiro-sub">Prática 4 · Leve para a IA</div>
+      <p class="card-intro">Abra o prompt de IA que você usa para montar roteiros.
+Coloque só a pauta escolhida na Prática 3, como tema.
+Leia o roteiro e responda: a primeira frase soa como o seu cliente fala? Se não soar, troque a palavra técnica pela palavra dele.</p>
+      <div class="callout"><strong>Ajuda:</strong> Ainda não tem o prompt de IA? Guarde a sua pauta e faça esta prática assim que tiver acesso a ele.</div>
+      <div class="field">
+        <label for="field_pr4_roteiro_ia">Cole aqui o roteiro que a IA montou</label>
+        <textarea id="field_pr4_roteiro_ia" class="grande"></textarea>
+      </div>
+      <div class="field">
+        <label>A primeira frase soa como o meu cliente fala?</label>
+        <div class="choice-group" id="grupo_pr4_soa_como_cliente"></div>
+      </div>
+      <div class="field hidden" id="wrap_pr4_frase_reescrita">
+        <label for="field_pr4_frase_reescrita">Se não, como ficou a primeira frase reescrita</label>
+        <input type="text" id="field_pr4_frase_reescrita">
+      </div>
+    </div>
+
+    <!-- TAREFA -->
+    <div class="card">
+      <div class="roteiro-sub">Tarefa · Até o próximo encontro</div>
+      <p class="card-intro">Complete a sua lista até 10 pautas, anotando as perguntas que ouvir durante a semana.
+Grave o roteiro da Prática 4 e traga no próximo encontro.</p>
+
+      <div class="pautas-grid">
+        <div class="pauta-row">
+          <div class="field">
+            <label for="field_tarefa_pauta_7">Pauta 7</label>
+            <input type="text" id="field_tarefa_pauta_7">
+          </div>
+          <div class="field">
+            <label for="field_tarefa_onde_ouvi_7">Onde ouvi ou encontrei</label>
+            <input type="text" id="field_tarefa_onde_ouvi_7">
+          </div>
+        </div>
+        <div class="pauta-row">
+          <div class="field">
+            <label for="field_tarefa_pauta_8">Pauta 8</label>
+            <input type="text" id="field_tarefa_pauta_8">
+          </div>
+          <div class="field">
+            <label for="field_tarefa_onde_ouvi_8">Onde ouvi ou encontrei</label>
+            <input type="text" id="field_tarefa_onde_ouvi_8">
+          </div>
+        </div>
+        <div class="pauta-row">
+          <div class="field">
+            <label for="field_tarefa_pauta_9">Pauta 9</label>
+            <input type="text" id="field_tarefa_pauta_9">
+          </div>
+          <div class="field">
+            <label for="field_tarefa_onde_ouvi_9">Onde ouvi ou encontrei</label>
+            <input type="text" id="field_tarefa_onde_ouvi_9">
+          </div>
+        </div>
+        <div class="pauta-row">
+          <div class="field">
+            <label for="field_tarefa_pauta_10">Pauta 10</label>
+            <input type="text" id="field_tarefa_pauta_10">
+          </div>
+          <div class="field">
+            <label for="field_tarefa_onde_ouvi_10">Onde ouvi ou encontrei</label>
+            <input type="text" id="field_tarefa_onde_ouvi_10">
+          </div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:18px;">
+        <label for="field_tarefa_link_video">Link do vídeo gravado (opcional)</label>
+        <input type="url" id="field_tarefa_link_video" placeholder="https://...">
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+let currentUserId = null;
+let alunoNome = '';
+let alunoEmail = '';
+let respostas = {};
+
+// ---------------------------------------------------------------
+// CONJUNTOS DE OPÇÕES COMPARTILHADOS
+// ---------------------------------------------------------------
+const DEGRAU_OPCOES = [1,2,3,4,5].map(n => ({ value: String(n), label: String(n) }));
+const MOTOR_OPCOES = [
+  { value: 'estabilidade', label: 'Estabilidade' },
+  { value: 'pertencimento', label: 'Pertencimento' },
+  { value: 'conquista', label: 'Conquista' },
+  { value: 'liberdade', label: 'Liberdade' },
+];
+const SIM_NAO_OPCOES = [
+  { value: 'sim', label: 'Sim' },
+  { value: 'nao', label: 'Não' },
+];
+const PR2_ONDE_OPCOES = [
+  { value: 'google', label: 'Google' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'pessoas_tambem_perguntam', label: 'As pessoas também perguntam' },
+];
+
+function rotuloOpcao(opcoes, valor){
+  const op = opcoes.find(o => o.value === valor);
+  return op ? op.label : (valor || '-');
+}
+
+// ---------------------------------------------------------------
+// COMPONENTE: GRUPO DE MÚLTIPLA ESCOLHA
+// ---------------------------------------------------------------
+function criarChoiceGroup(containerId, chave, opcoes, onSelect){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  opcoes.forEach(op => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice-btn';
+    btn.textContent = op.label;
+    btn.dataset.value = op.value;
+    if(respostas[chave] === op.value) btn.classList.add('selected');
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      respostas[chave] = op.value;
+      if(onSelect) onSelect(op.value);
+      salvarAgora();
+    });
+    container.appendChild(btn);
+  });
+}
+
+// ---------------------------------------------------------------
+// GABARITO (Exercícios 3 e 4)
+// ---------------------------------------------------------------
+const EX3_PERGUNTAS = [
+  { chave: 'ex3_degrau_a', frase: 'Esse cansaço depois do almoço que você acha normal pode não ser normal.', correta: '1', explicacao: 'A pessoa nem sabe que tem um problema.' },
+  { chave: 'ex3_degrau_b', frase: 'Por que sua janela deixa entrar tanto barulho, mesmo fechada.', correta: '2', explicacao: 'Ela já sabe do problema e quer entender a causa.' },
+  { chave: 'ex3_degrau_c', frase: 'Consultoria, contador ou planilha: o que resolve o caixa da sua empresa?', correta: '3', explicacao: 'Ela já sabe que existem soluções e está comparando.' },
+  { chave: 'ex3_degrau_d', frase: 'Como funciona a primeira reunião com a nossa equipe.', correta: '4', explicacao: 'Ela já conhece você e quer saber como você trabalha.' },
+  { chave: 'ex3_degrau_e', frase: 'Abrimos as datas de outubro para o pacote de aniversário de casamento.', correta: '5', explicacao: 'Ela está pronta para decidir, só precisa do caminho.' },
+];
+const EX4_PERGUNTAS = [
+  { chave: 'ex4_motor_a', frase: '"Quero uma janela que dure 30 anos sem me dar dor de cabeça."', correta: 'estabilidade', explicacao: 'Ele quer segurança e zero problema.' },
+  { chave: 'ex4_motor_b', frase: '"Quero um lugar especial para comemorar nossos 10 anos juntos."', correta: 'pertencimento', explicacao: 'Ele quer celebrar o vínculo, estar junto.' },
+  { chave: 'ex4_motor_c', frase: '"Quero bater a meta este ano e provar que eu consigo."', correta: 'conquista', explicacao: 'Ele quer vencer e provar valor.' },
+  { chave: 'ex4_motor_d', frase: '"Quero sumir do mundo por três dias."', correta: 'liberdade', explicacao: 'Ele quer escapar, se desconectar.' },
+];
+
+function mostrarGabarito(pergunta, valorAluno, opcoes){
+  const acertou = String(valorAluno) === String(pergunta.correta);
+  document.getElementById('gabarito_' + pergunta.chave).innerHTML = `
+    <div class="gabarito-box ${acertou ? 'correta' : 'incorreta'}">
+      <div class="gabarito-resultado">${acertou ? 'Certo!' : 'Resposta certa: ' + escapeHtml(rotuloOpcao(opcoes, pergunta.correta))}</div>
+      <div class="gabarito-explicacao">${escapeHtml(pergunta.explicacao)}</div>
+    </div>`;
+}
+
+function montarPerguntaComGabarito(pergunta, opcoes){
+  criarChoiceGroup('grupo_' + pergunta.chave, pergunta.chave, opcoes, (valor) => mostrarGabarito(pergunta, valor, opcoes));
+  if(respostas[pergunta.chave]) mostrarGabarito(pergunta, respostas[pergunta.chave], opcoes);
+}
+
+// ---------------------------------------------------------------
+// PRÁTICA 3 — pautas trazidas automaticamente do Exercício 5 / Prática 2
+// ---------------------------------------------------------------
+const PR3_PAUTAS = [
+  { origem: 'ex5_pergunta_1', chave: 'pr3_degrau_ex5_pergunta_1' },
+  { origem: 'ex5_pergunta_2', chave: 'pr3_degrau_ex5_pergunta_2' },
+  { origem: 'ex5_pergunta_3', chave: 'pr3_degrau_ex5_pergunta_3' },
+  { origem: 'pr2_sugestao_1', chave: 'pr3_degrau_pr2_sugestao_1' },
+  { origem: 'pr2_sugestao_2', chave: 'pr3_degrau_pr2_sugestao_2' },
+  { origem: 'pr2_sugestao_3', chave: 'pr3_degrau_pr2_sugestao_3' },
+];
+
+function atualizarPautaReadonly(origem){
+  const el = document.getElementById('pauta_' + origem);
+  if(el) el.textContent = respostas[origem] && respostas[origem].trim() ? respostas[origem] : '(ainda não preenchido)';
+}
+
+function montarPr3(){
+  PR3_PAUTAS.forEach(p => {
+    atualizarPautaReadonly(p.origem);
+    criarChoiceGroup('grupo_' + p.chave, p.chave, DEGRAU_OPCOES);
+  });
+}
+
+// ---------------------------------------------------------------
+// PRÁTICA 4 — campo condicional
+// ---------------------------------------------------------------
+function aplicarVisibilidadePr4(valor){
+  document.getElementById('wrap_pr4_frase_reescrita').classList.toggle('hidden', valor !== 'nao');
+}
+
+// ---------------------------------------------------------------
+// CAMPOS DE TEXTO (genérico, todos os id="field_<chave>")
+// ---------------------------------------------------------------
+const CHAVES_QUE_ALIMENTAM_PRATICA3 = ['ex5_pergunta_1','ex5_pergunta_2','ex5_pergunta_3','pr2_sugestao_1','pr2_sugestao_2','pr2_sugestao_3'];
+
+function wireTextFields(){
+  document.querySelectorAll('[id^="field_"]').forEach(el => {
+    const chave = el.id.replace('field_', '');
+    el.value = respostas[chave] || '';
+    el.addEventListener('input', () => {
+      respostas[chave] = el.value;
+      agendarSalvar();
+      if(CHAVES_QUE_ALIMENTAM_PRATICA3.includes(chave)) atualizarPautaReadonly(chave);
+    });
+  });
+}
+
+// ---------------------------------------------------------------
+// PRÁTICA 1 — montar frase automaticamente
+// ---------------------------------------------------------------
+document.getElementById('montarFraseBtn').addEventListener('click', () => {
+  const campos = ['pr1_cliente_e','pr1_quer','pr1_tem_medo_de','pr1_acredita_que','pr1_quando_fala_do_problema_diz'];
+  const status = document.getElementById('pr1Status');
+  if(campos.some(c => !respostas[c] || !respostas[c].trim())){
+    status.textContent = 'Preencha os campos acima antes de montar a frase.';
+    status.className = 'status error';
+    return;
+  }
+  const frase = `Meu cliente é ${respostas.pr1_cliente_e}, quer ${respostas.pr1_quer}, tem medo de ${respostas.pr1_tem_medo_de}, acredita que ${respostas.pr1_acredita_que} e, quando fala do problema, diz: "${respostas.pr1_quando_fala_do_problema_diz}".`;
+  document.getElementById('field_pr1_frase_completa').value = frase;
+  respostas.pr1_frase_completa = frase;
+  status.textContent = '';
+  status.className = 'status';
+  agendarSalvar();
+});
+
+// ---------------------------------------------------------------
+// SALVAMENTO
+// ---------------------------------------------------------------
+let salvarTimer = null;
+function agendarSalvar(){
+  clearTimeout(salvarTimer);
+  salvarTimer = setTimeout(salvarAgora, 700);
+}
+async function salvarAgora(){
+  try{
+    await supabaseClient.from('publico_pesquisa_conteudo').upsert({
+      user_id: currentUserId,
+      respostas: { ...respostas }
+    }, { onConflict: 'user_id' });
+  } catch(e){
+    console.error('Não foi possível salvar', e);
+  }
+}
+
+// ---------------------------------------------------------------
+// PDF
+// ---------------------------------------------------------------
+function svgToPngDataUrl(url, width, height){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function gerarPdfPublicoPesquisa(nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+
+  try{
+    const logoDataUrl = await svgToPngDataUrl('../assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeAluno || ''}`, margin, y);
+  y += 7;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){ doc.text(`Email: ${emailAluno}`, margin, y); y += 6; }
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+
+  function escreverBloco(titulo, linhas){
+    checarQuebra(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(201, 162, 39);
+    doc.text(titulo, margin, y);
+    y += 8;
+
+    linhas.forEach(([label, valor]) => {
+      checarQuebra(20);
+      if(label){
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(15, 31, 61);
+        const labelLines = doc.splitTextToSize(label, maxWidth);
+        doc.text(labelLines, margin, y);
+        y += labelLines.length * 5.2 + 1;
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(40, 40, 40);
+      const valorLines = doc.splitTextToSize(String(valor || '(não preenchido)'), maxWidth);
+      valorLines.forEach(line => {
+        checarQuebra(14);
+        doc.text(line, margin, y);
+        y += 5.2;
+      });
+      y += 5;
+    });
+    y += 3;
+  }
+
+  const r = respostas;
+
+  escreverBloco('EXERCÍCIO 1 · TRADUZA PARA O SEU CLIENTE', [
+    ['O tema que eu postaria:', r.ex1_tema_que_eu_postaria],
+    ['A pergunta que meu cliente faria sobre esse tema:', r.ex1_pergunta_do_cliente],
+  ]);
+
+  escreverBloco('EXERCÍCIO 2 · COMPLETE A FRASE', [
+    ['Meu cliente diz que quer:', r.ex2_cliente_diz_que_quer],
+    ['Mas o que ele quer de verdade é:', r.ex2_quer_de_verdade],
+    ['E o que ele mais tem medo que aconteça é:', r.ex2_medo_que_aconteca],
+  ]);
+
+  escreverBloco('EXERCÍCIO 3 · EM QUE DEGRAU ESTÁ?', [
+    ...EX3_PERGUNTAS.map(p => [p.frase, `Resposta do aluno: ${r[p.chave] || '-'}  |  Gabarito: ${p.correta}`]),
+    ['Em qual degrau está a maior parte dos seus posts (autoavaliação):', r.ex3_autoavaliacao_degrau],
+  ]);
+
+  escreverBloco('EXERCÍCIO 4 · QUAL MOTOR?', [
+    ...EX4_PERGUNTAS.map(p => [p.frase, `Resposta do aluno: ${rotuloOpcao(MOTOR_OPCOES, r[p.chave])}  |  Gabarito: ${rotuloOpcao(MOTOR_OPCOES, p.correta)}`]),
+    ['Motor que mais aparece nos seus clientes (autoavaliação):', rotuloOpcao(MOTOR_OPCOES, r.ex4_motor_mais_comum)],
+  ]);
+
+  escreverBloco('EXERCÍCIO 5 · ANOTE AGORA', [
+    ['Pergunta 1:', r.ex5_pergunta_1],
+    ['Pergunta 2:', r.ex5_pergunta_2],
+    ['Pergunta 3:', r.ex5_pergunta_3],
+  ]);
+
+  escreverBloco('PRÁTICA 1 · SEU CLIENTE EM UMA FRASE', [
+    ['Meu cliente é:', r.pr1_cliente_e],
+    ['Quer:', r.pr1_quer],
+    ['Tem medo de:', r.pr1_tem_medo_de],
+    ['Acredita que:', r.pr1_acredita_que],
+    ['Quando fala do problema, diz:', r.pr1_quando_fala_do_problema_diz],
+    ['O que move ele:', rotuloOpcao(MOTOR_OPCOES, r.pr1_motor)],
+    ['Minha frase completa:', r.pr1_frase_completa],
+  ]);
+
+  escreverBloco('PRÁTICA 2 · SUA BUSCA', [
+    ['O que eu digitei na busca:', r.pr2_o_que_digitei],
+    ['Sugestão 1:', r.pr2_sugestao_1],
+    ['Sugestão 2:', r.pr2_sugestao_2],
+    ['Sugestão 3:', r.pr2_sugestao_3],
+    ['Onde encontrei:', rotuloOpcao(PR2_ONDE_OPCOES, r.pr2_onde_encontrei)],
+  ]);
+
+  escreverBloco('PRÁTICA 3 · QUAL PAUTA PRIMEIRO?', [
+    ...PR3_PAUTAS.map(p => [r[p.origem] || '(pauta não preenchida)', `Degrau: ${r[p.chave] || '-'}`]),
+    ['Minha primeira pauta:', r.pr3_primeira_pauta],
+    ['Degrau dessa pauta:', r.pr3_degrau_primeira_pauta],
+  ]);
+
+  const linhasPr4 = [
+    ['Roteiro que a IA montou:', r.pr4_roteiro_ia],
+    ['A primeira frase soa como o cliente fala?', r.pr4_soa_como_cliente === 'sim' ? 'Sim' : (r.pr4_soa_como_cliente === 'nao' ? 'Não' : '-')],
+  ];
+  if(r.pr4_soa_como_cliente === 'nao'){
+    linhasPr4.push(['Frase reescrita:', r.pr4_frase_reescrita]);
+  }
+  escreverBloco('PRÁTICA 4 · LEVE PARA A IA', linhasPr4);
+
+  escreverBloco('TAREFA · ATÉ O PRÓXIMO ENCONTRO', [
+    ['Pauta 7:', r.tarefa_pauta_7], ['Onde ouvi/encontrei:', r.tarefa_onde_ouvi_7],
+    ['Pauta 8:', r.tarefa_pauta_8], ['Onde ouvi/encontrei:', r.tarefa_onde_ouvi_8],
+    ['Pauta 9:', r.tarefa_pauta_9], ['Onde ouvi/encontrei:', r.tarefa_onde_ouvi_9],
+    ['Pauta 10:', r.tarefa_pauta_10], ['Onde ouvi/encontrei:', r.tarefa_onde_ouvi_10],
+    ['Link do vídeo gravado:', r.tarefa_link_video],
+  ]);
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`publico-pesquisa-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('downloadBtn');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+  try{
+    await gerarPdfPublicoPesquisa(alunoNome, alunoEmail);
+  } catch(e){
+    alert('Não foi possível gerar o PDF. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+// ---------------------------------------------------------------
+// MONTAGEM DA PÁGINA
+// ---------------------------------------------------------------
+function montarPagina(){
+  wireTextFields();
+
+  EX3_PERGUNTAS.forEach(p => montarPerguntaComGabarito(p, DEGRAU_OPCOES));
+  criarChoiceGroup('grupo_ex3_autoavaliacao_degrau', 'ex3_autoavaliacao_degrau', DEGRAU_OPCOES);
+
+  EX4_PERGUNTAS.forEach(p => montarPerguntaComGabarito(p, MOTOR_OPCOES));
+  criarChoiceGroup('grupo_ex4_motor_mais_comum', 'ex4_motor_mais_comum', MOTOR_OPCOES);
+
+  criarChoiceGroup('grupo_pr1_motor', 'pr1_motor', MOTOR_OPCOES);
+  criarChoiceGroup('grupo_pr2_onde_encontrei', 'pr2_onde_encontrei', PR2_ONDE_OPCOES);
+
+  montarPr3();
+  criarChoiceGroup('grupo_pr3_degrau_primeira_pauta', 'pr3_degrau_primeira_pauta', DEGRAU_OPCOES);
+
+  criarChoiceGroup('grupo_pr4_soa_como_cliente', 'pr4_soa_como_cliente', SIM_NAO_OPCOES, aplicarVisibilidadePr4);
+  aplicarVisibilidadePr4(respostas.pr4_soa_como_cliente);
+}
+
+async function carregarDados(){
+  try{
+    const { data, error } = await supabaseClient
+      .from('publico_pesquisa_conteudo')
+      .select('*')
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    if(error || !data) return;
+    respostas = data.respostas || {};
+    if(data.comentario_professor){
+      document.getElementById('comentarioTexto').textContent = data.comentario_professor;
+      document.getElementById('comentarioBox').classList.remove('hidden');
+    }
+  } catch(e){
+    console.error('Não foi possível carregar as respostas salvas', e);
+  }
+}
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  currentUserId = result.session.user.id;
+  alunoNome = result.profile.nome || '';
+  alunoEmail = result.profile.email || '';
+  await carregarDados();
+  montarPagina();
+})();
+</script>
+
+</body>
+</html>
