@@ -158,6 +158,21 @@ textarea.grande{ min-height: 160px; }
 .status{ font-size: 12.5px; color: var(--cream-dim); margin-top: 10px; min-height: 18px; }
 .status.error{ color: var(--red); }
 
+.save-status{
+  position: fixed; right: 16px; bottom: 16px; z-index: 50;
+  max-width: min(380px, calc(100vw - 32px));
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-2);
+  border: 1px solid var(--gold-dim);
+  box-shadow: var(--shadow-card);
+  font-size: 12.5px; line-height: 1.4;
+  color: var(--cream-dim);
+}
+.save-status:empty{ display: none; }
+.save-status.ok{ border-color: var(--green); color: var(--cream); }
+.save-status.erro{ border-color: var(--red); background: rgba(194,68,68,0.92); color: #fff; border-radius: var(--radius-md); }
+
 .hidden{ display:none !important; }
 
 .feedback-box{ margin-bottom: 28px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 16px; }
@@ -553,6 +568,8 @@ Grave o roteiro da Prática 4 e traga no próximo encontro.</p>
 
 </div>
 
+<div class="save-status" id="saveStatus" role="status" aria-live="polite"></div>
+
 <script src="../js/supabase-client.js"></script>
 <script>
 function escapeHtml(str){
@@ -717,20 +734,59 @@ document.getElementById('montarFraseBtn').addEventListener('click', () => {
 // SALVAMENTO
 // ---------------------------------------------------------------
 let salvarTimer = null;
+let salvarPendente = false;
+let salvandoAgora = false;
+let salvarDenovo = false;
+let carregouOk = false;
+let statusTimer = null;
+
+function mostrarStatusSalvamento(texto, tipo){
+  const el = document.getElementById('saveStatus');
+  clearTimeout(statusTimer);
+  el.textContent = texto;
+  el.className = 'save-status' + (tipo ? ' ' + tipo : '');
+  if(tipo === 'ok') statusTimer = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
 function agendarSalvar(){
+  if(!carregouOk) return;
+  salvarPendente = true;
+  mostrarStatusSalvamento('Salvando...');
   clearTimeout(salvarTimer);
   salvarTimer = setTimeout(salvarAgora, 700);
 }
+
 async function salvarAgora(){
+  if(!carregouOk) return;
+  clearTimeout(salvarTimer);
+  salvarPendente = false;
+  if(salvandoAgora){ salvarDenovo = true; return; }
+  salvandoAgora = true;
+  mostrarStatusSalvamento('Salvando...');
+  let falhou = false;
   try{
-    await supabaseClient.from('publico_pesquisa_conteudo').upsert({
+    const { error } = await supabaseClient.from('publico_pesquisa_conteudo').upsert({
       user_id: currentUserId,
       respostas: { ...respostas }
     }, { onConflict: 'user_id' });
+    if(error) throw error;
   } catch(e){
+    falhou = true;
     console.error('Não foi possível salvar', e);
   }
+  salvandoAgora = false;
+  if(salvarDenovo){
+    salvarDenovo = false;
+    await salvarAgora();
+    return;
+  }
+  if(falhou) mostrarStatusSalvamento('Não foi possível salvar agora. Confira sua conexão, suas respostas continuam na tela.', 'erro');
+  else mostrarStatusSalvamento('Salvo automaticamente', 'ok');
 }
+
+function salvarSePendente(){ if(salvarPendente) salvarAgora(); }
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') salvarSePendente(); });
+window.addEventListener('pagehide', salvarSePendente);
 
 // ---------------------------------------------------------------
 // PDF
@@ -941,7 +997,9 @@ async function carregarDados(){
       .select('*')
       .eq('user_id', currentUserId)
       .maybeSingle();
-    if(error || !data) return;
+    if(error) throw error;
+    carregouOk = true;
+    if(!data) return;
     respostas = data.respostas || {};
     if(data.comentario_professor){
       document.getElementById('comentarioTexto').textContent = data.comentario_professor;
@@ -949,6 +1007,7 @@ async function carregarDados(){
     }
   } catch(e){
     console.error('Não foi possível carregar as respostas salvas', e);
+    mostrarStatusSalvamento('Não foi possível carregar suas respostas salvas. Recarregue a página antes de continuar, pra não perder nada.', 'erro');
   }
 }
 
