@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataformas e headlines, ÊNFASE</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --green: #3E8E5A;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+
+.app{
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  background: var(--navy-2);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+.link-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+.masthead{ text-align:center; margin-bottom: 32px; }
+.eyebrow{ font-family:'Poppins', sans-serif; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Poppins', sans-serif; font-weight:700; font-size: clamp(26px, 4.4vw, 36px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.5; max-width: 560px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.cards-stack{ display:flex; flex-direction:column; gap: 28px; }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.roteiro-sub{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 0.02em; color: var(--gold-light); margin: 0 0 10px; }
+.card-intro{ color: var(--cream-dim); font-size: 14px; line-height: 1.55; margin: 0 0 18px; white-space: pre-line; }
+
+.callout{ margin: 0 0 18px; padding: 14px 16px; border-left: 3px solid var(--gold-dim); background: rgba(201,162,39,0.05); border-radius: var(--radius-sm); font-size: 13.5px; line-height: 1.5; color: var(--cream-dim); }
+.callout strong{ color: var(--gold-light); }
+
+.field{ margin-bottom: 18px; }
+.field:last-child{ margin-bottom: 0; }
+.field label{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 14px; color: var(--gold-light); margin-bottom: 8px; }
+input[type=text], input[type=url], textarea{
+  width:100%;
+  background: var(--navy-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 13px 15px;
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  resize: vertical;
+}
+input[type=text]:focus, input[type=url]:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
+textarea{ min-height: 90px; }
+textarea.grande{ min-height: 160px; }
+
+.choice-group{ display:flex; flex-wrap:wrap; gap: 10px; }
+.choice-btn{
+  padding: 10px 18px;
+  min-width: 44px;
+  text-align:center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--navy-3);
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor:pointer;
+  transition: all .15s ease;
+}
+.choice-btn:hover{ border-color: var(--gold-dim); background: rgba(201,162,39,0.08); }
+.choice-btn.selected{ border-color: var(--gold); background: linear-gradient(180deg, rgba(201,162,39,0.16), rgba(201,162,39,0.05)); color: var(--gold-light); }
+
+.gabarito-box{ margin-top:12px; border-radius: var(--radius-md); padding: 14px 16px; border:1px solid var(--gold-dim); background: rgba(201,162,39,0.06); }
+.gabarito-box.correta{ border-color: var(--green); background: rgba(62,142,90,0.10); }
+.gabarito-box.incorreta{ border-color: var(--red); background: rgba(194,68,68,0.08); }
+.gabarito-resultado{ font-family:'Poppins', sans-serif; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; color: var(--gold-light); }
+.gabarito-box.correta .gabarito-resultado{ color: var(--green); }
+.gabarito-box.incorreta .gabarito-resultado{ color: var(--red); }
+.gabarito-explicacao{ font-size:14px; color:var(--cream); line-height:1.5; }
+
+.readonly-box{ padding: 12px 14px; border-radius: var(--radius-sm); background: var(--navy-3); border: 1px solid var(--line); color: var(--cream-dim); font-style: italic; font-size: 14px; margin-bottom: 10px; }
+.pauta-item{ margin-bottom: 20px; }
+.pauta-item:last-child{ margin-bottom: 0; }
+.pauta-label{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 13px; color: var(--gold-light); margin-bottom: 6px; }
+
+.status{ font-size: 12.5px; color: var(--cream-dim); margin-top: 10px; min-height: 18px; }
+.status.error{ color: var(--red); }
+
+.save-status{
+  position: fixed; right: 16px; bottom: 16px; z-index: 50;
+  max-width: min(380px, calc(100vw - 32px));
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-2);
+  border: 1px solid var(--gold-dim);
+  box-shadow: var(--shadow-card);
+  font-size: 12.5px; line-height: 1.4;
+  color: var(--cream-dim);
+}
+.save-status:empty{ display: none; }
+.save-status.ok{ border-color: var(--green); color: var(--cream); }
+.save-status.erro{ border-color: var(--red); background: rgba(194,68,68,0.92); color: #fff; border-radius: var(--radius-md); }
+
+.hidden{ display:none !important; }
+
+.feedback-box{ margin-bottom: 28px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 16px; }
+.feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 14.5px; line-height: 1.5; }
+
+button{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill);
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+button.primary:hover{ background: var(--gold-light); }
+button:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+.pautas-grid{ display:flex; flex-direction:column; gap: 14px; }
+.pauta-row{ display:flex; gap: 12px; flex-wrap: wrap; }
+.pauta-row .field{ flex:1 1 220px; margin-bottom:0; }
+
+/* Desktop grande */
+@media (min-width: 1440px){
+  .app{ max-width: 960px; }
+}
+/* Tablet */
+@media (max-width: 1024px){
+  .app{ padding: 28px 20px 70px; }
+}
+/* Mobile */
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+}
+
+.check-list{ display:flex; flex-direction:column; gap: 12px; }
+.field label.check-item, .check-item{ display:flex; font-weight:400; margin-bottom:0; align-items:flex-start; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--navy-3); cursor:pointer; font-size: 14.5px; line-height: 1.5; color: var(--cream); }
+.check-item input{ margin-top: 4px; width: 18px; height: 18px; accent-color: var(--gold); flex-shrink: 0; cursor:pointer; }
+.rede-titulo{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 15px; color: var(--cream); margin: 22px 0 4px; padding-top: 18px; border-top: 1px solid var(--line); }
+.rede-titulo:first-of-type{ margin-top: 0; padding-top: 0; border-top: 0; }
+.rede-desc{ color: var(--cream-dim); font-size: 13.5px; line-height: 1.5; margin: 0 0 14px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="ÊNFASE" class="logo">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" id="downloadBtn">Baixar PDF</button>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Caderno de Exercícios</div>
+    <h1>Plataformas e headlines</h1>
+    <p class="quote">Três exercícios, um de cada vez. Use a mesma pauta nos três exercícios. Cada exercício indica o capítulo do material "Plataformas e headlines" que apoia aquela etapa.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="feedback-box hidden" id="comentarioBox">
+    <div class="label">Comentário da professora</div>
+    <div class="texto" id="comentarioTexto"></div>
+  </div>
+
+  <div class="cards-stack">
+
+    <!-- EXERCÍCIO 1 -->
+    <div class="card">
+      <div class="roteiro-sub">Exercício 1 · Sua pauta: interrompe ou responde?</div>
+      <p class="card-intro">Apoio: capítulo 2, As duas portas de entrada.</p>
+      <div class="callout"><strong>Exemplo:</strong> Uma esteticista não escreve "protocolo para hiperpigmentação". O cliente digita "como tirar mancha do rosto".</div>
+      <div class="field">
+        <label for="field_ex1_pauta">Escolha uma pauta sua, de um vídeo que você quer gravar esta semana</label>
+        <input type="text" id="field_ex1_pauta">
+      </div>
+      <div class="field">
+        <label>Alguém digitaria esse assunto numa busca?</label>
+        <div class="choice-group" id="grupo_ex1_digitaria"></div>
+      </div>
+      <div class="field hidden" id="wrap_ex1_frase_busca">
+        <label for="field_ex1_frase_busca">Escreva a frase exatamente como o seu cliente digitaria, com as palavras dele e não com termos técnicos da sua profissão</label>
+        <input type="text" id="field_ex1_frase_busca">
+      </div>
+    </div>
+
+    <!-- EXERCÍCIO 2 -->
+    <div class="card">
+      <div class="roteiro-sub">Exercício 2 · Sua pauta nas quatro portas</div>
+      <p class="card-intro">Apoio: capítulos 3 a 6 e capítulo 9, A mesma pauta nas quatro portas.</p>
+      <div class="callout"><strong>Ajuda:</strong> Se a sua pauta não é de busca, a fala de abertura usa só o mistério. Faça bem o Instagram e o LinkedIn e use, no TikTok e no YouTube, a mesma frase do Instagram.</div>
+
+      <div class="rede-titulo">Fala de abertura (uma só, para todas as redes)</div>
+      <p class="rede-desc">A frase de busca e, em seguida, o mistério.</p>
+      <div class="field">
+        <label for="field_ex2_abertura_busca">A frase de busca</label>
+        <input type="text" id="field_ex2_abertura_busca">
+      </div>
+      <div class="field">
+        <label for="field_ex2_abertura_misterio">O mistério</label>
+        <textarea id="field_ex2_abertura_misterio"></textarea>
+      </div>
+
+      <div class="rede-titulo">Instagram</div>
+      <p class="rede-desc">Escolha um dos 33 modelos de headline e escreva a frase que interrompe, para o texto fixo e a legenda.</p>
+      <div class="field">
+        <label for="field_ex2_ig_modelo">Modelo de headline escolhido</label>
+        <input type="text" id="field_ex2_ig_modelo" placeholder="Número ou nome do modelo">
+      </div>
+      <div class="field">
+        <label for="field_ex2_ig_texto_fixo">Texto fixo</label>
+        <input type="text" id="field_ex2_ig_texto_fixo">
+      </div>
+      <div class="field">
+        <label for="field_ex2_ig_legenda">Legenda</label>
+        <textarea id="field_ex2_ig_legenda"></textarea>
+      </div>
+
+      <div class="rede-titulo">TikTok</div>
+      <p class="rede-desc">A frase de busca do Exercício 1 e uma quebra curta, para o texto fixo e a legenda.</p>
+      <div class="field">
+        <label for="field_ex2_tt_texto_fixo">Texto fixo</label>
+        <input type="text" id="field_ex2_tt_texto_fixo">
+      </div>
+      <div class="field">
+        <label for="field_ex2_tt_legenda">Legenda</label>
+        <textarea id="field_ex2_tt_legenda"></textarea>
+      </div>
+
+      <div class="rede-titulo">YouTube Shorts</div>
+      <p class="rede-desc">Escreva o título, com a frase de busca, simples e direto.</p>
+      <div class="field">
+        <label for="field_ex2_yt_titulo">Título</label>
+        <input type="text" id="field_ex2_yt_titulo">
+      </div>
+
+      <div class="rede-titulo">LinkedIn</div>
+      <p class="rede-desc">Escreva as duas primeiras linhas do texto, com o olhar de quem tem experiência.</p>
+      <div class="field">
+        <label for="field_ex2_li_linhas">As duas primeiras linhas</label>
+        <textarea id="field_ex2_li_linhas"></textarea>
+      </div>
+    </div>
+
+    <!-- EXERCÍCIO 3 -->
+    <div class="card">
+      <div class="roteiro-sub">Exercício 3 · A sua porta principal</div>
+      <p class="card-intro">Apoio: capítulo 9 (O texto fixo da abertura) e capítulo 11 (A sua porta principal).</p>
+      <div class="field">
+        <label>Escolha uma rede principal para os próximos 30 dias</label>
+        <div class="choice-group" id="grupo_ex3_rede"></div>
+      </div>
+      <div class="field">
+        <label for="field_ex3_por_que">Escreva em uma linha por que escolheu</label>
+        <input type="text" id="field_ex3_por_que" placeholder="Onde o seu cliente está quando decide contratar e onde você consegue postar com constância">
+      </div>
+      <div class="field">
+        <label>Antes de postar, confira</label>
+        <div class="check-list">
+          <label class="check-item"><input type="checkbox" id="check_ex3_texto_fixo"><span>Coloquei o texto fixo da abertura, longe das bordas?</span></label>
+          <label class="check-item"><input type="checkbox" id="check_ex3_arquivo_original"><span>Salvei o arquivo original, sem marca d'água?</span></label>
+          <label class="check-item"><input type="checkbox" id="check_ex3_troquei_texto"><span>Troquei texto na tela, título e legenda em cada rede?</span></label>
+          <label class="check-item"><input type="checkbox" id="check_ex3_texto_linkedin"><span>Escrevi texto próprio para o LinkedIn?</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAREFA -->
+    <div class="card">
+      <div class="roteiro-sub">Tarefa para o próximo encontro</div>
+      <p class="card-intro">Publique a sua pauta em pelo menos duas redes, cada uma com a headline da sua porta. Guarde as quatro versões: no próximo encontro elas serão reescritas na voz do seu arquétipo.</p>
+      <div class="field">
+        <label class="check-item"><input type="checkbox" id="check_tarefa_publicou"><span>Publiquei a minha pauta em pelo menos duas redes</span></label>
+      </div>
+      <div class="field">
+        <label for="field_tarefa_link_1">Link da publicação 1 (opcional)</label>
+        <input type="url" id="field_tarefa_link_1" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label for="field_tarefa_link_2">Link da publicação 2 (opcional)</label>
+        <input type="url" id="field_tarefa_link_2" placeholder="https://...">
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="save-status" id="saveStatus" role="status" aria-live="polite"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+let currentUserId = null;
+let alunoNome = '';
+let alunoEmail = '';
+let respostas = {};
+
+const SIM_NAO_OPCOES = [
+  { value: 'sim', label: 'Sim' },
+  { value: 'nao', label: 'Não' },
+];
+const REDE_OPCOES = [
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'tiktok', label: 'TikTok' },
+  { value: 'youtube_shorts', label: 'YouTube Shorts' },
+  { value: 'linkedin', label: 'LinkedIn' },
+];
+
+function rotuloOpcao(opcoes, valor){
+  const op = opcoes.find(o => o.value === valor);
+  return op ? op.label : (valor || '-');
+}
+
+function criarChoiceGroup(containerId, chave, opcoes, onSelect){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  opcoes.forEach(op => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice-btn';
+    btn.textContent = op.label;
+    btn.dataset.value = op.value;
+    if(respostas[chave] === op.value) btn.classList.add('selected');
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      respostas[chave] = op.value;
+      if(onSelect) onSelect(op.value);
+      salvarAgora();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function aplicarVisibilidadeEx1(valor){
+  document.getElementById('wrap_ex1_frase_busca').classList.toggle('hidden', valor !== 'sim');
+}
+
+function wireTextFields(){
+  document.querySelectorAll('[id^="field_"]').forEach(el => {
+    const chave = el.id.replace('field_', '');
+    el.value = respostas[chave] || '';
+    el.addEventListener('input', () => {
+      respostas[chave] = el.value;
+      agendarSalvar();
+    });
+  });
+  document.querySelectorAll('[id^="check_"]').forEach(el => {
+    const chave = el.id.replace('check_', '');
+    el.checked = respostas[chave] === 'sim';
+    el.addEventListener('change', () => {
+      respostas[chave] = el.checked ? 'sim' : 'nao';
+      salvarAgora();
+    });
+  });
+}
+
+// ---------------------------------------------------------------
+// SALVAMENTO
+// ---------------------------------------------------------------
+let salvarTimer = null;
+let salvarPendente = false;
+let salvandoAgora = false;
+let salvarDenovo = false;
+let carregouOk = false;
+let statusTimer = null;
+
+function mostrarStatusSalvamento(texto, tipo){
+  const el = document.getElementById('saveStatus');
+  clearTimeout(statusTimer);
+  el.textContent = texto;
+  el.className = 'save-status' + (tipo ? ' ' + tipo : '');
+  if(tipo === 'ok') statusTimer = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+function agendarSalvar(){
+  if(!carregouOk) return;
+  salvarPendente = true;
+  mostrarStatusSalvamento('Salvando...');
+  clearTimeout(salvarTimer);
+  salvarTimer = setTimeout(salvarAgora, 700);
+}
+
+async function salvarAgora(){
+  if(!carregouOk) return;
+  clearTimeout(salvarTimer);
+  salvarPendente = false;
+  if(salvandoAgora){ salvarDenovo = true; return; }
+  salvandoAgora = true;
+  mostrarStatusSalvamento('Salvando...');
+  let falhou = false;
+  try{
+    const { error } = await supabaseClient.from('plataformas_headlines').upsert({
+      user_id: currentUserId,
+      respostas: { ...respostas }
+    }, { onConflict: 'user_id' });
+    if(error) throw error;
+  } catch(e){
+    falhou = true;
+    console.error('Não foi possível salvar', e);
+  }
+  salvandoAgora = false;
+  if(salvarDenovo){
+    salvarDenovo = false;
+    await salvarAgora();
+    return;
+  }
+  if(falhou) mostrarStatusSalvamento('Não foi possível salvar agora. Confira sua conexão, suas respostas continuam na tela.', 'erro');
+  else mostrarStatusSalvamento('Salvo automaticamente', 'ok');
+}
+
+function salvarSePendente(){ if(salvarPendente) salvarAgora(); }
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') salvarSePendente(); });
+window.addEventListener('pagehide', salvarSePendente);
+
+// ---------------------------------------------------------------
+// PDF
+// ---------------------------------------------------------------
+function svgToPngDataUrl(url, width, height){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function gerarPdfPlataformasHeadlines(nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+
+  try{
+    const logoDataUrl = await svgToPngDataUrl('../assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeAluno || ''}`, margin, y);
+  y += 7;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){ doc.text(`Email: ${emailAluno}`, margin, y); y += 6; }
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+
+  function escreverBloco(titulo, linhas){
+    checarQuebra(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(201, 162, 39);
+    doc.text(titulo, margin, y);
+    y += 8;
+
+    linhas.forEach(([label, valor]) => {
+      checarQuebra(20);
+      if(label){
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(15, 31, 61);
+        const labelLines = doc.splitTextToSize(label, maxWidth);
+        doc.text(labelLines, margin, y);
+        y += labelLines.length * 5.2 + 1;
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(40, 40, 40);
+      const valorLines = doc.splitTextToSize(String(valor || '(não preenchido)'), maxWidth);
+      valorLines.forEach(line => {
+        checarQuebra(14);
+        doc.text(line, margin, y);
+        y += 5.2;
+      });
+      y += 5;
+    });
+    y += 3;
+  }
+
+  const r = respostas;
+  const simNao = (v) => v === 'sim' ? 'Sim' : (v === 'nao' ? 'Não' : '-');
+
+  const linhasEx1 = [
+    ['Minha pauta:', r.ex1_pauta],
+    ['Alguém digitaria esse assunto numa busca?', simNao(r.ex1_digitaria)],
+  ];
+  if(r.ex1_digitaria === 'sim') linhasEx1.push(['Frase como o cliente digitaria:', r.ex1_frase_busca]);
+  escreverBloco('EXERCÍCIO 1 · SUA PAUTA: INTERROMPE OU RESPONDE?', linhasEx1);
+
+  escreverBloco('EXERCÍCIO 2 · SUA PAUTA NAS QUATRO PORTAS', [
+    ['Fala de abertura, frase de busca:', r.ex2_abertura_busca],
+    ['Fala de abertura, mistério:', r.ex2_abertura_misterio],
+    ['Instagram, modelo de headline:', r.ex2_ig_modelo],
+    ['Instagram, texto fixo:', r.ex2_ig_texto_fixo],
+    ['Instagram, legenda:', r.ex2_ig_legenda],
+    ['TikTok, texto fixo:', r.ex2_tt_texto_fixo],
+    ['TikTok, legenda:', r.ex2_tt_legenda],
+    ['YouTube Shorts, título:', r.ex2_yt_titulo],
+    ['LinkedIn, duas primeiras linhas:', r.ex2_li_linhas],
+  ]);
+
+  escreverBloco('EXERCÍCIO 3 · A SUA PORTA PRINCIPAL', [
+    ['Rede principal dos próximos 30 dias:', rotuloOpcao(REDE_OPCOES, r.ex3_rede)],
+    ['Por que escolhi:', r.ex3_por_que],
+    ['Texto fixo da abertura, longe das bordas:', simNao(r.ex3_texto_fixo)],
+    ['Arquivo original salvo, sem marca d\'água:', simNao(r.ex3_arquivo_original)],
+    ['Troquei texto na tela, título e legenda em cada rede:', simNao(r.ex3_troquei_texto)],
+    ['Escrevi texto próprio para o LinkedIn:', simNao(r.ex3_texto_linkedin)],
+  ]);
+
+  escreverBloco('TAREFA PARA O PRÓXIMO ENCONTRO', [
+    ['Publiquei em pelo menos duas redes:', simNao(r.tarefa_publicou)],
+    ['Link da publicação 1:', r.tarefa_link_1],
+    ['Link da publicação 2:', r.tarefa_link_2],
+  ]);
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`plataformas-headlines-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('downloadBtn');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+  try{
+    await gerarPdfPlataformasHeadlines(alunoNome, alunoEmail);
+  } catch(e){
+    alert('Não foi possível gerar o PDF. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+// ---------------------------------------------------------------
+// MONTAGEM DA PÁGINA
+// ---------------------------------------------------------------
+function montarPagina(){
+  wireTextFields();
+  criarChoiceGroup('grupo_ex1_digitaria', 'ex1_digitaria', SIM_NAO_OPCOES, aplicarVisibilidadeEx1);
+  aplicarVisibilidadeEx1(respostas.ex1_digitaria);
+  criarChoiceGroup('grupo_ex3_rede', 'ex3_rede', REDE_OPCOES);
+}
+
+async function carregarDados(){
+  try{
+    const { data, error } = await supabaseClient
+      .from('plataformas_headlines')
+      .select('*')
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    if(error) throw error;
+    carregouOk = true;
+    if(!data) return;
+    respostas = data.respostas || {};
+    if(data.comentario_professor){
+      document.getElementById('comentarioTexto').textContent = data.comentario_professor;
+      document.getElementById('comentarioBox').classList.remove('hidden');
+    }
+  } catch(e){
+    console.error('Não foi possível carregar as respostas salvas', e);
+    mostrarStatusSalvamento('Não foi possível carregar suas respostas salvas. Recarregue a página antes de continuar, pra não perder nada.', 'erro');
+  }
+}
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  currentUserId = result.session.user.id;
+  alunoNome = result.profile.nome || '';
+  alunoEmail = result.profile.email || '';
+  await carregarDados();
+  montarPagina();
+})();
+</script>
+
+</body>
+</html>
