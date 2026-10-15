@@ -352,8 +352,8 @@ Se sim, escreva a frase exatamente como o seu cliente digitaria, com as palavras
             <input type="text" id="field_tarefa_pub1_rede" placeholder="Ex.: Instagram">
           </div>
           <div class="field">
-            <label for="field_tarefa_pub1_pagina">Página</label>
-            <input type="text" id="field_tarefa_pub1_pagina" placeholder="Perfil ou link da página">
+            <label for="field_tarefa_pub1_pauta">Pauta</label>
+            <input type="text" id="field_tarefa_pub1_pauta" placeholder="Qual pauta você publicou?">
           </div>
         </div>
       </div>
@@ -365,8 +365,8 @@ Se sim, escreva a frase exatamente como o seu cliente digitaria, com as palavras
             <input type="text" id="field_tarefa_pub2_rede" placeholder="Ex.: LinkedIn">
           </div>
           <div class="field">
-            <label for="field_tarefa_pub2_pagina">Página</label>
-            <input type="text" id="field_tarefa_pub2_pagina" placeholder="Perfil ou link da página">
+            <label for="field_tarefa_pub2_pauta">Pauta</label>
+            <input type="text" id="field_tarefa_pub2_pauta" placeholder="Qual pauta você publicou?">
           </div>
         </div>
       </div>
@@ -578,7 +578,7 @@ const ETAPAS = [
   { card: 'card-ex1', chaves: () => ['ex1_pauta', 'ex1_digitaria_busca'].concat(respostas.ex1_digitaria_busca === 'sim' ? ['ex1_frase_busca'] : []) },
   { card: 'card-ex2', chaves: () => ['ex2_fala_abertura', 'ex2_instagram_frase', 'ex2_tiktok', 'ex2_youtube_titulo', 'ex2_linkedin'] },
   { card: 'card-ex3', chaves: () => ['ex3_rede_principal', 'ex3_por_que'] },
-  { card: 'card-tarefa', chaves: () => ['tarefa_pub1_rede', 'tarefa_pub1_pagina', 'tarefa_pub2_rede', 'tarefa_pub2_pagina', 'tarefa_versao_instagram', 'tarefa_versao_tiktok', 'tarefa_versao_youtube', 'tarefa_versao_linkedin'] },
+  { card: 'card-tarefa', chaves: () => ['tarefa_pub1_rede', 'tarefa_pub1_pauta', 'tarefa_pub2_rede', 'tarefa_pub2_pauta', 'tarefa_versao_instagram', 'tarefa_versao_tiktok', 'tarefa_versao_youtube', 'tarefa_versao_linkedin'] },
 ];
 
 function retomarDeOndeParou(){
@@ -713,9 +713,9 @@ async function gerarPdfPlataformasHeadlines(nomeAluno, emailAluno){
   escreverBloco('TAREFA PARA O PRÓXIMO ENCONTRO', [
     [null, 'Publique a sua pauta em pelo menos duas redes, cada uma com a headline da sua porta. Guarde as quatro versões: no próximo encontro elas serão reescritas na voz do seu arquétipo.'],
     ['Publicação 1, rede social:', r.tarefa_pub1_rede],
-    ['Publicação 1, página:', r.tarefa_pub1_pagina],
+    ['Publicação 1, pauta:', r.tarefa_pub1_pauta],
     ['Publicação 2, rede social:', r.tarefa_pub2_rede],
-    ['Publicação 2, página:', r.tarefa_pub2_pagina],
+    ['Publicação 2, pauta:', r.tarefa_pub2_pauta],
     ['Versão do Instagram:', r.tarefa_versao_instagram],
     ['Versão do TikTok:', r.tarefa_versao_tiktok],
     ['Versão do YouTube Shorts:', r.tarefa_versao_youtube],
