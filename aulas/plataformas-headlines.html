@@ -151,6 +151,11 @@ textarea{ min-height: 90px; }
 .check-item input{ width: 18px; height: 18px; accent-color: var(--gold); flex-shrink: 0; margin-top: 2px; }
 .check-item span{ font-size: 14.5px; line-height: 1.45; color: var(--cream); }
 
+.bloco-titulo{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 14.5px; color: var(--gold-light); margin: 0 0 12px; }
+.pub-item{ margin-bottom: 18px; }
+.pub-row{ display:flex; gap: 12px; flex-wrap: wrap; }
+.pub-row .field{ flex: 1 1 220px; margin-bottom: 0; }
+
 .readonly-box{ padding: 12px 14px; border-radius: var(--radius-sm); background: var(--navy-3); border: 1px solid var(--line); color: var(--cream-dim); font-style: italic; font-size: 14px; margin-bottom: 18px; }
 .readonly-label{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 13px; color: var(--gold-light); margin-bottom: 6px; }
 
@@ -336,7 +341,53 @@ Se sim, escreva a frase exatamente como o seu cliente digitaria, com as palavras
     <!-- TAREFA -->
     <div class="card" id="card-tarefa">
       <div class="roteiro-sub">Tarefa para o próximo encontro</div>
-      <p class="card-intro" style="margin-bottom:0;">Publique a sua pauta em pelo menos duas redes, cada uma com a headline da sua porta. Guarde as quatro versões: no próximo encontro elas serão reescritas na voz do seu arquétipo.</p>
+      <p class="card-intro">Publique a sua pauta em pelo menos duas redes, cada uma com a headline da sua porta. Guarde as quatro versões: no próximo encontro elas serão reescritas na voz do seu arquétipo.</p>
+
+      <div class="bloco-titulo">Onde você publicou</div>
+      <div class="pub-item">
+        <span class="readonly-label">Publicação 1</span>
+        <div class="pub-row">
+          <div class="field">
+            <label for="field_tarefa_pub1_rede">Rede social</label>
+            <input type="text" id="field_tarefa_pub1_rede" placeholder="Ex.: Instagram">
+          </div>
+          <div class="field">
+            <label for="field_tarefa_pub1_pagina">Página</label>
+            <input type="text" id="field_tarefa_pub1_pagina" placeholder="Perfil ou link da página">
+          </div>
+        </div>
+      </div>
+      <div class="pub-item">
+        <span class="readonly-label">Publicação 2</span>
+        <div class="pub-row">
+          <div class="field">
+            <label for="field_tarefa_pub2_rede">Rede social</label>
+            <input type="text" id="field_tarefa_pub2_rede" placeholder="Ex.: LinkedIn">
+          </div>
+          <div class="field">
+            <label for="field_tarefa_pub2_pagina">Página</label>
+            <input type="text" id="field_tarefa_pub2_pagina" placeholder="Perfil ou link da página">
+          </div>
+        </div>
+      </div>
+
+      <div class="bloco-titulo" style="margin-top:26px;">Suas quatro versões</div>
+      <div class="field">
+        <label for="field_tarefa_versao_instagram">Versão do Instagram</label>
+        <textarea id="field_tarefa_versao_instagram"></textarea>
+      </div>
+      <div class="field">
+        <label for="field_tarefa_versao_tiktok">Versão do TikTok</label>
+        <textarea id="field_tarefa_versao_tiktok"></textarea>
+      </div>
+      <div class="field">
+        <label for="field_tarefa_versao_youtube">Versão do YouTube Shorts</label>
+        <textarea id="field_tarefa_versao_youtube"></textarea>
+      </div>
+      <div class="field">
+        <label for="field_tarefa_versao_linkedin">Versão do LinkedIn</label>
+        <textarea id="field_tarefa_versao_linkedin"></textarea>
+      </div>
     </div>
 
     <!-- PDF FINAL -->
@@ -527,6 +578,7 @@ const ETAPAS = [
   { card: 'card-ex1', chaves: () => ['ex1_pauta', 'ex1_digitaria_busca'].concat(respostas.ex1_digitaria_busca === 'sim' ? ['ex1_frase_busca'] : []) },
   { card: 'card-ex2', chaves: () => ['ex2_fala_abertura', 'ex2_instagram_frase', 'ex2_tiktok', 'ex2_youtube_titulo', 'ex2_linkedin'] },
   { card: 'card-ex3', chaves: () => ['ex3_rede_principal', 'ex3_por_que'] },
+  { card: 'card-tarefa', chaves: () => ['tarefa_pub1_rede', 'tarefa_pub1_pagina', 'tarefa_pub2_rede', 'tarefa_pub2_pagina', 'tarefa_versao_instagram', 'tarefa_versao_tiktok', 'tarefa_versao_youtube', 'tarefa_versao_linkedin'] },
 ];
 
 function retomarDeOndeParou(){
@@ -660,6 +712,14 @@ async function gerarPdfPlataformasHeadlines(nomeAluno, emailAluno){
 
   escreverBloco('TAREFA PARA O PRÓXIMO ENCONTRO', [
     [null, 'Publique a sua pauta em pelo menos duas redes, cada uma com a headline da sua porta. Guarde as quatro versões: no próximo encontro elas serão reescritas na voz do seu arquétipo.'],
+    ['Publicação 1, rede social:', r.tarefa_pub1_rede],
+    ['Publicação 1, página:', r.tarefa_pub1_pagina],
+    ['Publicação 2, rede social:', r.tarefa_pub2_rede],
+    ['Publicação 2, página:', r.tarefa_pub2_pagina],
+    ['Versão do Instagram:', r.tarefa_versao_instagram],
+    ['Versão do TikTok:', r.tarefa_versao_tiktok],
+    ['Versão do YouTube Shorts:', r.tarefa_versao_youtube],
+    ['Versão do LinkedIn:', r.tarefa_versao_linkedin],
   ]);
 
   const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

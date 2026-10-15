@@ -1431,6 +1431,16 @@ function plataformasLinhas(r){
     ['Exercício 3 · Por que escolheu essa rede', r.ex3_por_que],
   );
   PLATAFORMAS_CHECKS.forEach(([chave, texto]) => linhas.push([`Exercício 3 · ${texto}`, r[chave] === '1' ? 'Sim' : 'Ainda não']));
+  linhas.push(
+    ['Tarefa · Publicação 1, rede social', r.tarefa_pub1_rede],
+    ['Tarefa · Publicação 1, página', r.tarefa_pub1_pagina],
+    ['Tarefa · Publicação 2, rede social', r.tarefa_pub2_rede],
+    ['Tarefa · Publicação 2, página', r.tarefa_pub2_pagina],
+    ['Tarefa · Versão do Instagram', r.tarefa_versao_instagram],
+    ['Tarefa · Versão do TikTok', r.tarefa_versao_tiktok],
+    ['Tarefa · Versão do YouTube Shorts', r.tarefa_versao_youtube],
+    ['Tarefa · Versão do LinkedIn', r.tarefa_versao_linkedin],
+  );
   return linhas;
 }
 
