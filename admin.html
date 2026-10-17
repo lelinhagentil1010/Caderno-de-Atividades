@@ -370,15 +370,15 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
       <select id="aulaSelect" onchange="onAulaSelectChange()">
         <option value="arquetipo:respostas">Arquétipo · Respostas</option>
         <option value="avatar:especialista">Pesquisa · Avatar e Especialista</option>
-        <option value="roteiro:aula-0">Aula 0 · Minha Narrativa</option>
-        <option value="identidade:aula-1">Aula 1 · Identidade</option>
-        <option value="headlines:aula-2">Aula 2 · Caderno de Gatilhos</option>
-        <option value="roteiro2:aula-2">Aula 2 · Estrutura de Roteiro</option>
-        <option value="roteiro3:aula-3">Aula 3 · Gravação de Conteúdo</option>
-        <option value="analise4:aula-4">Aula 4 · Parte 1, Crença Central e Gatilho</option>
-        <option value="roteiro4:aula-4">Aula 4 · Headline e Roteiro</option>
+        <option value="roteiro:aula-0">Minha Narrativa</option>
+        <option value="identidade:aula-1">Identidade</option>
+        <option value="headlines:aula-2">Anatomia Viral · Caderno de Gatilhos</option>
+        <option value="roteiro2:aula-2">Anatomia Viral · Estrutura de Roteiro</option>
+        <option value="roteiro3:aula-3">Gravação de Conteúdo</option>
+        <option value="analise4:aula-4">Inteligência Artificial · Parte 1, Crença Central e Gatilho</option>
+        <option value="roteiro4:aula-4">Inteligência Artificial · Headline e Roteiro</option>
         <option value="publico:pesquisa">Público e Pesquisa de Conteúdo</option>
-        <option value="plataformas:headlines">Plataformas e Headlines</option>
+        <option value="plataformas:headlines">Plataformas e headlines</option>
       </select>
     </div>
     <div id="respostasList"></div>
@@ -1404,44 +1404,31 @@ async function gerarPdfPublicoPesquisa(r, nomeAluno, emailAluno){
 // ---------------------------------------------------------------
 // PLATAFORMAS E HEADLINES
 // ---------------------------------------------------------------
-const PLATAFORMAS_SIM_NAO = { sim: 'Sim', nao: 'Não' };
-const PLATAFORMAS_REDES = { instagram: 'Instagram', tiktok: 'TikTok', youtube_shorts: 'YouTube Shorts', linkedin: 'LinkedIn' };
-const PLATAFORMAS_CHECKS = [
-  ['ex3_check_texto_fixo', 'Coloquei o texto fixo da abertura, longe das bordas?'],
-  ['ex3_check_arquivo_original', "Salvei o arquivo original, sem marca d'água?"],
-  ['ex3_check_troquei_textos', 'Troquei texto na tela, título e legenda em cada rede?'],
-  ['ex3_check_linkedin_proprio', 'Escrevi texto próprio para o LinkedIn?'],
-];
-
-// [chave, rótulo] na ordem em que aparecem na página; frase de busca só vale se a pauta é de busca
+// Os campos que começam com "_" (_passo, _concluido) são controle interno; as respostas da
+// versão antiga desta atividade continuam guardadas no banco, mas não aparecem aqui.
 function plataformasLinhas(r){
-  const linhas = [
-    ['Exercício 1 · Minha pauta', r.ex1_pauta],
-    ['Exercício 1 · Alguém digitaria esse assunto numa busca?', PLATAFORMAS_SIM_NAO[r.ex1_digitaria_busca]],
+  const sim = (v) => v === '1' ? 'Sim' : 'Ainda não';
+  const situacao = r._concluido === true
+    ? 'Concluído'
+    : `Em andamento (exercício ${Math.min((Number(r._passo) || 0) + 1, 3)} de 3)`;
+  return [
+    ['Situação', situacao],
+    ['Exercício 1 · Assunto do vídeo (pauta)', r.assunto],
+    ['Exercício 1 · Como o cliente digitaria esse assunto numa busca', r.busca],
+    ['Exercício 2 · Template usado', r.template_usado],
+    ['Exercício 2 · A headline', r.headline],
+    ['Exercício 2 · Conferência: usa um template e um gatilho de atenção', sim(r.conf_template_gatilho)],
+    ['Exercício 2 · Conferência: faz a pessoa parar nos primeiros segundos', sim(r.conf_parar)],
+    ['Exercício 2 · Conferência: deixa a pessoa curiosa para saber o resto', sim(r.conf_curiosa)],
+    ['Exercício 3 · Headline falada', r.headline_falada],
+    ['Exercício 3 · Texto fixo na tela', r.texto_fixo],
+    ['Exercício 3 · Primeira linha da legenda', r.legenda_primeira_linha],
+    ['Exercício 3 · Título para o YouTube', r.youtube_titulo],
+    ['Exercício 3 · Duas primeiras linhas para o LinkedIn', r.linkedin_linhas],
+    ['Exercício 3 · Antes de postar: texto fixo longe das bordas, de 4 a 5 segundos', sim(r.antes_texto_fixo)],
+    ['Exercício 3 · Antes de postar: arquivo original, sem marca d\'água', sim(r.antes_arquivo_original)],
+    ['Exercício 3 · Antes de postar: em outra rede, trocou a legenda e, no YouTube, o título', sim(r.antes_outra_rede)],
   ];
-  if(r.ex1_digitaria_busca === 'sim') linhas.push(['Exercício 1 · Frase de busca do cliente', r.ex1_frase_busca]);
-  linhas.push(
-    ['Exercício 2 · Fala de abertura', r.ex2_fala_abertura],
-    ['Exercício 2 · Instagram, modelo de headline escolhido', r.ex2_instagram_modelo],
-    ['Exercício 2 · Instagram, a frase que interrompe', r.ex2_instagram_frase],
-    ['Exercício 2 · TikTok', r.ex2_tiktok],
-    ['Exercício 2 · YouTube Shorts, título', r.ex2_youtube_titulo],
-    ['Exercício 2 · LinkedIn, duas primeiras linhas', r.ex2_linkedin],
-    ['Exercício 3 · Rede principal (30 dias)', PLATAFORMAS_REDES[r.ex3_rede_principal]],
-    ['Exercício 3 · Por que escolheu essa rede', r.ex3_por_que],
-  );
-  PLATAFORMAS_CHECKS.forEach(([chave, texto]) => linhas.push([`Exercício 3 · ${texto}`, r[chave] === '1' ? 'Sim' : 'Ainda não']));
-  linhas.push(
-    ['Tarefa · Publicação 1, rede social', r.tarefa_pub1_rede],
-    ['Tarefa · Publicação 1, pauta', r.tarefa_pub1_pauta],
-    ['Tarefa · Publicação 2, rede social', r.tarefa_pub2_rede],
-    ['Tarefa · Publicação 2, pauta', r.tarefa_pub2_pauta],
-    ['Tarefa · Versão do Instagram', r.tarefa_versao_instagram],
-    ['Tarefa · Versão do TikTok', r.tarefa_versao_tiktok],
-    ['Tarefa · Versão do YouTube Shorts', r.tarefa_versao_youtube],
-    ['Tarefa · Versão do LinkedIn', r.tarefa_versao_linkedin],
-  );
-  return linhas;
 }
 
 async function carregarPlataformasHeadlines(){
@@ -1549,7 +1536,7 @@ async function gerarPdfPlataformasHeadlines(r, nomeAluno, emailAluno){
   doc.setTextColor(15, 31, 61);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(15);
-  doc.text('Plataformas e Headlines', margin, y);
+  doc.text('Plataformas e headlines', margin, y);
   y += 8;
   doc.setFontSize(12);
   doc.text(`Aluno: ${nomeAluno || ''}`, margin, y);
