@@ -224,6 +224,7 @@ button:disabled{ opacity: 0.45; cursor: not-allowed; transform:none; box-shadow:
     </div>
 
     <div class="panel" data-panel="cadastrar">
+      <div class="modal-sub" id="conviteEvidencia" style="display:none; margin-bottom:18px; color:var(--gold-light); font-size:13.5px; line-height:1.5;">Convite para o <strong>Programa Evidência</strong>. Crie sua conta abaixo. Depois do cadastro, a professora aprova o seu acesso.</div>
       <div class="field">
         <label for="regNome">Nome</label>
         <input type="text" id="regNome" placeholder="Como quer ser identificado">
@@ -295,6 +296,8 @@ function switchTab(name){
 }
 
 const destinoArquetipo = new URLSearchParams(window.location.search).get('destino') === 'arquetipo';
+// Link de convite do Programa Evidência: ?turma=evidencia (o cadastro continua pendente de aprovação)
+const turmaConvite = new URLSearchParams(window.location.search).get('turma') === 'evidencia' ? 'evidencia' : null;
 
 async function routeByStatus(profile){
   if(!profile){
@@ -402,6 +405,11 @@ async function doRegister(){
     status.className = 'status error';
     return;
   }
+  if(turmaConvite){
+    // marca a turma de origem do cadastro (só uma dica pra professora; quem libera o acesso é ela)
+    const { error: turmaError } = await supabaseClient.rpc('registrar_turma', { p_turma: turmaConvite });
+    if(turmaError) console.error('Não foi possível registrar a turma do convite', turmaError);
+  }
   const { session, profile } = await getSessionAndProfile();
   if(!session){
     status.textContent = 'Cadastro recebido, mas o sistema não liberou sessão automática (confirmação de email pode estar ativada no Supabase, avise a professora). Tente entrar pela aba "Entrar".';
@@ -417,6 +425,10 @@ async function doRegister(){
     document.getElementById('loginStatus').textContent = 'Aviso: Supabase ainda não configurado (js/supabase-client.js).';
     document.getElementById('loginStatus').className = 'status error';
     return;
+  }
+  if(turmaConvite){
+    document.getElementById('conviteEvidencia').style.display = 'block';
+    switchTab('cadastrar');
   }
   const { session, profile } = await getSessionAndProfile();
   if(!session){

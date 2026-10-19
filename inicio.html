@@ -178,10 +178,16 @@ let currentProfile = null;
 
 function renderChoices(){
   const grid = document.getElementById('choiceGrid');
-  const arquetipoDisponivel = currentProfile.role === 'admin' || !!currentProfile.arquetipo_habilitado;
-  const cadernoDisponivel = currentProfile.role === 'admin' || !!currentProfile.caderno_habilitado;
+  const isAdmin = currentProfile.role === 'admin';
+  const arquetipoDisponivel = isAdmin || !!currentProfile.arquetipo_habilitado;
+  const cadernoDisponivel = isAdmin || !!currentProfile.caderno_habilitado;
+  const evidenciaDisponivel = isAdmin || !!currentProfile.evidencia_habilitado;
+  // Aluna do Programa Evidência (sem acesso a Arquétipo/Ênfase) só vê o card do Evidência
+  const soEvidencia = !isAdmin && evidenciaDisponivel && !arquetipoDisponivel && !cadernoDisponivel;
 
-  grid.innerHTML = `
+  let html = '';
+  if(!soEvidencia){
+    html += `
     <div class="choice-card${arquetipoDisponivel ? '' : ' locked'}" id="cardArquetipo">
       <div class="choice-icon">◆</div>
       <h2>Arquétipo</h2>
@@ -193,14 +199,28 @@ function renderChoices(){
       <h2>Caderno Mentoria ÊNFASE</h2>
       <p>Suas aulas e atividades da mentoria</p>
       <div class="choice-badge">${cadernoDisponivel ? 'Acessar' : 'Aguardando liberação'}</div>
-    </div>
-  `;
+    </div>`;
+  }
+  if(evidenciaDisponivel){
+    html += `
+    <div class="choice-card" id="cardEvidencia">
+      <div class="choice-icon">❖</div>
+      <h2>Caderno Programa Evidência</h2>
+      <p>Suas aulas e atividades do Programa Evidência</p>
+      <div class="choice-badge">Acessar</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+  if(soEvidencia) grid.style.gridTemplateColumns = '1fr';
 
-  if(arquetipoDisponivel){
+  if(!soEvidencia && arquetipoDisponivel){
     document.getElementById('cardArquetipo').onclick = () => { window.location.href = 'aulas/arquetipo.html'; };
   }
-  if(cadernoDisponivel){
+  if(!soEvidencia && cadernoDisponivel){
     document.getElementById('cardMentoria').onclick = () => { window.location.href = 'dashboard.html'; };
+  }
+  if(evidenciaDisponivel){
+    document.getElementById('cardEvidencia').onclick = () => { window.location.href = 'evidencia.html'; };
   }
 
   document.getElementById('loadStatus').style.display = 'none';
