@@ -404,6 +404,7 @@ function switchTab(name){
   document.querySelectorAll('[data-panel]').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
   if(name === 'respostas') onAulaSelectChange();
   if(name === 'alunos'){ carregarAlunos(); carregarAdmins(); }
+  if(name === 'pendentes') carregarPendentes();
 }
 
 function onAulaSelectChange(){
@@ -446,6 +447,8 @@ async function carregarPendentes(){
     .eq('status', 'pending')
     .order('created_at', { ascending: true });
 
+  const tabPendentes = document.querySelector('.tab[data-tab="pendentes"]');
+  if(tabPendentes) tabPendentes.textContent = (data && data.length) ? `Cadastros pendentes (${data.length})` : 'Cadastros pendentes';
   if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
   if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum cadastro pendente.</div>'; return; }
 
@@ -2272,6 +2275,7 @@ async function gerarPdfArquetipo(registro, nomeCompleto){
   adminProfile = profile;
   carregarAlunos();
   carregarAdmins();
+  carregarPendentes();
   verificarNotificacoes();
 })();
 
