@@ -177,7 +177,9 @@ html,body{
 // soAdmin: true = só aparece disponível pra quem tem role 'admin'
 // requerFlag: 'nome_da_coluna' = só aparece disponível se profiles[nome_da_coluna] === true (ou role admin) — liberação individual por aluno
 const AULAS = [
-  // Adicionar aqui as atividades do Programa Evidência, no mesmo formato do dashboard.html
+  { id: 'evidencia-avatar-especialista', titulo: 'Avatar e Especialista', descricao: 'Pesquisa inicial sobre seu público e sua identidade como especialista.', ativo: true, url: 'aulas/evidencia-avatar-especialista.html' },
+  { id: 'evidencia-narrativa', titulo: 'Narrativa', descricao: 'Responda 6 perguntas e monte o texto da sua própria história.', ativo: true, url: 'aulas/evidencia-narrativa.html' },
+  { id: 'evidencia-identidade', titulo: 'Identidade', descricao: 'Diagnóstico dos 5 eixos: quem você é e o que você comunica hoje.', ativo: true, url: 'aulas/evidencia-identidade.html' },
 ];
 
 let currentProfile = null;
