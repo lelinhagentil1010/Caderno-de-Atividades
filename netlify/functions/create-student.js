@@ -10,7 +10,7 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'JSON inválido' }) };
   }
 
-  const { accessToken, nome, email, senha, arquetipoHabilitado, cadernoHabilitado } = body;
+  const { accessToken, nome, email, senha, arquetipoHabilitado, cadernoHabilitado, evidenciaHabilitado } = body;
   if (!accessToken || !nome || !email || !senha) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Campos obrigatórios faltando' }) };
   }
@@ -70,6 +70,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         arquetipo_habilitado: !!arquetipoHabilitado,
         caderno_habilitado: !!cadernoHabilitado,
+        evidencia_habilitado: !!evidenciaHabilitado,
         deve_trocar_senha: true
       })
     });

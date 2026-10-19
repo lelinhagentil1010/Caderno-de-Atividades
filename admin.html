@@ -299,6 +299,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
     <div class="alunos-toolbar">
       <button class="primary" style="margin-top:0; width:auto;" onclick="abrirModalCadastro()">+ Cadastrar aluno</button>
       <button class="small" onclick="copiarLinkArquetipo(event)">Copiar link do Arquétipo</button>
+      <button class="small" onclick="copiarLinkEvidencia(event)">Copiar link de convite do Evidência</button>
     </div>
 
     <div class="label" style="margin-bottom:14px;">Lista de alunos</div>
@@ -325,6 +326,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
       </div>
       <label class="check-field"><input type="checkbox" id="novoArquetipo"> Liberar Questionário Arquétipo</label>
       <label class="check-field"><input type="checkbox" id="novoCaderno" checked> Liberar Caderno Mentoria ÊNFASE</label>
+      <label class="check-field"><input type="checkbox" id="novoEvidencia"> Liberar Caderno Programa Evidência</label>
       <div class="modal-sub">Uma senha provisória é gerada automaticamente. O aluno troca por uma senha própria no primeiro acesso.</div>
       <button class="primary" id="btnCriar" onclick="criarAluno()" style="width:100%;">Cadastrar aluno</button>
       <div class="status" id="criarStatus"></div>
@@ -349,6 +351,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
 
       <label class="check-field"><input type="checkbox" id="verAlunoArquetipo"> Liberar Questionário Arquétipo</label>
       <label class="check-field"><input type="checkbox" id="verAlunoCaderno"> Liberar Caderno Mentoria ÊNFASE</label>
+      <label class="check-field"><input type="checkbox" id="verAlunoEvidencia"> Liberar Caderno Programa Evidência</label>
 
       <div class="actions" style="margin-top:22px;">
         <button class="small" id="btnResetarSenhaModal">Resetar senha</button>
@@ -455,7 +458,7 @@ async function carregarPendentes(){
         <div>
           <div class="nome">${escapeHtml(p.nome || '(sem nome)')}</div>
           <div class="email">${escapeHtml(p.email || '')}</div>
-          <div class="when">Cadastrado em ${formatDate(p.created_at)}</div>
+          <div class="when">Cadastrado em ${formatDate(p.created_at)}${p.turma === 'evidencia' ? ' · <strong style="color:var(--gold-light);">Convite Programa Evidência</strong>' : ''}</div>
         </div>
         <div class="actions">
           <button class="small approve">Aprovar</button>
@@ -464,7 +467,8 @@ async function carregarPendentes(){
       </div>
       <div class="row" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--line); gap:20px;">
         <label class="check-field" style="margin-bottom:0;"><input type="checkbox" class="pend-arquetipo"> Liberar Arquétipo</label>
-        <label class="check-field" style="margin-bottom:0;"><input type="checkbox" class="pend-caderno" checked> Liberar Caderno</label>
+        <label class="check-field" style="margin-bottom:0;"><input type="checkbox" class="pend-caderno" ${p.turma === 'evidencia' ? '' : 'checked'}> Liberar Caderno ÊNFASE</label>
+        <label class="check-field" style="margin-bottom:0;"><input type="checkbox" class="pend-evidencia" ${p.turma === 'evidencia' ? 'checked' : ''}> Liberar Caderno Evidência</label>
       </div>
     `;
     card.querySelector('.approve').onclick = () => aprovarPendente(p.id, card);
@@ -476,9 +480,10 @@ async function carregarPendentes(){
 async function aprovarPendente(id, card){
   const arquetipo = card.querySelector('.pend-arquetipo').checked;
   const caderno = card.querySelector('.pend-caderno').checked;
+  const evidencia = card.querySelector('.pend-evidencia').checked;
   const { error } = await supabaseClient
     .from('profiles')
-    .update({ status: 'approved', arquetipo_habilitado: arquetipo, caderno_habilitado: caderno })
+    .update({ status: 'approved', arquetipo_habilitado: arquetipo, caderno_habilitado: caderno, evidencia_habilitado: evidencia })
     .eq('id', id);
   if(error){ alert('Erro: ' + error.message); return; }
   carregarPendentes();
@@ -498,6 +503,7 @@ function abrirModalCadastro(){
   document.getElementById('novoEmail').value = '';
   document.getElementById('novoArquetipo').checked = false;
   document.getElementById('novoCaderno').checked = true;
+  document.getElementById('novoEvidencia').checked = false;
   document.getElementById('criarStatus').textContent = '';
   document.getElementById('criarStatus').className = 'status';
   document.getElementById('resultBox').style.display = 'none';
@@ -513,6 +519,7 @@ async function criarAluno(){
   const email = document.getElementById('novoEmail').value.trim();
   const arquetipo = document.getElementById('novoArquetipo').checked;
   const caderno = document.getElementById('novoCaderno').checked;
+  const evidencia = document.getElementById('novoEvidencia').checked;
   const status = document.getElementById('criarStatus');
   const btn = document.getElementById('btnCriar');
   document.getElementById('resultBox').style.display = 'none';
@@ -532,7 +539,7 @@ async function criarAluno(){
     const res = await fetch('/.netlify/functions/create-student', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken: adminSession.access_token, nome, email, senha, arquetipoHabilitado: arquetipo, cadernoHabilitado: caderno })
+      body: JSON.stringify({ accessToken: adminSession.access_token, nome, email, senha, arquetipoHabilitado: arquetipo, cadernoHabilitado: caderno, evidenciaHabilitado: evidencia })
     });
     const result = await res.json();
     if(!res.ok){
@@ -561,6 +568,14 @@ function copiarCredenciais(){
   const senha = document.getElementById('resSenha').textContent;
   const texto = `Acesso ao Caderno de Atividades:\nLink: ${window.location.origin}\nEmail: ${email}\nSenha provisória: ${senha}\n\nVocê vai precisar trocar essa senha no primeiro acesso.`;
   navigator.clipboard.writeText(texto);
+}
+
+function copiarLinkEvidencia(e){
+  navigator.clipboard.writeText(`${window.location.origin}/index.html?turma=evidencia`);
+  const btn = e.target;
+  const original = btn.textContent;
+  btn.textContent = 'Copiado!';
+  setTimeout(() => { btn.textContent = original; }, 1500);
 }
 
 function copiarLinkArquetipo(e){
@@ -695,6 +710,25 @@ async function alternarCadernoHabilitado(aluno, checkbox){
   atualizarStatusExibidoNoModal(aluno);
 }
 
+async function alternarEvidenciaHabilitado(aluno, checkbox){
+  checkbox.disabled = true;
+  const payload = { evidencia_habilitado: checkbox.checked };
+  // marcar a caixa também aprova o cadastro, se ainda não tiver sido aprovado
+  if(checkbox.checked && aluno.status !== 'approved') payload.status = 'approved';
+  const { error } = await supabaseClient
+    .from('profiles')
+    .update(payload)
+    .eq('id', aluno.id);
+  checkbox.disabled = false;
+  if(error){
+    checkbox.checked = !checkbox.checked;
+    alert('Erro: ' + error.message);
+    return;
+  }
+  Object.assign(aluno, payload);
+  atualizarStatusExibidoNoModal(aluno);
+}
+
 function atualizarStatusExibidoNoModal(aluno){
   if(alunoAtualModal && alunoAtualModal.id === aluno.id){
     document.getElementById('verAlunoStatus').textContent = statusLabel[aluno.status] || aluno.status;
@@ -714,6 +748,7 @@ function abrirModalAluno(p){
   document.getElementById('verAlunoStatus').textContent = statusLabel[p.status] || p.status;
   document.getElementById('verAlunoArquetipo').checked = !!p.arquetipo_habilitado;
   document.getElementById('verAlunoCaderno').checked = !!p.caderno_habilitado;
+  document.getElementById('verAlunoEvidencia').checked = !!p.evidencia_habilitado;
   document.getElementById('resetBox').style.display = 'none';
   document.getElementById('modalAluno').classList.remove('hidden');
 }
@@ -725,6 +760,9 @@ function fecharModalAluno(){
 
 document.getElementById('verAlunoArquetipo').addEventListener('change', (e) => {
   if(alunoAtualModal) alternarArquetipoHabilitado(alunoAtualModal, e.target);
+});
+document.getElementById('verAlunoEvidencia').addEventListener('change', (e) => {
+  if(alunoAtualModal) alternarEvidenciaHabilitado(alunoAtualModal, e.target);
 });
 document.getElementById('verAlunoCaderno').addEventListener('change', (e) => {
   if(alunoAtualModal) alternarCadernoHabilitado(alunoAtualModal, e.target);
