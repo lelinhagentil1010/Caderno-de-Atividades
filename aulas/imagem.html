@@ -208,6 +208,10 @@ button:disabled{ opacity: 0.35; cursor: not-allowed; }
 }
 
 /* ---------- Cartão Imagem ---------- */
+#stepper .mini-dot{ cursor: pointer; }
+#stepper .mini-dot:hover{ border-color: var(--gold); color: var(--gold-light); }
+#stepper .mini-dot.active:hover{ color: var(--navy); }
+#stepper .mini-dot:focus-visible{ outline: 2px solid var(--gold-light); outline-offset: 2px; }
 .contador{ display:flex; justify-content:flex-end; font-size: 12px; color: var(--cream-dim); margin-top: 6px; font-variant-numeric: tabular-nums; }
 .contador.excedeu{ color: #E58A8A; font-weight: 600; }
 .aviso-campo{ font-size: 12.5px; line-height: 1.45; color: #E58A8A; margin-top: 6px; }
@@ -1092,6 +1096,26 @@ function editarDepoisDeConcluir(){
 document.getElementById('avancarBtn').addEventListener('click', avancar);
 document.getElementById('voltarBtn').addEventListener('click', voltar);
 document.getElementById('editarBtn').addEventListener('click', editarDepoisDeConcluir);
+
+// Os números do topo levam direto ao exercício (nos exercícios 1 a 4 não há bloqueio).
+function irParaPasso(n){
+  if(n === passoAtual) return;
+  mostrarPasso(n);
+  respostas._passo = n;
+  respostas._concluido = false;
+  salvarAgora();
+  rolarParaCartao();
+}
+document.querySelectorAll('#stepper .mini-dot').forEach(d => {
+  const n = Number(d.dataset.step) - 1;
+  d.setAttribute('role', 'button');
+  d.tabIndex = 0;
+  d.setAttribute('aria-label', 'Ir para o exercício ' + (n + 1));
+  d.addEventListener('click', () => irParaPasso(n));
+  d.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); irParaPasso(n); }
+  });
+});
 document.getElementById('copiarBioBtn').addEventListener('click', copiarBio);
 document.getElementById('addLinkBtn').addEventListener('click', () => {
   garantirLinks();
