@@ -382,6 +382,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
         <option value="roteiro4:aula-4">Inteligência Artificial · Headline e Roteiro</option>
         <option value="publico:pesquisa">Público e Pesquisa de Conteúdo</option>
         <option value="plataformas:headlines">Plataformas e headlines</option>
+        <option value="imagem:imagem">Imagem</option>
       </select>
     </div>
     <div id="respostasList"></div>
@@ -415,6 +416,7 @@ function onAulaSelectChange(){
   else if(tipo === 'roteiro4') carregarRoteiroFinalAula4();
   else if(tipo === 'publico') carregarPublicoPesquisa();
   else if(tipo === 'plataformas') carregarPlataformasHeadlines();
+  else if(tipo === 'imagem') carregarImagem();
   else if(tipo === 'analise4') carregarAnaliseHeadlineAula4();
   else if(tipo === 'avatar') carregarAvatarEspecialista();
   else if(tipo === 'arquetipo') carregarArquetipoRespostas();
@@ -1613,6 +1615,199 @@ async function gerarPdfPlataformasHeadlines(r, nomeAluno, emailAluno){
 
   const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   doc.save(`plataformas-headlines-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+// ---------------------------------------------------------------
+// IMAGEM
+// ---------------------------------------------------------------
+// Respostas do cartão Imagem (tabela "imagem"). Campos com "_" são controle interno.
+function imagemLinhas(r){
+  const t = (v) => (v === undefined || v === null) ? '' : String(v);
+  const rot = {
+    foto: { combina: 'Combina', parte: 'Combina em parte', nao: 'Não combina' },
+    onde: { bolinhas: 'Bolinhas abaixo da bio', aba: 'Aba separada no perfil' },
+    tipo: { legenda: 'Legenda', roteiro: 'Roteiro' },
+  };
+  const situacao = r._concluido === true
+    ? 'Concluído'
+    : `Em andamento (exercício ${Math.min((Number(r._passo) || 0) + 1, 5)} de 5)`;
+  const bio = [r.bio1, r.bio2, r.bio3, r.bio4].map(t).filter(l => l.trim() !== '').join('\n');
+  const links = (r.links || []).filter(l => t(l.titulo).trim() || t(l.url).trim())
+    .map((l, i) => `${i + 1}. ${[t(l.titulo).trim(), t(l.url).trim()].filter(Boolean).join(' · ')}`).join('\n');
+  const destaques = (r.destaques || []).filter(d => t(d.nome).trim() || d.caminho)
+    .map((d, i) => `${i + 1}. ${t(d.nome).trim() || '(sem nome)'} — ${d.caminho || 'caminho não escolhido'}`).join('\n');
+  const posts = (r.posts || []).map((p, i) => ({ ...p, n: i + 1 })).filter(p => t(p.mostra).trim() || p.tema || p.classificacao)
+    .map(p => `Post ${p.n}: ${[t(p.mostra).trim(), p.tema, p.classificacao].filter(Boolean).join(' · ')}`).join('\n');
+  const cont = { 'Reforça': 0, 'Neutro': 0, 'Enfraquece': 0 };
+  (r.posts || []).forEach(p => { if(cont[p.classificacao] !== undefined) cont[p.classificacao]++; });
+  const linhas = [
+    ['Situação', situacao],
+    ['Exercício 1 · Nome', r.nome],
+    ['Exercício 1 · Nome de usuário', r.usuario ? '@' + t(r.usuario).replace(/^@/, '') : ''],
+    ['Exercício 1 · Bio', bio ? `${bio}\n(${bio.length} de 150 caracteres)` : ''],
+    ['Exercício 1 · Links', links],
+    ['Exercício 1 · Usa Linktree', r.linktree === 'sim' ? `Sim${r.linktree_url ? ' · ' + r.linktree_url : ''}` : (r.linktree === 'nao' ? 'Não' : '')],
+    ['Exercício 2 · Profissão', r.profissao],
+    ['Exercício 2 · Como o cliente espera ver alguém da profissão', r.cliente_espera],
+    ['Exercício 2 · Foto de perfil hoje', rot.foto[r.foto_perfil] || ''],
+    ['Exercício 2 · Últimos 6 vídeos (apresentado do jeito que escreveu)', (r.videos_ok === undefined || r.videos_ok === '') ? '' : `${r.videos_ok} de 6`],
+    ['Exercício 2 · Primeira mudança', r.primeira_mudanca],
+    ['Exercício 3 · Onde os destaques aparecem', rot.onde[r.destaques_onde] || ''],
+    ['Exercício 3 · Destaques atuais', destaques],
+    ['Exercício 3 · O que falta', (r.falta && r.falta.length) ? r.falta.join(', ') : ''],
+    ['Exercício 4 · Posts pessoais', posts],
+    ['Exercício 4 · Resumo', posts ? `Reforça: ${cont['Reforça']} · Neutro: ${cont['Neutro']} · Enfraquece: ${cont['Enfraquece']}` : ''],
+  ];
+  (r.textos || []).forEach((tx, i) => {
+    linhas.push([`Exercício 5 · Texto ${i + 1}${tx.tipo ? ' (' + (rot.tipo[tx.tipo] || tx.tipo) + ')' : ''}`, tx.texto]);
+  });
+  return linhas;
+}
+
+async function carregarImagem(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('imagem')
+    .select('*')
+    .order('updated_at', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${escapeHtml(error.message)}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno começou essa atividade ainda.</div>'; return; }
+
+  const userIds = [...new Set(data.map(r => r.user_id))];
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  el.innerHTML = '';
+  data.forEach(r => {
+    const perfil = perfilMap[r.user_id] || {};
+    const respostas = r.respostas || {};
+    const linhas = imagemLinhas(respostas)
+      .filter(([, valor]) => valor)
+      .map(([rotulo, valor]) => `<div class="texto" style="margin-top:8px; font-style:normal; white-space:pre-wrap;"><strong style="color:var(--gold-light);">${escapeHtml(rotulo)}:</strong> ${escapeHtml(String(valor))}</div>`)
+      .join('');
+    const card = document.createElement('div');
+    card.className = 'resp-group collapsed';
+    card.innerHTML = `
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
+        <div>
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">Atualizado ${formatDate(r.updated_at)}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <button class="small baixar-pdf-imagem">Baixar PDF</button>
+          ${linhas || '<div class="texto" style="font-style:italic; margin-top:10px;">Ainda sem respostas preenchidas.</div>'}
+          <div class="field" style="margin-top:14px; margin-bottom:0;">
+            <label>Correção / comentário</label>
+            <textarea class="comentario-input" rows="3">${escapeHtml(r.comentario_professor || '')}</textarea>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="small salvar-comentario">Salvar comentário</button>
+          </div>
+        </div>
+      </div>
+    `;
+    card.querySelector('.baixar-pdf-imagem').onclick = async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+      try{
+        await gerarPdfImagemAdmin(respostas, perfil.nome || perfil.email, perfil.email);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Baixar PDF';
+      }
+    };
+    card.querySelector('.salvar-comentario').onclick = async (e) => {
+      const btn = e.target;
+      const textarea = card.querySelector('.comentario-input');
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      const { error } = await supabaseClient
+        .from('imagem')
+        .update({ comentario_professor: textarea.value })
+        .eq('user_id', r.user_id);
+      btn.disabled = false;
+      btn.textContent = error ? 'Erro, tentar de novo' : 'Salvo!';
+      if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
+    };
+    el.appendChild(card);
+  });
+}
+
+async function gerarPdfImagemAdmin(r, nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+  // a fonte padrão do jsPDF não desenha emoji nem setas: retira só no PDF
+  const extras = '–—‘’“”•…€·';
+  const limpar = (s) => Array.from(String(s || '')).filter(ch => ch === '\n' || ch.codePointAt(0) <= 255 || extras.includes(ch)).join('').replace(/ {2,}/g, ' ').trim();
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+  try{
+    const logoDataUrl = await svgToPngDataUrl('assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text('Imagem', margin, y);
+  y += 8;
+  doc.setFontSize(12);
+  doc.text(`Aluno: ${limpar(nomeAluno)}`, margin, y);
+  y += 6.5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){ doc.text(`Email: ${emailAluno}`, margin, y); y += 6; }
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+
+  imagemLinhas(r).forEach(([rotulo, valor]) => {
+    checarQuebra(20);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 31, 61);
+    const labelLines = doc.splitTextToSize(rotulo, maxWidth);
+    doc.text(labelLines, margin, y);
+    y += labelLines.length * 5.2 + 1;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(40, 40, 40);
+    doc.splitTextToSize(limpar(valor) || '(não preenchido)', maxWidth).forEach(line => {
+      checarQuebra(14);
+      doc.text(line, margin, y);
+      y += 5.2;
+    });
+    y += 5;
+  });
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`imagem-${nomeArquivo || 'aluno'}.pdf`);
 }
 
 // ---------------------------------------------------------------

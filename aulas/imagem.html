@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imagem, ÊNFASE</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --green: #3E8E5A;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+
+.app{
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  background: var(--navy-2);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+
+.masthead{ text-align:center; margin-bottom: 32px; }
+.eyebrow{ font-family:'Poppins', sans-serif; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Poppins', sans-serif; font-weight:700; font-size: clamp(26px, 4.4vw, 36px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.5; max-width: 560px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+  scroll-margin-top: 16px;
+}
+
+.mini-stepper{ display:flex; justify-content:center; gap: 10px; margin-bottom: 14px; }
+.mini-dot{ width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--gold-dim); background: var(--navy-3); color: var(--cream-dim); display:flex; align-items:center; justify-content:center; font-family:'Poppins', sans-serif; font-weight: 700; font-size: 12px; transition: all .18s ease; }
+.mini-dot.active{ background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.mini-dot.done{ border-color: var(--gold); color: var(--gold-light); }
+.step-label{ text-align:center; font-size: 11.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cream-dim); margin-bottom: 22px; }
+
+.roteiro-sub{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: 0.01em; color: var(--gold-light); margin: 0 0 6px; }
+.apoio{ color: var(--cream-dim); font-size: 12.5px; font-style: italic; margin: 0 0 14px; }
+.card-intro{ color: var(--cream-dim); font-size: 14px; line-height: 1.55; margin: 0 0 18px; }
+
+.callout{ margin: 0 0 18px; padding: 14px 16px; border-left: 3px solid var(--gold-dim); background: rgba(201,162,39,0.05); border-radius: var(--radius-sm); font-size: 13.5px; line-height: 1.5; color: var(--cream-dim); }
+.callout strong{ color: var(--gold-light); }
+
+.bloco-titulo{ font-family:'Poppins', sans-serif; font-weight: 600; font-size: 14.5px; color: var(--gold-light); margin: 26px 0 4px; }
+
+.field{ margin-bottom: 20px; }
+.field label, .field .label-txt{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 14px; color: var(--gold-light); margin-bottom: 6px; }
+.field .hint{ color: var(--cream-dim); font-size: 12.5px; font-style: italic; line-height: 1.45; margin: 0 0 8px; }
+input[type=text], textarea{
+  width:100%;
+  background: var(--navy-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 13px 15px;
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  resize: vertical;
+}
+input[type=text]:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
+textarea{ min-height: 84px; }
+
+.check-item{ display:flex; align-items:flex-start; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); cursor: pointer; margin-bottom: 10px; transition: all .15s ease; }
+.check-item:last-child{ margin-bottom: 0; }
+.check-item:hover{ border-color: var(--gold-dim); }
+.check-item.checked{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+.check-item input{ width: 18px; height: 18px; accent-color: var(--gold); flex-shrink: 0; margin-top: 2px; }
+.check-item span{ font-size: 14.5px; line-height: 1.45; color: var(--cream); }
+
+.readonly-box{ padding: 12px 14px; border-radius: var(--radius-sm); background: var(--navy-3); border: 1px solid var(--line); color: var(--cream-dim); font-style: italic; font-size: 14px; margin-bottom: 20px; white-space: pre-wrap; }
+.readonly-label{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 13px; color: var(--gold-light); margin-bottom: 6px; }
+
+.status{ font-size: 13px; color: var(--cream-dim); margin-top: 14px; min-height: 18px; }
+.status.error{ color: #E58A8A; }
+
+.nav{ display:flex; justify-content: space-between; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+.nav-final{ display:flex; gap: 10px; flex-wrap: wrap; }
+
+.doc-box{ background: var(--navy-3); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 22px 24px; margin: 0 0 20px; }
+.doc-titulo{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: 16px; color: var(--gold-light); margin-bottom: 18px; line-height: 1.4; }
+.doc-secao{ margin-bottom: 18px; }
+.doc-secao:last-child{ margin-bottom: 0; }
+.doc-secao-titulo{ font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cream-dim); margin-bottom: 6px; }
+.doc-linha{ font-size: 14.5px; line-height: 1.55; color: var(--cream); white-space: pre-wrap; margin-bottom: 4px; }
+.doc-linha strong{ color: var(--gold-light); font-weight: 600; }
+
+.save-status{
+  position: fixed; right: 16px; bottom: 16px; z-index: 50;
+  max-width: min(380px, calc(100vw - 32px));
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-2);
+  border: 1px solid var(--gold-dim);
+  box-shadow: var(--shadow-card);
+  font-size: 12.5px; line-height: 1.4;
+  color: var(--cream-dim);
+}
+.save-status:empty{ display: none; }
+.save-status.ok{ border-color: var(--green); color: var(--cream); }
+.save-status.erro{ border-color: var(--red); background: rgba(194,68,68,0.92); color: #fff; border-radius: var(--radius-md); }
+
+.hidden{ display:none !important; }
+
+.feedback-box{ margin-bottom: 28px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 16px; }
+.feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 14.5px; line-height: 1.5; }
+
+button{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  padding: 11px 24px;
+  border-radius: var(--radius-pill);
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+button.primary:hover{ background: var(--gold-light); }
+button:disabled{ opacity: 0.35; cursor: not-allowed; }
+
+/* Desktop grande */
+@media (min-width: 1440px){
+  .app{ max-width: 960px; }
+}
+/* Tablet */
+@media (max-width: 1024px){
+  .app{ padding: 28px 20px 70px; }
+}
+/* Mobile */
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+  .nav button{ flex: 1 1 auto; }
+}
+
+/* ---------- Cartão Imagem ---------- */
+.contador{ display:flex; justify-content:flex-end; font-size: 12px; color: var(--cream-dim); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.contador.excedeu{ color: #E58A8A; font-weight: 600; }
+.aviso-campo{ font-size: 12.5px; line-height: 1.45; color: #E58A8A; margin-top: 6px; }
+.aviso-campo:empty{ display:none; }
+.aviso-info{ margin: 10px 0 0; padding: 10px 14px; border-left: 3px solid var(--gold-dim); background: rgba(201,162,39,0.05); border-radius: var(--radius-sm); font-size: 13px; line-height: 1.5; color: var(--cream-dim); }
+.ajuda-fixa{ display:inline-block; font-size: 12.5px; color: var(--gold-light); background: rgba(201,162,39,0.08); border: 1px dashed var(--gold-dim); border-radius: var(--radius-sm); padding: 6px 10px; margin: 0 0 8px; }
+
+.opcoes{ display:flex; flex-wrap:wrap; gap: 8px; }
+.opt{ padding: 9px 16px; font-size: 14px; border-radius: var(--radius-pill); border: 1px solid var(--line); background: var(--navy-3); color: var(--cream); }
+.opt:hover{ border-color: var(--gold-dim); background: var(--navy-3); }
+.opt.sel{ background: var(--gold); border-color: var(--gold); color: var(--navy); font-weight: 600; }
+.opcoes.mini .opt{ padding: 6px 12px; font-size: 13px; }
+
+.bio-total{ display:flex; justify-content:space-between; align-items:center; gap: 10px; padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--navy-3); margin: 4px 0 20px; font-size: 14px; }
+.bio-total strong{ white-space: nowrap; font-size: 18px; color: var(--gold-light); font-variant-numeric: tabular-nums; }
+.bio-total.excedeu{ border-color: var(--red); }
+.bio-total.excedeu strong{ color: #E58A8A; }
+
+.preview{ border: 1px solid var(--line); border-radius: var(--radius-md); background: #fff; color: #111; padding: 18px 20px; margin: 0 0 12px; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+.preview .pv-nome{ font-weight: 700; font-size: 14px; margin-bottom: 2px; overflow-wrap:anywhere; }
+.preview .pv-user{ font-size: 13px; color: #737373; margin-bottom: 4px; }
+.preview .pv-bio{ font-size: 14px; line-height: 1.4; white-space: pre-wrap; overflow-wrap:anywhere; }
+.preview .pv-link{ font-size: 14px; color: #00376B; font-weight: 600; margin-top: 4px; overflow-wrap:anywhere; }
+.preview .pv-vazio{ color: #8e8e8e; font-style: italic; font-size: 14px; }
+
+.link-bloco{ border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px; margin-bottom: 14px; background: rgba(27,47,87,0.5); }
+.link-bloco .link-topo{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
+.link-bloco .link-topo span{ font-weight: 600; font-size: 13.5px; color: var(--gold-light); }
+.link-bloco .field{ margin-bottom: 12px; }
+.link-bloco .field:last-child{ margin-bottom: 0; }
+.btn-remover{ padding: 4px 12px; font-size: 12.5px; border-color: var(--line); color: var(--cream-dim); }
+.btn-add{ font-size: 13.5px; padding: 9px 18px; }
+
+.dest-linha{ display:grid; grid-template-columns: 28px minmax(0,1fr) auto; gap: 10px; align-items:start; padding: 12px 0; border-top: 1px solid var(--line); }
+.dest-linha:first-child{ border-top: 0; }
+.dest-num{ font-weight: 700; color: var(--gold-light); padding-top: 12px; text-align:center; }
+.dest-campos{ display:flex; flex-direction:column; gap: 8px; min-width: 0; }
+
+.ordem-lista{ list-style:none; margin: 0 0 12px; padding: 0; counter-reset: ordem; }
+.ordem-lista li{ counter-increment: ordem; display:flex; align-items:center; gap: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--navy-3); margin-bottom: 8px; font-size: 14.5px; }
+.ordem-lista li::before{ content: counter(ordem); width: 24px; height: 24px; border-radius: 50%; background: var(--gold); color: var(--navy); font-weight: 700; font-size: 12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+.post-bloco{ border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px; margin-bottom: 14px; background: rgba(27,47,87,0.5); }
+.post-bloco .post-titulo{ font-weight: 600; font-size: 13.5px; color: var(--gold-light); margin-bottom: 10px; }
+.post-bloco .field{ margin-bottom: 12px; }
+.post-bloco .field:last-child{ margin-bottom: 0; }
+.post-bloco .sublabel{ font-size: 12.5px; color: var(--cream-dim); margin-bottom: 6px; }
+
+.resumo-box{ border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 16px 18px; }
+.resumo-linha{ display:grid; grid-template-columns: auto 1fr; gap: 4px 12px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 1.5; }
+.resumo-linha:first-child{ border-top: 0; padding-top: 0; }
+.resumo-linha strong{ color: var(--gold-light); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.texto-bloco{ margin-bottom: 22px; }
+.texto-bloco .opcoes{ margin-bottom: 8px; }
+
+@media (max-width: 560px){
+  .dest-linha{ grid-template-columns: 22px minmax(0,1fr); }
+  .dest-linha .btn-remover{ grid-column: 2; justify-self: start; }
+  .resumo-linha{ grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="ÊNFASE" class="logo">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Caderno de Exercícios</div>
+    <h1>Imagem</h1>
+    <p class="quote">Cinco exercícios, um de cada vez. Os quatro primeiros são feitos durante o encontro. O último fica para antes do encontro Arquétipo na prática.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="feedback-box hidden" id="comentarioBox">
+    <div class="label">Comentário da professora</div>
+    <div class="texto" id="comentarioTexto"></div>
+  </div>
+
+  <div class="card" id="cardPasso">
+
+    <div id="telaPassos">
+      <div class="mini-stepper" id="stepper">
+        <div class="mini-dot" data-step="1">1</div>
+        <div class="mini-dot" data-step="2">2</div>
+        <div class="mini-dot" data-step="3">3</div>
+        <div class="mini-dot" data-step="4">4</div>
+        <div class="mini-dot" data-step="5">5</div>
+      </div>
+      <div class="step-label" id="stepLabel"></div>
+
+      <!-- EXERCÍCIO 1 · NOME, BIO E LINK -->
+      <div class="passo" id="passo-1">
+        <div class="roteiro-sub">Exercício 1 · Nome, bio e link</div>
+        <div class="callout"><strong>Escreva aqui primeiro.</strong> Só cole no Instagram depois de conferir. O nome só pode ser trocado 2 vezes a cada 14 dias.</div>
+
+        <div class="field">
+          <label for="field_nome">Nome</label>
+          <div class="ajuda-fixa">[como te chamam] | [palavra que seu cliente digita]</div>
+          <input type="text" id="field_nome" autocomplete="off">
+          <div class="contador" id="cont_nome"></div>
+          <div class="aviso-campo" id="aviso_nome"></div>
+        </div>
+
+        <div class="field">
+          <label for="field_usuario">Nome de usuário (opcional)</label>
+          <div class="hint">Só preencha se o seu precisar mudar.</div>
+          <input type="text" id="field_usuario" autocomplete="off" autocapitalize="none" spellcheck="false">
+          <div class="contador" id="cont_usuario"></div>
+          <div class="aviso-campo" id="aviso_usuario"></div>
+        </div>
+
+        <div class="bloco-titulo">Bio</div>
+        <p class="apoio">Quatro linhas. O total, com as quebras de linha, precisa caber em 150 caracteres.</p>
+        <div class="field">
+          <label for="field_bio1">Linha 1</label>
+          <div class="hint">O que você faz e para quem.</div>
+          <input type="text" id="field_bio1" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="field_bio2">Linha 2</label>
+          <div class="hint">O que muda para essa pessoa ou como você faz diferente. Sem promessa de resultado.</div>
+          <input type="text" id="field_bio2" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="field_bio3">Linha 3</label>
+          <div class="hint">Prova que você comprova: tempo, número, lugar, credencial.</div>
+          <input type="text" id="field_bio3" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="field_bio4">Linha 4</label>
+          <div class="hint">Ação apontando para o link. Ex.: Agende sua consulta ↓</div>
+          <input type="text" id="field_bio4" autocomplete="off">
+        </div>
+
+        <div class="bio-total" id="bioTotal"><span>Caracteres da bio, com as quebras de linha</span><strong id="bioTotalNum">0 / 150</strong></div>
+
+        <span class="readonly-label">Pré-visualização</span>
+        <div class="preview" id="preview"></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom: 26px;">
+          <button type="button" class="btn-add" id="copiarBioBtn">Copiar bio</button>
+          <span class="status" id="copiarBioStatus" style="margin-top:0;"></span>
+        </div>
+
+        <div class="bloco-titulo">Links</div>
+        <p class="apoio">O Instagram aceita até 5. Sugestão: até 3 links. Quanto mais opções, mais tempo a pessoa leva para decidir.</p>
+        <div id="linksLista"></div>
+        <button type="button" class="btn-add" id="addLinkBtn">+ Adicionar outro link</button>
+
+        <div class="field" style="margin-top: 24px;">
+          <span class="label-txt">Uso Linktree?</span>
+          <div class="opcoes" data-chave="linktree">
+            <button type="button" class="opt" data-valor="sim">Sim</button>
+            <button type="button" class="opt" data-valor="nao">Não</button>
+          </div>
+          <div id="linktreeBloco" class="hidden" style="margin-top: 14px;">
+            <div class="aviso-info">Faz sentido se você tem mais de 5 destinos ou quer uma página com a sua identidade. Senão, os links do próprio Instagram levam a pessoa ao destino com um passo a menos.</div>
+            <div class="field" style="margin-top: 14px; margin-bottom: 0;">
+              <label for="field_linktree_url">Endereço do seu Linktree</label>
+              <input type="text" id="field_linktree_url" placeholder="https://linktr.ee/seunome" autocomplete="off" autocapitalize="none" spellcheck="false">
+              <div class="aviso-campo" id="aviso_linktree_url"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCÍCIO 2 · A SUA IMAGEM -->
+      <div class="passo hidden" id="passo-2">
+        <div class="roteiro-sub">Exercício 2 · A sua imagem</div>
+        <p class="card-intro">Escreva como o seu cliente espera ver alguém da sua profissão e compare com o seu perfil de hoje.</p>
+
+        <div class="field">
+          <label for="field_profissao">Minha profissão</label>
+          <input type="text" id="field_profissao">
+        </div>
+        <div class="field">
+          <label for="field_cliente_espera">Como o meu cliente espera ver alguém da minha profissão</label>
+          <div class="hint">Roupa, cabelo, barba ou maquiagem, cuidado. Pense no cliente, não em você.</div>
+          <textarea id="field_cliente_espera" rows="4"></textarea>
+        </div>
+        <div class="field">
+          <span class="label-txt">Foto de perfil hoje</span>
+          <div class="opcoes" data-chave="foto_perfil">
+            <button type="button" class="opt" data-valor="combina">Combina</button>
+            <button type="button" class="opt" data-valor="parte">Combina em parte</button>
+            <button type="button" class="opt" data-valor="nao">Não combina</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="label-txt">Últimos 6 vídeos</span>
+          <div class="hint">Em quantos estou apresentado do jeito que escrevi?</div>
+          <div class="opcoes" data-chave="videos_ok">
+            <button type="button" class="opt" data-valor="0">0</button>
+            <button type="button" class="opt" data-valor="1">1</button>
+            <button type="button" class="opt" data-valor="2">2</button>
+            <button type="button" class="opt" data-valor="3">3</button>
+            <button type="button" class="opt" data-valor="4">4</button>
+            <button type="button" class="opt" data-valor="5">5</button>
+            <button type="button" class="opt" data-valor="6">6</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="field_primeira_mudanca">A primeira mudança que vou fazer (uma só)</label>
+          <input type="text" id="field_primeira_mudanca">
+        </div>
+      </div>
+
+      <!-- EXERCÍCIO 3 · DESTAQUES -->
+      <div class="passo hidden" id="passo-3">
+        <div class="roteiro-sub">Exercício 3 · Destaques</div>
+        <p class="card-intro">Liste seus destaques na ordem em que aparecem hoje e diga em qual caminho cada um entra.</p>
+
+        <div class="field">
+          <span class="label-txt">Onde meus destaques aparecem</span>
+          <div class="opcoes" data-chave="destaques_onde">
+            <button type="button" class="opt" data-valor="bolinhas">Bolinhas abaixo da bio</button>
+            <button type="button" class="opt" data-valor="aba">Aba separada no perfil</button>
+          </div>
+          <div class="aviso-info hidden" id="avisoAba">A ordem continua importando, mas eles ficam menos visíveis. A bio e o link ganham ainda mais peso.</div>
+        </div>
+
+        <div class="bloco-titulo">Destaques atuais</div>
+        <p class="apoio">Até 10, na ordem em que aparecem hoje.</p>
+        <div id="destaquesLista"></div>
+        <button type="button" class="btn-add" id="addDestaqueBtn">+ Adicionar destaque</button>
+
+        <div class="field" style="margin-top: 26px;">
+          <span class="label-txt">O que falta</span>
+          <div class="hint">Marcamos sozinhos os caminhos que não apareceram na sua lista. Ajuste se precisar.</div>
+          <div id="faltaLista"></div>
+        </div>
+
+        <div class="bloco-titulo">Nova ordem</div>
+        <ol class="ordem-lista">
+          <li>Quem sou</li>
+          <li>O que faço</li>
+          <li>Prova</li>
+          <li>Como falar comigo</li>
+        </ol>
+        <div class="callout" style="margin-bottom:0;"><strong>Ordem de atualização:</strong> atualize primeiro Como falar comigo, depois Prova, depois O que faço e por último Quem sou.</div>
+      </div>
+
+      <!-- EXERCÍCIO 4 · VIDA PESSOAL -->
+      <div class="passo hidden" id="passo-4">
+        <div class="roteiro-sub">Exercício 4 · Vida pessoal</div>
+        <p class="card-intro">Separe os últimos 6 posts pessoais do feed. Pergunte: aproxima? reforça um valor? prova algo que eu ensino?</p>
+        <div id="postsLista"></div>
+        <span class="readonly-label" style="margin-top: 8px;">Resumo</span>
+        <div class="resumo-box" id="resumoPosts"></div>
+      </div>
+
+      <!-- EXERCÍCIO 5 · PARA O PRÓXIMO ENCONTRO -->
+      <div class="passo hidden" id="passo-5">
+        <div class="roteiro-sub">Exercício 5 · Para o próximo encontro</div>
+        <p class="card-intro">Para o encontro Arquétipo na prática: cole 3 legendas ou roteiros recentes seus, publicados ou prontos para publicar.</p>
+        <div id="textosLista"></div>
+      </div>
+
+      <div class="status" id="erroPasso" role="alert"></div>
+      <div class="nav">
+        <button type="button" id="voltarBtn">Voltar</button>
+        <button type="button" class="primary" id="avancarBtn">Avançar</button>
+      </div>
+    </div>
+
+    <!-- DOCUMENTO FINAL -->
+    <div id="telaFinal" class="hidden">
+      <div class="roteiro-sub">Seu documento está pronto</div>
+      <p class="card-intro">Copie o texto ou baixe o PDF. Se quiser mudar alguma coisa, volte e edite: o documento é refeito com o que estiver salvo.</p>
+      <div class="doc-box" id="docTexto"></div>
+      <div class="nav-final">
+        <button type="button" class="primary" id="copiarBtn">Copiar texto</button>
+        <button type="button" class="primary" id="pdfBtn">Baixar PDF</button>
+        <button type="button" id="editarBtn">Voltar e editar</button>
+      </div>
+      <div class="status" id="docStatus" role="status"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="save-status" id="saveStatus" role="status" aria-live="polite"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+// Tabela no Supabase onde este cartão guarda as respostas (uma linha por aluno)
+const TABELA = 'imagem';
+const TOTAL_PASSOS = 5;
+const LIMITE_NOME = 30;
+const LIMITE_USUARIO = 30;
+const LIMITE_BIO = 150;
+const MAX_LINKS = 5;
+const MAX_DESTAQUES = 10;
+const CAMINHOS = ['Quem sou', 'O que faço', 'Prova', 'Como falar comigo'];
+const CAMINHO_NENHUM = 'Nenhum, sai do perfil';
+const TEMAS = ['Família', 'Cônjuge', 'Filhos', 'Viagem', 'Outro'];
+const CLASSIFICACOES = ['Reforça', 'Neutro', 'Enfraquece'];
+const ACAO_CLASSIFICACAO = {
+  'Reforça': 'repita o formato e, se quiser, traga o post para cima reorganizando a grade',
+  'Neutro': 'pode ficar, não repita',
+  'Enfraquece': 'arquive',
+};
+const ROTULOS = {
+  foto_perfil: { combina: 'Combina', parte: 'Combina em parte', nao: 'Não combina' },
+  destaques_onde: { bolinhas: 'Bolinhas abaixo da bio', aba: 'Aba separada no perfil' },
+  linktree: { sim: 'Sim', nao: 'Não' },
+  tipo: { legenda: 'Legenda', roteiro: 'Roteiro' },
+};
+const ORDEM_ATUALIZACAO = 'Atualize primeiro Como falar comigo, depois Prova, depois O que faço e por último Quem sou.';
+
+let currentUserId = null;
+let alunoNome = '';
+let respostas = {};
+let passoAtual = 0;
+
+function vazio(chave){
+  const v = respostas[chave];
+  return v === undefined || v === null || String(v).trim() === '';
+}
+function txt(v){ return (v === undefined || v === null) ? '' : String(v); }
+
+// Contagem conservadora, como o Instagram corta: unidades de texto do JavaScript
+// (emoji conta 2 ou mais) e cada quebra de linha conta 1.
+function contar(s){ return txt(s).length; }
+const TEM_EMOJI = /\p{Extended_Pictographic}/u;
+
+// ---------------------------------------------------------------
+// SALVAMENTO AUTOMÁTICO (mesmo padrão dos outros cartões)
+// ---------------------------------------------------------------
+let salvarTimer = null;
+let salvarPendente = false;
+let salvandoAgora = false;
+let salvarDenovo = false;
+let carregouOk = false;
+let statusTimer = null;
+
+function mostrarStatusSalvamento(texto, tipo){
+  const el = document.getElementById('saveStatus');
+  clearTimeout(statusTimer);
+  el.textContent = texto;
+  el.className = 'save-status' + (tipo ? ' ' + tipo : '');
+  if(tipo === 'ok') statusTimer = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+function agendarSalvar(){
+  if(!carregouOk) return;
+  salvarPendente = true;
+  mostrarStatusSalvamento('Salvando...');
+  clearTimeout(salvarTimer);
+  salvarTimer = setTimeout(salvarAgora, 700);
+}
+
+async function salvarAgora(){
+  if(!carregouOk) return;
+  clearTimeout(salvarTimer);
+  salvarPendente = false;
+  if(salvandoAgora){ salvarDenovo = true; return; }
+  salvandoAgora = true;
+  mostrarStatusSalvamento('Salvando...');
+  let falhou = false;
+  try{
+    const { error } = await supabaseClient.from(TABELA).upsert({
+      user_id: currentUserId,
+      respostas: JSON.parse(JSON.stringify(respostas))
+    }, { onConflict: 'user_id' });
+    if(error) throw error;
+  } catch(e){
+    falhou = true;
+    console.error('Não foi possível salvar', e);
+  }
+  salvandoAgora = false;
+  if(salvarDenovo){
+    salvarDenovo = false;
+    await salvarAgora();
+    return;
+  }
+  if(falhou) mostrarStatusSalvamento('Não foi possível salvar agora. Confira sua conexão, suas respostas continuam na tela.', 'erro');
+  else mostrarStatusSalvamento('Salvo automaticamente', 'ok');
+}
+
+function salvarSePendente(){ if(salvarPendente) salvarAgora(); }
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') salvarSePendente(); });
+window.addEventListener('pagehide', salvarSePendente);
+
+function limparErro(){
+  const el = document.getElementById('erroPasso');
+  el.textContent = '';
+  el.className = 'status';
+}
+
+// ---------------------------------------------------------------
+// CAMPOS SIMPLES (texto e escolha única)
+// ---------------------------------------------------------------
+function wireTextFields(){
+  document.querySelectorAll('[id^="field_"]').forEach(el => {
+    const chave = el.id.replace('field_', '');
+    el.value = txt(respostas[chave]);
+    el.addEventListener('input', () => {
+      respostas[chave] = el.value;
+      limparErro();
+      aoMudar(chave);
+      agendarSalvar();
+    });
+  });
+}
+
+function marcarOpcoes(grupo, valor){
+  grupo.querySelectorAll('.opt').forEach(b => {
+    const sel = b.dataset.valor === valor;
+    b.classList.toggle('sel', sel);
+    b.setAttribute('aria-pressed', sel ? 'true' : 'false');
+  });
+}
+
+// grupos fixos no HTML: <div class="opcoes" data-chave="..."> com botões data-valor
+function wireOpcoesFixas(){
+  document.querySelectorAll('.opcoes[data-chave]').forEach(grupo => {
+    const chave = grupo.dataset.chave;
+    marcarOpcoes(grupo, txt(respostas[chave]));
+    grupo.addEventListener('click', e => {
+      const b = e.target.closest('.opt');
+      if(!b) return;
+      respostas[chave] = respostas[chave] === b.dataset.valor ? '' : b.dataset.valor;
+      marcarOpcoes(grupo, respostas[chave]);
+      limparErro();
+      aoMudar(chave);
+      salvarAgora();
+    });
+  });
+}
+
+// cria um grupo de opções para listas dinâmicas
+function criarOpcoes(valores, valorAtual, aoEscolher, mini){
+  const grupo = document.createElement('div');
+  grupo.className = 'opcoes' + (mini ? ' mini' : '');
+  valores.forEach(([valor, rotulo]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt';
+    b.dataset.valor = valor;
+    b.textContent = rotulo;
+    grupo.appendChild(b);
+  });
+  marcarOpcoes(grupo, valorAtual);
+  grupo.addEventListener('click', e => {
+    const b = e.target.closest('.opt');
+    if(!b) return;
+    const novo = grupo.querySelector('.opt.sel') === b ? '' : b.dataset.valor;
+    marcarOpcoes(grupo, novo);
+    aoEscolher(novo);
+  });
+  return grupo;
+}
+
+function criarCampo(rotulo, valor, aoDigitar, opts = {}){
+  const wrap = document.createElement('div');
+  wrap.className = 'field';
+  const id = 'dyn_' + Math.random().toString(36).slice(2, 9);
+  wrap.innerHTML = `<label for="${id}">${escapeHtml(rotulo)}</label>` + (opts.hint ? `<div class="hint">${escapeHtml(opts.hint)}</div>` : '');
+  const el = document.createElement(opts.longo ? 'textarea' : 'input');
+  if(!opts.longo) el.type = 'text';
+  else el.rows = 6;
+  el.id = id;
+  if(opts.placeholder) el.placeholder = opts.placeholder;
+  if(opts.url){ el.setAttribute('autocapitalize', 'none'); el.spellcheck = false; el.autocomplete = 'off'; }
+  el.value = txt(valor);
+  wrap.appendChild(el);
+  let aviso = null;
+  if(opts.validar){
+    aviso = document.createElement('div');
+    aviso.className = 'aviso-campo';
+    wrap.appendChild(aviso);
+    aviso.textContent = opts.validar(el.value);
+  }
+  el.addEventListener('input', () => {
+    aoDigitar(el.value);
+    if(aviso) aviso.textContent = opts.validar(el.value);
+    limparErro();
+    agendarSalvar();
+  });
+  return wrap;
+}
+
+function avisoUrl(v){
+  const s = txt(v).trim();
+  if(!s) return '';
+  return /^https:\/\/\S+$/i.test(s) ? '' : 'O endereço precisa começar com https://';
+}
+
+// ---------------------------------------------------------------
+// EXERCÍCIO 1 · NOME, BIO, PRÉ-VISUALIZAÇÃO, LINKS
+// ---------------------------------------------------------------
+function linhasBio(){
+  return [respostas.bio1, respostas.bio2, respostas.bio3, respostas.bio4].map(txt).filter(l => l.trim() !== '');
+}
+function textoBio(){ return linhasBio().join('\n'); }
+
+function atualizarNome(){
+  const n = contar(respostas.nome);
+  const c = document.getElementById('cont_nome');
+  c.textContent = `${n} / ${LIMITE_NOME}`;
+  c.classList.toggle('excedeu', n > LIMITE_NOME);
+  const avisos = [];
+  if(n > LIMITE_NOME) avisos.push(`O nome passou de ${LIMITE_NOME} caracteres.`);
+  if(TEM_EMOJI.test(txt(respostas.nome))) avisos.push('Tire o emoji do nome: ele ocupa espaço e não aparece na busca.');
+  document.getElementById('aviso_nome').textContent = avisos.join(' ');
+}
+
+function atualizarUsuario(){
+  const v = txt(respostas.usuario);
+  const n = contar(v);
+  const c = document.getElementById('cont_usuario');
+  c.textContent = `${n} / ${LIMITE_USUARIO}`;
+  c.classList.toggle('excedeu', n > LIMITE_USUARIO);
+  const avisos = [];
+  if(n > LIMITE_USUARIO) avisos.push(`O nome de usuário passou de ${LIMITE_USUARIO} caracteres.`);
+  if(v && !/^[A-Za-z0-9._]+$/.test(v)) avisos.push('Use só letras, números, ponto e sublinhado, sem espaço nem acento.');
+  document.getElementById('aviso_usuario').textContent = avisos.join(' ');
+}
+
+function atualizarBio(){
+  const n = contar(textoBio());
+  document.getElementById('bioTotalNum').textContent = `${n} / ${LIMITE_BIO}`;
+  document.getElementById('bioTotal').classList.toggle('excedeu', n > LIMITE_BIO);
+  atualizarPreview();
+}
+
+function atualizarPreview(){
+  const pv = document.getElementById('preview');
+  const nome = txt(respostas.nome).trim();
+  const usuario = txt(respostas.usuario).trim();
+  const bio = textoBio();
+  const link = (respostas.links || []).find(l => txt(l.titulo).trim() || txt(l.url).trim());
+  if(!nome && !bio && !link){
+    pv.innerHTML = '<div class="pv-vazio">Preencha o nome e a bio para ver como fica no perfil.</div>';
+    return;
+  }
+  const linkTexto = link ? (txt(link.titulo).trim() || txt(link.url).replace(/^https?:\/\//i, '')) : '';
+  const extras = (respostas.links || []).filter(l => txt(l.titulo).trim() || txt(l.url).trim()).length - 1;
+  pv.innerHTML =
+    (usuario ? `<div class="pv-user">@${escapeHtml(usuario)}</div>` : '') +
+    `<div class="pv-nome">${escapeHtml(nome || 'Seu nome')}</div>` +
+    `<div class="pv-bio">${escapeHtml(bio)}</div>` +
+    (linkTexto ? `<div class="pv-link">🔗 ${escapeHtml(linkTexto)}${extras > 0 ? ` e mais ${extras}` : ''}</div>` : '');
+}
+
+async function copiarBio(){
+  const st = document.getElementById('copiarBioStatus');
+  const texto = textoBio();
+  if(!texto){ st.textContent = 'Escreva a bio primeiro.'; st.className = 'status error'; return; }
+  try{
+    await navigator.clipboard.writeText(texto);
+    st.textContent = 'Bio copiada, com as quebras de linha.';
+    st.className = 'status';
+  } catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = texto;
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try{ ok = document.execCommand('copy'); } catch(_){}
+    ta.remove();
+    st.textContent = ok ? 'Bio copiada, com as quebras de linha.' : 'Não consegui copiar sozinho. Selecione o texto da pré-visualização e copie.';
+    st.className = 'status' + (ok ? '' : ' error');
+  }
+}
+
+function garantirLinks(){
+  if(!Array.isArray(respostas.links) || respostas.links.length === 0) respostas.links = [{ titulo: '', url: '' }];
+}
+
+function renderLinks(){
+  garantirLinks();
+  const lista = document.getElementById('linksLista');
+  lista.innerHTML = '';
+  respostas.links.forEach((link, i) => {
+    const bloco = document.createElement('div');
+    bloco.className = 'link-bloco';
+    const topo = document.createElement('div');
+    topo.className = 'link-topo';
+    topo.innerHTML = `<span>Link ${i + 1}${i === 0 ? '' : ' (opcional)'}</span>`;
+    if(i > 0){
+      const rem = document.createElement('button');
+      rem.type = 'button';
+      rem.className = 'btn-remover';
+      rem.textContent = 'Remover';
+      rem.addEventListener('click', () => {
+        respostas.links.splice(i, 1);
+        renderLinks();
+        atualizarPreview();
+        salvarAgora();
+      });
+      topo.appendChild(rem);
+    }
+    bloco.appendChild(topo);
+    bloco.appendChild(criarCampo('Título', link.titulo, v => { link.titulo = v; atualizarPreview(); },
+      { hint: i === 0 ? 'Comece com verbo. Use a mesma ação da linha 4.' : 'Comece com verbo.' }));
+    bloco.appendChild(criarCampo('Destino', link.url, v => { link.url = v; atualizarPreview(); },
+      { url: true, placeholder: 'https://', validar: avisoUrl,
+        hint: i === 0 ? 'Para o WhatsApp, use: https://wa.me/55DDDNÚMERO?text=Vim%20pelo%20Instagram' : '' }));
+    lista.appendChild(bloco);
+  });
+  document.getElementById('addLinkBtn').classList.toggle('hidden', respostas.links.length >= MAX_LINKS);
+}
+
+function atualizarLinktree(){
+  document.getElementById('linktreeBloco').classList.toggle('hidden', respostas.linktree !== 'sim');
+  document.getElementById('aviso_linktree_url').textContent = avisoUrl(respostas.linktree_url);
+}
+
+// ---------------------------------------------------------------
+// EXERCÍCIO 3 · DESTAQUES
+// ---------------------------------------------------------------
+function garantirDestaques(){
+  if(!Array.isArray(respostas.destaques) || respostas.destaques.length === 0) respostas.destaques = [{ nome: '', caminho: '' }];
+}
+
+function faltaAutomatico(){
+  const usados = new Set((respostas.destaques || []).filter(d => txt(d.nome).trim() || d.caminho).map(d => d.caminho));
+  return CAMINHOS.filter(c => !usados.has(c));
+}
+
+// Enquanto o aluno não mexer no "O que falta", ele acompanha a lista sozinho.
+function sincronizarFalta(){
+  if(respostas._falta_manual === true && Array.isArray(respostas.falta)) return;
+  respostas.falta = faltaAutomatico();
+}
+
+function renderDestaques(){
+  garantirDestaques();
+  const lista = document.getElementById('destaquesLista');
+  lista.innerHTML = '';
+  const opcoesCaminho = [...CAMINHOS, CAMINHO_NENHUM].map(c => [c, c]);
+  respostas.destaques.forEach((d, i) => {
+    const linha = document.createElement('div');
+    linha.className = 'dest-linha';
+    linha.innerHTML = `<div class="dest-num">${i + 1}</div>`;
+    const campos = document.createElement('div');
+    campos.className = 'dest-campos';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Nome do destaque hoje';
+    input.setAttribute('aria-label', `Nome do destaque ${i + 1}`);
+    input.value = txt(d.nome);
+    input.addEventListener('input', () => { d.nome = input.value; sincronizarFalta(); renderFalta(); limparErro(); agendarSalvar(); });
+    campos.appendChild(input);
+    campos.appendChild(criarOpcoes(opcoesCaminho, txt(d.caminho), v => { d.caminho = v; sincronizarFalta(); renderFalta(); salvarAgora(); }, true));
+    linha.appendChild(campos);
+    if(respostas.destaques.length > 1){
+      const rem = document.createElement('button');
+      rem.type = 'button';
+      rem.className = 'btn-remover';
+      rem.textContent = 'Remover';
+      rem.addEventListener('click', () => {
+        respostas.destaques.splice(i, 1);
+        sincronizarFalta();
+        renderDestaques();
+        salvarAgora();
+      });
+      linha.appendChild(rem);
+    } else {
+      linha.appendChild(document.createElement('span'));
+    }
+    lista.appendChild(linha);
+  });
+  document.getElementById('addDestaqueBtn').classList.toggle('hidden', respostas.destaques.length >= MAX_DESTAQUES);
+  renderFalta();
+}
+
+function renderFalta(){
+  const lista = document.getElementById('faltaLista');
+  lista.innerHTML = '';
+  const marcados = new Set(respostas.falta || []);
+  CAMINHOS.forEach(c => {
+    const item = document.createElement('label');
+    item.className = 'check-item' + (marcados.has(c) ? ' checked' : '');
+    item.innerHTML = `<input type="checkbox"${marcados.has(c) ? ' checked' : ''}><span>${escapeHtml(c)}</span>`;
+    item.querySelector('input').addEventListener('change', ev => {
+      const atual = new Set(respostas.falta || []);
+      if(ev.target.checked) atual.add(c); else atual.delete(c);
+      respostas.falta = CAMINHOS.filter(x => atual.has(x));
+      respostas._falta_manual = true;
+      item.classList.toggle('checked', ev.target.checked);
+      salvarAgora();
+    });
+    lista.appendChild(item);
+  });
+  if(respostas._falta_manual === true){
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'btn-remover';
+    reset.style.marginTop = '10px';
+    reset.textContent = 'Voltar a marcar sozinho pela lista';
+    reset.addEventListener('click', () => {
+      respostas._falta_manual = false;
+      sincronizarFalta();
+      renderFalta();
+      salvarAgora();
+    });
+    lista.appendChild(reset);
+  }
+}
+
+function atualizarAvisoAba(){
+  document.getElementById('avisoAba').classList.toggle('hidden', respostas.destaques_onde !== 'aba');
+}
+
+// ---------------------------------------------------------------
+// EXERCÍCIO 4 · VIDA PESSOAL
+// ---------------------------------------------------------------
+function garantirPosts(){
+  if(!Array.isArray(respostas.posts)) respostas.posts = [];
+  while(respostas.posts.length < 6) respostas.posts.push({ mostra: '', tema: '', classificacao: '' });
+}
+
+function renderPosts(){
+  garantirPosts();
+  const lista = document.getElementById('postsLista');
+  lista.innerHTML = '';
+  respostas.posts.forEach((p, i) => {
+    const bloco = document.createElement('div');
+    bloco.className = 'post-bloco';
+    bloco.innerHTML = `<div class="post-titulo">Post ${i + 1}</div>`;
+    bloco.appendChild(criarCampo('O que mostra', p.mostra, v => { p.mostra = v; }));
+    const tema = document.createElement('div');
+    tema.className = 'field';
+    tema.innerHTML = '<div class="sublabel">Tema</div>';
+    tema.appendChild(criarOpcoes(TEMAS.map(t => [t, t]), txt(p.tema), v => { p.tema = v; salvarAgora(); }, true));
+    bloco.appendChild(tema);
+    const cls = document.createElement('div');
+    cls.className = 'field';
+    cls.innerHTML = '<div class="sublabel">Classificação</div>';
+    cls.appendChild(criarOpcoes(CLASSIFICACOES.map(c => [c, c]), txt(p.classificacao), v => { p.classificacao = v; renderResumo(); salvarAgora(); }, true));
+    bloco.appendChild(cls);
+    lista.appendChild(bloco);
+  });
+  renderResumo();
+}
+
+function contagemPosts(r){
+  const cont = { 'Reforça': 0, 'Neutro': 0, 'Enfraquece': 0 };
+  (r.posts || []).forEach(p => { if(cont[p.classificacao] !== undefined) cont[p.classificacao]++; });
+  return cont;
+}
+
+function renderResumo(){
+  const cont = contagemPosts(respostas);
+  document.getElementById('resumoPosts').innerHTML = CLASSIFICACOES.map(c =>
+    `<div class="resumo-linha"><strong>${escapeHtml(c)}: ${cont[c]}</strong><span>${escapeHtml(ACAO_CLASSIFICACAO[c].charAt(0).toUpperCase() + ACAO_CLASSIFICACAO[c].slice(1))}.</span></div>`
+  ).join('');
+}
+
+// ---------------------------------------------------------------
+// EXERCÍCIO 5 · TEXTOS
+// ---------------------------------------------------------------
+function garantirTextos(){
+  if(!Array.isArray(respostas.textos)) respostas.textos = [];
+  while(respostas.textos.length < 3) respostas.textos.push({ tipo: '', texto: '' });
+}
+
+function renderTextos(){
+  garantirTextos();
+  const lista = document.getElementById('textosLista');
+  lista.innerHTML = '';
+  respostas.textos.forEach((t, i) => {
+    const bloco = document.createElement('div');
+    bloco.className = 'texto-bloco';
+    bloco.innerHTML = `<span class="label-txt" style="display:block; font-weight:500; font-size:14px; color:var(--gold-light); margin-bottom:8px;">Texto ${i + 1}</span>`;
+    bloco.appendChild(criarOpcoes([['legenda', 'Legenda'], ['roteiro', 'Roteiro']], txt(t.tipo), v => { t.tipo = v; limparErro(); salvarAgora(); }, true));
+    const campo = criarCampo(`Cole aqui o texto ${i + 1}`, t.texto, v => { t.texto = v; }, { longo: true });
+    campo.querySelector('label').className = 'hidden';
+    campo.querySelector('textarea').setAttribute('aria-label', `Texto ${i + 1}`);
+    bloco.appendChild(campo);
+    lista.appendChild(bloco);
+  });
+}
+
+// ---------------------------------------------------------------
+// REAÇÕES A MUDANÇAS
+// ---------------------------------------------------------------
+function aoMudar(chave){
+  if(chave === 'nome'){ atualizarNome(); atualizarPreview(); }
+  else if(chave === 'usuario'){ atualizarUsuario(); atualizarPreview(); }
+  else if(/^bio[1-4]$/.test(chave)) atualizarBio();
+  else if(chave === 'linktree' || chave === 'linktree_url') atualizarLinktree();
+  else if(chave === 'destaques_onde') atualizarAvisoAba();
+}
+
+// ---------------------------------------------------------------
+// PASSOS
+// ---------------------------------------------------------------
+function mostrarPasso(n){
+  passoAtual = n;
+  document.getElementById('telaFinal').classList.add('hidden');
+  document.getElementById('telaPassos').classList.remove('hidden');
+  for(let i = 1; i <= TOTAL_PASSOS; i++){
+    document.getElementById('passo-' + i).classList.toggle('hidden', i !== n + 1);
+  }
+  document.querySelectorAll('#stepper .mini-dot').forEach(d => {
+    const num = Number(d.dataset.step);
+    d.classList.toggle('active', num === n + 1);
+    d.classList.toggle('done', num < n + 1);
+  });
+  document.getElementById('stepLabel').textContent = `Exercício ${n + 1} de ${TOTAL_PASSOS}`;
+  document.getElementById('voltarBtn').disabled = n === 0;
+  document.getElementById('avancarBtn').textContent = n === TOTAL_PASSOS - 1 ? 'Concluir e ver o documento' : 'Avançar';
+  limparErro();
+}
+
+function rolarParaCartao(){
+  document.getElementById('cardPasso').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Os exercícios 1 a 4 são feitos ao vivo, um por vez: dá para avançar mesmo sem
+// terminar. Só o exercício 5 (os 3 textos) é obrigatório para concluir o cartão.
+function validarConclusao(){
+  garantirTextos();
+  for(let i = 0; i < 3; i++){
+    if(txt(respostas.textos[i].texto).trim() === ''){
+      return { mensagem: `Cole o texto ${i + 1} para concluir. Os 3 textos são obrigatórios.`, indice: i };
+    }
+  }
+  return null;
+}
+
+function avancar(){
+  if(passoAtual < TOTAL_PASSOS - 1){
+    mostrarPasso(passoAtual + 1);
+    respostas._passo = passoAtual;
+    respostas._concluido = false;
+    salvarAgora();
+    rolarParaCartao();
+    return;
+  }
+  const problema = validarConclusao();
+  if(problema){
+    const el = document.getElementById('erroPasso');
+    el.textContent = problema.mensagem;
+    el.className = 'status error';
+    const areas = document.querySelectorAll('#textosLista textarea');
+    if(areas[problema.indice]) areas[problema.indice].focus();
+    return;
+  }
+  respostas._passo = passoAtual;
+  respostas._concluido = true;
+  salvarAgora();
+  mostrarFinal();
+  rolarParaCartao();
+}
+
+function voltar(){
+  if(passoAtual === 0) return;
+  mostrarPasso(passoAtual - 1);
+  respostas._passo = passoAtual;
+  salvarAgora();
+  rolarParaCartao();
+}
+
+function editarDepoisDeConcluir(){
+  respostas._concluido = false;
+  respostas._passo = TOTAL_PASSOS - 1;
+  mostrarPasso(TOTAL_PASSOS - 1);
+  salvarAgora();
+  rolarParaCartao();
+}
+
+document.getElementById('avancarBtn').addEventListener('click', avancar);
+document.getElementById('voltarBtn').addEventListener('click', voltar);
+document.getElementById('editarBtn').addEventListener('click', editarDepoisDeConcluir);
+document.getElementById('copiarBioBtn').addEventListener('click', copiarBio);
+document.getElementById('addLinkBtn').addEventListener('click', () => {
+  garantirLinks();
+  if(respostas.links.length >= MAX_LINKS) return;
+  respostas.links.push({ titulo: '', url: '' });
+  renderLinks();
+  salvarAgora();
+});
+document.getElementById('addDestaqueBtn').addEventListener('click', () => {
+  garantirDestaques();
+  if(respostas.destaques.length >= MAX_DESTAQUES) return;
+  respostas.destaques.push({ nome: '', caminho: '' });
+  renderDestaques();
+  const inputs = document.querySelectorAll('#destaquesLista input[type=text]');
+  if(inputs.length) inputs[inputs.length - 1].focus();
+  salvarAgora();
+});
+
+// ---------------------------------------------------------------
+// DOCUMENTO FINAL
+// ---------------------------------------------------------------
+function montarDocumento(){
+  const r = respostas;
+  const titulo = ['Imagem', alunoNome, new Date().toLocaleDateString('pt-BR')].filter(Boolean).join(' · ');
+  const secoes = [];
+
+  const bioLinhas = [];
+  if(!vazio('nome')) bioLinhas.push(['Nome', r.nome]);
+  if(!vazio('usuario')) bioLinhas.push(['Nome de usuário', '@' + txt(r.usuario).replace(/^@/, '')]);
+  bioLinhas.push(['Bio', textoBio() || '(não preenchida)']);
+  secoes.push({ titulo: 'Bio pronta para copiar', linhas: bioLinhas });
+
+  const links = (r.links || []).filter(l => txt(l.titulo).trim() || txt(l.url).trim());
+  const linkLinhas = links.map((l, i) => [`Link ${i + 1}`, [txt(l.titulo).trim(), txt(l.url).trim()].filter(Boolean).join(' · ')]);
+  if(r.linktree) linkLinhas.push(['Uso Linktree', ROTULOS.linktree[r.linktree] + (r.linktree === 'sim' && !vazio('linktree_url') ? ` · ${r.linktree_url}` : '')]);
+  if(linkLinhas.length) secoes.push({ titulo: 'Links', linhas: linkLinhas });
+
+  secoes.push({ titulo: 'A sua imagem', linhas: [
+    ['Minha profissão', r.profissao],
+    ['Como o meu cliente espera ver alguém da minha profissão', r.cliente_espera],
+    ['Foto de perfil hoje', ROTULOS.foto_perfil[r.foto_perfil] || ''],
+    ['Últimos 6 vídeos', vazio('videos_ok') ? '' : `Em ${r.videos_ok} de 6 estou apresentado do jeito que escrevi`],
+    ['A primeira mudança que vou fazer', r.primeira_mudanca],
+  ] });
+
+  const destaques = (r.destaques || []).filter(d => txt(d.nome).trim() || d.caminho);
+  const destLinhas = [];
+  if(r.destaques_onde) destLinhas.push(['Onde aparecem', ROTULOS.destaques_onde[r.destaques_onde]]);
+  if(destaques.length) destLinhas.push(['Destaques atuais', destaques.map((d, i) => `${i + 1}. ${txt(d.nome).trim() || '(sem nome)'} — ${d.caminho || 'caminho não escolhido'}`).join('\n')]);
+  destLinhas.push(['O que falta', (r.falta && r.falta.length) ? r.falta.join(', ') : 'Nada, os 4 caminhos já aparecem']);
+  destLinhas.push(['Nova ordem', CAMINHOS.map((c, i) => `${i + 1}. ${c}`).join('\n')]);
+  destLinhas.push(['Ordem de atualização', ORDEM_ATUALIZACAO]);
+  secoes.push({ titulo: 'Destaques', linhas: destLinhas });
+
+  const posts = (r.posts || []).map((p, i) => ({ ...p, n: i + 1 })).filter(p => txt(p.mostra).trim() || p.tema || p.classificacao);
+  const postLinhas = posts.map(p => [`Post ${p.n}`, [txt(p.mostra).trim(), p.tema, p.classificacao].filter(Boolean).join(' · ')]);
+  const cont = contagemPosts(r);
+  postLinhas.push(['Resumo', CLASSIFICACOES.map(c => `${c}: ${cont[c]} (${ACAO_CLASSIFICACAO[c]})`).join('\n')]);
+  secoes.push({ titulo: 'Vida pessoal', linhas: postLinhas });
+
+  const textos = (r.textos || []).map((t, i) => [`Texto ${i + 1}${t.tipo ? ' · ' + ROTULOS.tipo[t.tipo] : ''}`, t.texto]);
+  secoes.push({ titulo: 'Para o encontro Arquétipo na prática', linhas: textos });
+
+  return { titulo, secoes };
+}
+
+function documentoComoTexto(doc){
+  const partes = [doc.titulo, ''];
+  doc.secoes.forEach(s => {
+    partes.push(s.titulo.toUpperCase());
+    s.linhas.forEach(([label, valor]) => partes.push(label ? `${label}:\n${txt(valor)}` : txt(valor)));
+    partes.push('');
+  });
+  return partes.join('\n').trim();
+}
+
+function mostrarFinal(){
+  const doc = montarDocumento();
+  document.getElementById('docTexto').innerHTML =
+    `<div class="doc-titulo">${escapeHtml(doc.titulo)}</div>` +
+    doc.secoes.map(s =>
+      `<div class="doc-secao"><div class="doc-secao-titulo">${escapeHtml(s.titulo)}</div>` +
+      s.linhas.map(([label, valor]) => `<div class="doc-linha">${label ? `<strong>${escapeHtml(label)}:</strong> ` : ''}${escapeHtml(txt(valor))}</div>`).join('') +
+      `</div>`
+    ).join('');
+  document.getElementById('docStatus').textContent = '';
+  document.getElementById('telaPassos').classList.add('hidden');
+  document.getElementById('telaFinal').classList.remove('hidden');
+}
+
+function avisoDocumento(texto, erro){
+  const el = document.getElementById('docStatus');
+  el.textContent = texto;
+  el.className = 'status' + (erro ? ' error' : '');
+}
+
+async function copiarDocumento(){
+  const texto = documentoComoTexto(montarDocumento());
+  try{
+    await navigator.clipboard.writeText(texto);
+    avisoDocumento('Texto copiado.');
+    return;
+  } catch(e){
+    console.warn('clipboard indisponível, tentando o método antigo', e);
+  }
+  try{
+    const alvo = document.getElementById('docTexto');
+    const range = document.createRange();
+    range.selectNodeContents(alvo);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    const ok = document.execCommand('copy');
+    sel.removeAllRanges();
+    avisoDocumento(ok ? 'Texto copiado.' : 'Não consegui copiar sozinho. Selecione o texto na tela e copie.', !ok);
+  } catch(e){
+    avisoDocumento('Não consegui copiar sozinho. Selecione o texto na tela e copie.', true);
+  }
+}
+
+document.getElementById('copiarBtn').addEventListener('click', copiarDocumento);
+
+// ---------------------------------------------------------------
+// PDF
+// ---------------------------------------------------------------
+function svgToPngDataUrl(url, width, height){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+// A fonte padrão do jsPDF só desenha os caracteres do português (Latin-1 e pontuação comum).
+// Emoji, setas e outros símbolos saem como lixo, então são retirados só no PDF.
+const PDF_EXTRAS = '\u2013\u2014\u2018\u2019\u201C\u201D\u2022\u2026\u20AC\u00B7';
+function semEmoji(s){
+  return Array.from(txt(s)).filter(ch => ch === '\n' || ch.codePointAt(0) <= 255 || PDF_EXTRAS.includes(ch)).join('').replace(/[ \t]+\n/g, '\n').replace(/ {2,}/g, ' ').trim();
+}
+
+async function gerarPdfImagem(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+  const conteudo = montarDocumento();
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+  try{
+    const logoDataUrl = await svgToPngDataUrl('../assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('ÊNFASE', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(15, 31, 61);
+  doc.splitTextToSize(conteudo.titulo, maxWidth).forEach(linha => { doc.text(linha, margin, y); y += 6.5; });
+  y += 8;
+
+  conteudo.secoes.forEach(secao => {
+    checarQuebra(26);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12.5);
+    doc.setTextColor(201, 162, 39);
+    doc.text(secao.titulo.toUpperCase(), margin, y);
+    y += 8;
+
+    secao.linhas.forEach(([label, valor]) => {
+      checarQuebra(20);
+      if(label){
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(15, 31, 61);
+        const labelLines = doc.splitTextToSize(label, maxWidth);
+        doc.text(labelLines, margin, y);
+        y += labelLines.length * 5.2 + 1;
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(40, 40, 40);
+      doc.splitTextToSize(semEmoji(valor) || '(não preenchido)', maxWidth).forEach(linha => {
+        checarQuebra(14);
+        doc.text(linha, margin, y);
+        y += 5.2;
+      });
+      y += 5;
+    });
+    y += 4;
+  });
+
+  const nomeArquivo = (alunoNome || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`imagem-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+document.getElementById('pdfBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('pdfBtn');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+  try{
+    await gerarPdfImagem();
+  } catch(e){
+    console.error('Falha ao gerar o PDF', e);
+    avisoDocumento('Não foi possível gerar o PDF. Tente novamente.', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+// ---------------------------------------------------------------
+// CARREGAR E INICIAR
+// ---------------------------------------------------------------
+async function carregarDados(){
+  try{
+    const { data, error } = await supabaseClient
+      .from(TABELA)
+      .select('*')
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    if(error) throw error;
+    carregouOk = true;
+    if(!data) return;
+    respostas = data.respostas || {};
+    if(data.comentario_professor){
+      document.getElementById('comentarioTexto').textContent = data.comentario_professor;
+      document.getElementById('comentarioBox').classList.remove('hidden');
+    }
+  } catch(e){
+    console.error('Não foi possível carregar as respostas salvas', e);
+    mostrarStatusSalvamento('Não foi possível carregar suas respostas salvas. Recarregue a página antes de continuar, pra não perder nada.', 'erro');
+  }
+}
+
+function iniciarNaTelaCerta(){
+  const passoSalvo = Math.min(Math.max(Number(respostas._passo) || 0, 0), TOTAL_PASSOS - 1);
+  const temProgresso = respostas._concluido === true || passoSalvo > 0 || !vazio('nome') || !vazio('bio1');
+  if(respostas._concluido === true){
+    mostrarPasso(TOTAL_PASSOS - 1);
+    mostrarFinal();
+  } else {
+    mostrarPasso(passoSalvo);
+  }
+  if(carregouOk && temProgresso) mostrarStatusSalvamento('Continuando de onde você parou', 'ok');
+}
+
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  currentUserId = result.session.user.id;
+  alunoNome = result.profile.nome || '';
+  await carregarDados();
+  garantirLinks();
+  garantirDestaques();
+  garantirPosts();
+  garantirTextos();
+  sincronizarFalta();
+  wireTextFields();
+  wireOpcoesFixas();
+  renderLinks();
+  renderDestaques();
+  renderPosts();
+  renderTextos();
+  atualizarNome();
+  atualizarUsuario();
+  atualizarBio();
+  atualizarLinktree();
+  atualizarAvisoAba();
+  iniciarNaTelaCerta();
+})();
+</script>
+
+</body>
+</html>
