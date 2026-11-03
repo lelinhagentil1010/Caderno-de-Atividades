@@ -1448,7 +1448,13 @@ async function gerarPdfPublicoPesquisa(r, nomeAluno, emailAluno){
 
 // EVIDÊNCIA · PÚBLICO E PESQUISA DE CONTEÚDO (tabela evidencia_publico_pesquisa)
 // Mesmo conteúdo do Ênfase até a Prática 3; Prática 4 e Tarefa são próprias do Evidência.
-const EVID_PUBLICO_PESQUISA_ROTULOS = Object.assign(
+// No Evidência as frases dos Exercícios 3 e 4 aparecem embaralhadas (o gabarito não fica 1-2-3-4-5).
+// As chaves continuam presas à frase; só a ordem e a letra mostrada mudam.
+const EVID_ORDEM_EX3 = ['c','a','e','b','d'];
+const EVID_ORDEM_EX4 = ['c','d','a','b'];
+const EVID_PUBLICO_PESQUISA_EX3 = EVID_ORDEM_EX3.map(l => PUBLICO_PESQUISA_EX3.find(p => p.chave === 'ex3_degrau_' + l));
+const EVID_PUBLICO_PESQUISA_EX4 = EVID_ORDEM_EX4.map(l => PUBLICO_PESQUISA_EX4.find(p => p.chave === 'ex4_motor_' + l));
+const _EVID_ROTULOS_BASE = Object.assign(
   Object.fromEntries(Object.entries(PUBLICO_PESQUISA_ROTULOS).filter(([k]) => !k.startsWith('pr4_') && !k.startsWith('tarefa_'))),
   {
     pr4_primeira_frase: 'Pr.4 · A primeira frase do vídeo',
@@ -1462,6 +1468,22 @@ const EVID_PUBLICO_PESQUISA_ROTULOS = Object.assign(
   })),
   ...[1,2,3].map(n => ({ ['tarefa_primeira_frase_' + n]: `Tarefa · Primeira frase ${n}` })),
 );
+const EVID_PUBLICO_PESQUISA_ROTULOS = {};
+Object.entries(_EVID_ROTULOS_BASE).forEach(([k, v]) => {
+  const m3 = /^ex3_degrau_([a-e])$/.exec(k), m4 = /^ex4_motor_([a-d])$/.exec(k);
+  if(m3) EVID_PUBLICO_PESQUISA_ROTULOS[k] = 'Ex.3 · Degrau ' + 'ABCDE'[EVID_ORDEM_EX3.indexOf(m3[1])];
+  else if(m4) EVID_PUBLICO_PESQUISA_ROTULOS[k] = 'Ex.4 · Motor ' + 'ABCD'[EVID_ORDEM_EX4.indexOf(m4[1])];
+  else EVID_PUBLICO_PESQUISA_ROTULOS[k] = v;
+});
+// lista do painel na ordem em que o aluno vê (A, B, C...)
+['ex3_degrau_', 'ex4_motor_'].forEach(pref => {
+  const ordem = pref === 'ex3_degrau_' ? EVID_ORDEM_EX3 : EVID_ORDEM_EX4;
+  const chaves = Object.keys(EVID_PUBLICO_PESQUISA_ROTULOS);
+  const resto = chaves.slice(chaves.indexOf(pref + 'a'));
+  const depois = resto.filter(k => !ordem.some(l => k === pref + l));
+  ordem.forEach(l => { const v = EVID_PUBLICO_PESQUISA_ROTULOS[pref + l]; delete EVID_PUBLICO_PESQUISA_ROTULOS[pref + l]; EVID_PUBLICO_PESQUISA_ROTULOS[pref + l] = v; });
+  depois.forEach(k => { const v = EVID_PUBLICO_PESQUISA_ROTULOS[k]; delete EVID_PUBLICO_PESQUISA_ROTULOS[k]; EVID_PUBLICO_PESQUISA_ROTULOS[k] = v; });
+});
 
 async function carregarEvidPublicoPesquisa(){
   const el = document.getElementById('respostasList');
@@ -1609,11 +1631,11 @@ async function gerarPdfEvidPublicoPesquisa(r, nomeAluno, emailAluno){
     ['E o que ele mais tem medo que aconteça é:', r.ex2_medo_que_aconteca],
   ]);
   escreverBloco('EXERCÍCIO 3 · EM QUE DEGRAU ESTÁ?', [
-    ...PUBLICO_PESQUISA_EX3.map(p => [p.frase, `Resposta do aluno: ${r[p.chave] || '-'}  |  Gabarito: ${p.correta}`]),
+    ...EVID_PUBLICO_PESQUISA_EX3.map(p => [p.frase, `Resposta do aluno: ${r[p.chave] || '-'}  |  Gabarito: ${p.correta}`]),
     ['Em qual degrau está a maior parte dos seus posts (autoavaliação):', r.ex3_autoavaliacao_degrau],
   ]);
   escreverBloco('EXERCÍCIO 4 · QUAL MOTOR?', [
-    ...PUBLICO_PESQUISA_EX4.map(p => [p.frase, `Resposta do aluno: ${publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_MOTOR_OPCOES, r[p.chave])}  |  Gabarito: ${publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_MOTOR_OPCOES, p.correta)}`]),
+    ...EVID_PUBLICO_PESQUISA_EX4.map(p => [p.frase, `Resposta do aluno: ${publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_MOTOR_OPCOES, r[p.chave])}  |  Gabarito: ${publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_MOTOR_OPCOES, p.correta)}`]),
     ['Motor que mais aparece nos seus clientes (autoavaliação):', publicoPesquisaRotuloOpcao(PUBLICO_PESQUISA_MOTOR_OPCOES, r.ex4_motor_mais_comum)],
   ]);
   escreverBloco('EXERCÍCIO 5 · ANOTE AGORA', [

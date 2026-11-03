@@ -289,29 +289,29 @@ Depois, escreva a pergunta que o seu cliente faria sobre esse mesmo tema, com as
 Leia cada frase e marque o degrau de 1 a 5.</p>
 
       <div class="field">
-        <label>A. "Esse cansaço depois do almoço que você acha normal pode não ser normal."</label>
-        <div class="choice-group" id="grupo_ex3_degrau_a"></div>
-        <div id="gabarito_ex3_degrau_a"></div>
-      </div>
-      <div class="field">
-        <label>B. "Por que sua janela deixa entrar tanto barulho, mesmo fechada."</label>
-        <div class="choice-group" id="grupo_ex3_degrau_b"></div>
-        <div id="gabarito_ex3_degrau_b"></div>
-      </div>
-      <div class="field">
-        <label>C. "Consultoria, contador ou planilha: o que resolve o caixa da sua empresa?"</label>
+        <label>A. "Consultoria, contador ou planilha: o que resolve o caixa da sua empresa?"</label>
         <div class="choice-group" id="grupo_ex3_degrau_c"></div>
         <div id="gabarito_ex3_degrau_c"></div>
       </div>
       <div class="field">
-        <label>D. "Como funciona a primeira reunião com a nossa equipe."</label>
-        <div class="choice-group" id="grupo_ex3_degrau_d"></div>
-        <div id="gabarito_ex3_degrau_d"></div>
+        <label>B. "Esse cansaço depois do almoço que você acha normal pode não ser normal."</label>
+        <div class="choice-group" id="grupo_ex3_degrau_a"></div>
+        <div id="gabarito_ex3_degrau_a"></div>
       </div>
       <div class="field">
-        <label>E. "Abrimos as datas de outubro para o pacote de aniversário de casamento."</label>
+        <label>C. "Abrimos as datas de outubro para o pacote de aniversário de casamento."</label>
         <div class="choice-group" id="grupo_ex3_degrau_e"></div>
         <div id="gabarito_ex3_degrau_e"></div>
+      </div>
+      <div class="field">
+        <label>D. "Por que sua janela deixa entrar tanto barulho, mesmo fechada."</label>
+        <div class="choice-group" id="grupo_ex3_degrau_b"></div>
+        <div id="gabarito_ex3_degrau_b"></div>
+      </div>
+      <div class="field">
+        <label>E. "Como funciona a primeira reunião com a nossa equipe."</label>
+        <div class="choice-group" id="grupo_ex3_degrau_d"></div>
+        <div id="gabarito_ex3_degrau_d"></div>
       </div>
       <div class="field">
         <label>Olhando o seu próprio perfil, em qual degrau está a maior parte dos seus posts?</label>
@@ -328,24 +328,24 @@ Leia cada frase de cliente e marque o motor.
 Base: as 4 motivações de Margaret Mark e Carol Pearson, O Herói e o Fora-da-Lei.</p>
 
       <div class="field">
-        <label>A. "Quero uma janela que dure 30 anos sem me dar dor de cabeça."</label>
-        <div class="choice-group" id="grupo_ex4_motor_a"></div>
-        <div id="gabarito_ex4_motor_a"></div>
-      </div>
-      <div class="field">
-        <label>B. "Quero um lugar especial para comemorar nossos 10 anos juntos."</label>
-        <div class="choice-group" id="grupo_ex4_motor_b"></div>
-        <div id="gabarito_ex4_motor_b"></div>
-      </div>
-      <div class="field">
-        <label>C. "Quero bater a meta este ano e provar que eu consigo."</label>
+        <label>A. "Quero bater a meta este ano e provar que eu consigo."</label>
         <div class="choice-group" id="grupo_ex4_motor_c"></div>
         <div id="gabarito_ex4_motor_c"></div>
       </div>
       <div class="field">
-        <label>D. "Quero sumir do mundo por três dias."</label>
+        <label>B. "Quero sumir do mundo por três dias."</label>
         <div class="choice-group" id="grupo_ex4_motor_d"></div>
         <div id="gabarito_ex4_motor_d"></div>
+      </div>
+      <div class="field">
+        <label>C. "Quero uma janela que dure 30 anos sem me dar dor de cabeça."</label>
+        <div class="choice-group" id="grupo_ex4_motor_a"></div>
+        <div id="gabarito_ex4_motor_a"></div>
+      </div>
+      <div class="field">
+        <label>D. "Quero um lugar especial para comemorar nossos 10 anos juntos."</label>
+        <div class="choice-group" id="grupo_ex4_motor_b"></div>
+        <div id="gabarito_ex4_motor_b"></div>
       </div>
       <div class="field">
         <label>Qual desses motores aparece mais nos seus clientes?</label>
@@ -669,17 +669,17 @@ function criarChoiceGroup(containerId, chave, opcoes, onSelect){
 // GABARITO (Exercícios 3 e 4)
 // ---------------------------------------------------------------
 const EX3_PERGUNTAS = [
-  { chave: 'ex3_degrau_a', frase: 'Esse cansaço depois do almoço que você acha normal pode não ser normal.', correta: '1', explicacao: 'A pessoa nem sabe que tem um problema.' },
-  { chave: 'ex3_degrau_b', frase: 'Por que sua janela deixa entrar tanto barulho, mesmo fechada.', correta: '2', explicacao: 'Ela já sabe do problema e quer entender a causa.' },
   { chave: 'ex3_degrau_c', frase: 'Consultoria, contador ou planilha: o que resolve o caixa da sua empresa?', correta: '3', explicacao: 'Ela já sabe que existem soluções e está comparando.' },
-  { chave: 'ex3_degrau_d', frase: 'Como funciona a primeira reunião com a nossa equipe.', correta: '4', explicacao: 'Ela já conhece você e quer saber como você trabalha.' },
+  { chave: 'ex3_degrau_a', frase: 'Esse cansaço depois do almoço que você acha normal pode não ser normal.', correta: '1', explicacao: 'A pessoa nem sabe que tem um problema.' },
   { chave: 'ex3_degrau_e', frase: 'Abrimos as datas de outubro para o pacote de aniversário de casamento.', correta: '5', explicacao: 'Ela está pronta para decidir, só precisa do caminho.' },
+  { chave: 'ex3_degrau_b', frase: 'Por que sua janela deixa entrar tanto barulho, mesmo fechada.', correta: '2', explicacao: 'Ela já sabe do problema e quer entender a causa.' },
+  { chave: 'ex3_degrau_d', frase: 'Como funciona a primeira reunião com a nossa equipe.', correta: '4', explicacao: 'Ela já conhece você e quer saber como você trabalha.' },
 ];
 const EX4_PERGUNTAS = [
-  { chave: 'ex4_motor_a', frase: '"Quero uma janela que dure 30 anos sem me dar dor de cabeça."', correta: 'estabilidade', explicacao: 'Ele quer segurança e zero problema.' },
-  { chave: 'ex4_motor_b', frase: '"Quero um lugar especial para comemorar nossos 10 anos juntos."', correta: 'pertencimento', explicacao: 'Ele quer celebrar o vínculo, estar junto.' },
   { chave: 'ex4_motor_c', frase: '"Quero bater a meta este ano e provar que eu consigo."', correta: 'conquista', explicacao: 'Ele quer vencer e provar valor.' },
   { chave: 'ex4_motor_d', frase: '"Quero sumir do mundo por três dias."', correta: 'liberdade', explicacao: 'Ele quer escapar, se desconectar.' },
+  { chave: 'ex4_motor_a', frase: '"Quero uma janela que dure 30 anos sem me dar dor de cabeça."', correta: 'estabilidade', explicacao: 'Ele quer segurança e zero problema.' },
+  { chave: 'ex4_motor_b', frase: '"Quero um lugar especial para comemorar nossos 10 anos juntos."', correta: 'pertencimento', explicacao: 'Ele quer celebrar o vínculo, estar junto.' },
 ];
 
 function mostrarGabarito(pergunta, valorAluno, opcoes){
