@@ -383,6 +383,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
         <option value="publico:pesquisa">Público e Pesquisa de Conteúdo</option>
         <option value="plataformas:headlines">Plataformas e headlines</option>
         <option value="imagem:imagem">Imagem</option>
+        <option value="storytelling:storytelling">Storytelling que posiciona</option>
         <option value="evidpublico:pesquisa">Evidência · Público e Pesquisa de Conteúdo</option>
       </select>
     </div>
@@ -418,6 +419,7 @@ function onAulaSelectChange(){
   else if(tipo === 'publico') carregarPublicoPesquisa();
   else if(tipo === 'plataformas') carregarPlataformasHeadlines();
   else if(tipo === 'imagem') carregarImagem();
+  else if(tipo === 'storytelling') carregarStorytelling();
   else if(tipo === 'evidpublico') carregarEvidPublicoPesquisa();
   else if(tipo === 'analise4') carregarAnaliseHeadlineAula4();
   else if(tipo === 'avatar') carregarAvatarEspecialista();
@@ -2039,6 +2041,191 @@ async function gerarPdfImagemAdmin(r, nomeAluno, emailAluno){
 
   const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   doc.save(`imagem-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+// ---------------------------------------------------------------
+// STORYTELLING QUE POSICIONA (tabela "storytelling")
+// ---------------------------------------------------------------
+const STORY_TIPOS = { origem: 'Origem', virada: 'Virada', erro: 'Erro', bastidor: 'Bastidor', caso: 'Caso de cliente', opiniao: 'Opinião' };
+const STORY_CAMPOS_EX1 = { origem: 'Origem (constrói identificação)', virada: 'Virada (constrói convicção)', erro: 'Erro (constrói confiança)', bastidor: 'Bastidor (constrói percepção de competência)', caso: 'Caso de cliente (constrói prova)', opiniao: 'Opinião (constrói posicionamento)' };
+const STORY_DETALHES = { quando: 'Quando', onde: 'Onde', fala: 'A fala exata', objeto: 'Um objeto ou número' };
+const STORY_CUIDADO = { sem_nome: 'Não aparece nome nem apelido', troquei: 'Troquei o que poderia identificar a pessoa', cena: 'O detalhe vem da cena, não da vida privada do cliente', sem_cliente: 'Esta história não envolve cliente' };
+function storytellingLinhas(r){
+  const lista = (mapa, v) => (v || []).map(x => mapa[x]).filter(Boolean).join(', ');
+  const linhas = Object.keys(STORY_CAMPOS_EX1).map(k => [`Exercício 1 · ${STORY_CAMPOS_EX1[k]}`, r['ex1_' + k]]);
+  linhas.push(
+    ['Exercício 1 · O tipo mais fácil foi', STORY_TIPOS[r.ex1_mais_facil] || ''],
+    ['Exercício 1 · O tipo mais difícil foi', STORY_TIPOS[r.ex1_mais_dificil] || ''],
+    ['Exercício 2 · História escolhida', STORY_TIPOS[r.ex2_escolhida] || ''],
+    ['Exercício 2 · Minha história com detalhe', r.ex2_historia],
+    ['Exercício 2 · Detalhes usados', lista(STORY_DETALHES, r.ex2_detalhes)],
+    ['Exercício 2 · Conferência de cuidado', lista(STORY_CUIDADO, r.ex2_cuidado)],
+    ['Exercício 2 · Primeira frase da nova versão', r.ex2_primeira_frase],
+    ['Exercício 3 · Já recebeu o arquétipo?', r.ex3_tem_arquetipo === 'sim' ? 'Sim' : (r.ex3_tem_arquetipo === 'nao' ? 'Ainda não' : '')],
+    ['Exercício 3 · Arquétipo principal', r.ex3_tem_arquetipo === 'sim' ? r.ex3_arquetipo : ''],
+    ['Exercício 3 · Sensação que quer deixar', r.ex3_tem_arquetipo === 'nao' ? r.ex3_sensacao : ''],
+    ['Exercício 3 · Para onde a voz olha', r.ex3_voz_olha],
+    ['Exercício 3 · Minha história na minha voz', r.ex3_historia],
+    ['Exercício 3 · O fato continua o mesmo', (r.ex3_fato || []).includes('mesmo') ? 'Sim' : (r.ex3_historia ? 'Não confirmado' : '')],
+    ['Exercício 3 · O final da minha história', r.ex3_final],
+    ['Tarefa · Link do vídeo', r.tarefa_link],
+    ['Tarefa · Data em que publicou', r.tarefa_data ? r.tarefa_data.split('-').reverse().join('/') : ''],
+    ['Tarefa · Comentários', r.tarefa_comentarios],
+    ['Tarefa · Perguntas', r.tarefa_perguntas],
+    ['Tarefa · Mensagens no direct', r.tarefa_direct],
+    ['Tarefa · Quem compartilhou ou marcou', r.tarefa_compartilhou],
+  );
+  (r.banco || []).forEach((h, i) => {
+    const data = h.criadoEm ? new Date(h.criadoEm).toLocaleDateString('pt-BR') : '';
+    linhas.push([`Banco de Histórias · ${i + 1}${h.tipo ? ' (' + (STORY_TIPOS[h.tipo] || h.tipo) + ')' : ''}${data ? ' · ' + data : ''}`, h.texto]);
+  });
+  return linhas;
+}
+
+async function carregarStorytelling(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('storytelling')
+    .select('*')
+    .order('updated_at', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${escapeHtml(error.message)}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno começou essa atividade ainda.</div>'; return; }
+
+  const userIds = [...new Set(data.map(r => r.user_id))];
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  el.innerHTML = '';
+  data.forEach(r => {
+    const perfil = perfilMap[r.user_id] || {};
+    const respostas = r.respostas || {};
+    const linhas = storytellingLinhas(respostas)
+      .filter(([, valor]) => valor)
+      .map(([rotulo, valor]) => `<div class="texto" style="margin-top:8px; font-style:normal; white-space:pre-wrap;"><strong style="color:var(--gold-light);">${escapeHtml(rotulo)}:</strong> ${escapeHtml(String(valor))}</div>`)
+      .join('');
+    const card = document.createElement('div');
+    card.className = 'resp-group collapsed';
+    card.innerHTML = `
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
+        <div>
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">Atualizado ${formatDate(r.updated_at)}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <button class="small baixar-pdf-storytelling">Baixar PDF</button>
+          ${linhas || '<div class="texto" style="font-style:italic; margin-top:10px;">Ainda sem respostas preenchidas.</div>'}
+          <div class="field" style="margin-top:14px; margin-bottom:0;">
+            <label>Correção / comentário</label>
+            <textarea class="comentario-input" rows="3">${escapeHtml(r.comentario_professor || '')}</textarea>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="small salvar-comentario">Salvar comentário</button>
+          </div>
+        </div>
+      </div>
+    `;
+    card.querySelector('.baixar-pdf-storytelling').onclick = async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+      try{
+        await gerarPdfStorytellingAdmin(respostas, perfil.nome || perfil.email, perfil.email);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Baixar PDF';
+      }
+    };
+    card.querySelector('.salvar-comentario').onclick = async (e) => {
+      const btn = e.target;
+      const textarea = card.querySelector('.comentario-input');
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      const { error } = await supabaseClient
+        .from('storytelling')
+        .update({ comentario_professor: textarea.value })
+        .eq('user_id', r.user_id);
+      btn.disabled = false;
+      btn.textContent = error ? 'Erro, tentar de novo' : 'Salvo!';
+      if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
+    };
+    el.appendChild(card);
+  });
+}
+
+async function gerarPdfStorytellingAdmin(r, nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+  // a fonte padrão do jsPDF não desenha emoji nem setas: retira só no PDF
+  const extras = '–—‘’“”•…€·';
+  const limpar = (s) => Array.from(String(s || '')).filter(ch => ch === '\n' || ch.codePointAt(0) <= 255 || extras.includes(ch)).join('').replace(/ {2,}/g, ' ').trim();
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+  try{
+    const logoDataUrl = await svgToPngDataUrl('assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('CADERNO DE ATIVIDADES', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text('Storytelling que posiciona', margin, y);
+  y += 8;
+  doc.setFontSize(12);
+  doc.text(`Aluno: ${limpar(nomeAluno)}`, margin, y);
+  y += 6.5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){ doc.text(`Email: ${emailAluno}`, margin, y); y += 6; }
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alturaNecessaria){
+    if(y > pageHeight - alturaNecessaria){ doc.addPage(); y = 22; }
+  }
+
+  storytellingLinhas(r).forEach(([rotulo, valor]) => {
+    checarQuebra(20);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 31, 61);
+    const labelLines = doc.splitTextToSize(rotulo, maxWidth);
+    doc.text(labelLines, margin, y);
+    y += labelLines.length * 5.2 + 1;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(40, 40, 40);
+    doc.splitTextToSize(limpar(valor) || '(não preenchido)', maxWidth).forEach(line => {
+      checarQuebra(14);
+      doc.text(line, margin, y);
+      y += 5.2;
+    });
+    y += 5;
+  });
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`storytelling-${nomeArquivo || 'aluno'}.pdf`);
 }
 
 // ---------------------------------------------------------------

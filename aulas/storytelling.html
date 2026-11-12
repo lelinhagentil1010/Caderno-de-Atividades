@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Storytelling que posiciona: caderno de atividades</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --green: #3E8E5A;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+
+*{ box-sizing: border-box; }
+
+html,body{
+  margin:0; padding:0;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+
+.app{
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  min-height: 100vh;
+  width: 100%;
+  display:flex;
+  flex-direction:column;
+}
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--gold-light);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  cursor: pointer;
+  background: var(--navy-2);
+  text-decoration: none;
+  transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+.link-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+.masthead{ text-align:center; margin-bottom: 32px; }
+.eyebrow{ font-family:'Poppins', sans-serif; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-family:'Poppins', sans-serif; font-weight:700; font-size: clamp(26px, 4.4vw, 36px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.5; max-width: 560px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.cards-stack{ display:flex; flex-direction:column; gap: 28px; }
+
+.card{
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
+}
+
+.roteiro-sub{ font-family:'Poppins', sans-serif; font-weight: 700; font-size: 17px; letter-spacing: 0.02em; color: var(--gold-light); margin: 0 0 10px; }
+.card-intro{ color: var(--cream-dim); font-size: 14px; line-height: 1.55; margin: 0 0 18px; white-space: pre-line; }
+
+.callout{ margin: 0 0 18px; padding: 14px 16px; border-left: 3px solid var(--gold-dim); background: rgba(201,162,39,0.05); border-radius: var(--radius-sm); font-size: 13.5px; line-height: 1.5; color: var(--cream-dim); }
+.callout strong{ color: var(--gold-light); }
+
+.field{ margin-bottom: 18px; }
+.field:last-child{ margin-bottom: 0; }
+.field label{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 14px; color: var(--gold-light); margin-bottom: 8px; }
+input[type=text], input[type=url], textarea{
+  width:100%;
+  background: var(--navy-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 13px 15px;
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  resize: vertical;
+}
+input[type=text]:focus, input[type=url]:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
+textarea{ min-height: 90px; }
+textarea.grande{ min-height: 160px; }
+
+.choice-group{ display:flex; flex-wrap:wrap; gap: 10px; }
+.choice-btn{
+  padding: 10px 18px;
+  min-width: 44px;
+  text-align:center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--navy-3);
+  color: var(--cream);
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor:pointer;
+  transition: all .15s ease;
+}
+.choice-btn:hover{ border-color: var(--gold-dim); background: rgba(201,162,39,0.08); }
+.choice-btn.selected{ border-color: var(--gold); background: linear-gradient(180deg, rgba(201,162,39,0.16), rgba(201,162,39,0.05)); color: var(--gold-light); }
+
+.gabarito-box{ margin-top:12px; border-radius: var(--radius-md); padding: 14px 16px; border:1px solid var(--gold-dim); background: rgba(201,162,39,0.06); }
+.gabarito-box.correta{ border-color: var(--green); background: rgba(62,142,90,0.10); }
+.gabarito-box.incorreta{ border-color: var(--red); background: rgba(194,68,68,0.08); }
+.gabarito-resultado{ font-family:'Poppins', sans-serif; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; color: var(--gold-light); }
+.gabarito-box.correta .gabarito-resultado{ color: var(--green); }
+.gabarito-box.incorreta .gabarito-resultado{ color: var(--red); }
+.gabarito-explicacao{ font-size:14px; color:var(--cream); line-height:1.5; }
+
+.readonly-box{ padding: 12px 14px; border-radius: var(--radius-sm); background: var(--navy-3); border: 1px solid var(--line); color: var(--cream-dim); font-style: italic; font-size: 14px; margin-bottom: 10px; }
+.pauta-item{ margin-bottom: 20px; }
+.pauta-item:last-child{ margin-bottom: 0; }
+.pauta-label{ display:block; font-family:'Poppins', sans-serif; font-weight: 500; font-size: 13px; color: var(--gold-light); margin-bottom: 6px; }
+
+.status{ font-size: 12.5px; color: var(--cream-dim); margin-top: 10px; min-height: 18px; }
+.status.error{ color: var(--red); }
+
+.save-status{
+  position: fixed; right: 16px; bottom: 16px; z-index: 50;
+  max-width: min(380px, calc(100vw - 32px));
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--navy-2);
+  border: 1px solid var(--gold-dim);
+  box-shadow: var(--shadow-card);
+  font-size: 12.5px; line-height: 1.4;
+  color: var(--cream-dim);
+}
+.save-status:empty{ display: none; }
+.save-status.ok{ border-color: var(--green); color: var(--cream); }
+.save-status.erro{ border-color: var(--red); background: rgba(194,68,68,0.92); color: #fff; border-radius: var(--radius-md); }
+
+.hidden{ display:none !important; }
+
+.feedback-box{ margin-bottom: 28px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 16px; }
+.feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 14.5px; line-height: 1.5; }
+
+button{
+  font-family:'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14.5px;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill);
+  cursor:pointer;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-light);
+  transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; border-color: var(--gold); }
+button.primary:hover{ background: var(--gold-light); }
+button:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+.pautas-grid{ display:flex; flex-direction:column; gap: 14px; }
+.pauta-row{ display:flex; gap: 12px; flex-wrap: wrap; }
+.pauta-row .field{ flex:1 1 220px; margin-bottom:0; }
+
+/* Desktop grande */
+@media (min-width: 1440px){
+  .app{ max-width: 960px; }
+}
+/* Tablet */
+@media (max-width: 1024px){
+  .app{ padding: 28px 20px 70px; }
+}
+/* Mobile */
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+}
+
+.ajuda{ font-size: 12.5px; line-height: 1.45; color: rgba(244,239,227,0.62); margin-top: 6px; }
+.ebook-ref{ display:inline-block; margin-top: 2px; font-size: 12.5px; color: var(--gold-light); background: rgba(201,162,39,0.08); border: 1px dashed var(--gold-dim); border-radius: var(--radius-sm); padding: 5px 10px; }
+.aviso{ font-size: 12.5px; line-height: 1.45; color: #E58A8A; margin-top: 8px; }
+.aviso:empty{ display:none; }
+.choice-btn.multi.selected::before{ content: '✓ '; }
+.check-list{ display:flex; flex-direction:column; gap: 10px; }
+.check-item{ display:flex; gap: 10px; align-items:flex-start; padding: 11px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--navy-3); cursor: pointer; font-size: 14px; line-height: 1.45; color: var(--cream); }
+.check-item input{ margin-top: 3px; width: 17px; height: 17px; accent-color: var(--gold); flex-shrink: 0; cursor: pointer; }
+.check-item.marcado{ border-color: var(--gold-dim); background: rgba(201,162,39,0.07); }
+input[type=date], select{
+  width:100%; background: var(--navy-3); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 12px 14px; color: var(--cream); font-family:'Poppins', sans-serif; font-size: 15px; color-scheme: dark;
+}
+input[type=date]:focus, select:focus{ outline:none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+select option{ background: var(--navy-2); color: var(--cream); }
+.ref-box{ margin: 0 0 20px; padding: 14px 16px; border-radius: var(--radius-md); border: 1px solid var(--gold-dim); background: rgba(201,162,39,0.05); }
+.ref-box .ref-label{ font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 6px; }
+.ref-box .ref-texto{ white-space: pre-wrap; font-size: 14px; line-height: 1.55; color: var(--cream); }
+.ref-box .ref-vazio{ font-style: italic; color: var(--cream-dim); }
+.perguntas-fixas{ margin: 0 0 22px; padding: 0 0 0 20px; color: var(--cream-dim); font-size: 14px; line-height: 1.6; }
+.perguntas-fixas li{ margin-bottom: 6px; }
+.perguntas-fixas b{ color: var(--gold-light); font-weight: 600; }
+.bloco-titulo{ font-weight: 600; font-size: 14.5px; color: var(--gold-light); margin: 26px 0 12px; }
+details.resumo{ margin: 0 0 22px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); }
+details.resumo summary{ cursor: pointer; padding: 13px 16px; font-weight: 600; font-size: 14px; color: var(--gold-light); list-style: none; }
+details.resumo summary::-webkit-details-marker{ display:none; }
+details.resumo summary::after{ content: ' ▾'; }
+details.resumo[open] summary::after{ content: ' ▴'; }
+.resumo-corpo{ padding: 0 16px 14px; }
+.resumo-item{ padding: 10px 0; border-top: 1px solid var(--line); }
+.resumo-item .k{ font-size: 12px; font-weight: 600; color: var(--gold-light); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.resumo-item .v{ white-space: pre-wrap; font-size: 14px; line-height: 1.5; color: var(--cream); }
+.resumo-item .v.vazio{ font-style: italic; color: var(--cream-dim); }
+.banco-lista{ display:flex; flex-direction:column; gap: 12px; margin-bottom: 18px; }
+.banco-item{ border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 16px; background: rgba(27,47,87,0.6); }
+.banco-item .topo{ display:flex; justify-content:space-between; align-items:center; gap: 10px; margin-bottom: 8px; }
+.banco-item .tag{ font-size: 11.5px; font-weight: 600; color: var(--navy); background: var(--gold); border-radius: var(--radius-pill); padding: 3px 10px; }
+.banco-item .data{ font-size: 12px; color: var(--cream-dim); margin-left: 8px; }
+.banco-item .texto{ white-space: pre-wrap; font-size: 14px; line-height: 1.55; }
+.btn-remover{ padding: 4px 12px; font-size: 12px; border-color: var(--line); color: var(--cream-dim); }
+.acoes{ display:flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.fechamento{ text-align:center; margin: 40px auto 0; max-width: 620px; font-size: clamp(17px, 2.6vw, 21px); line-height: 1.5; font-style: italic; color: var(--cream); }
+.fechamento b{ color: var(--gold-light); font-weight: 600; }
+.modal-fundo{ position: fixed; inset: 0; background: rgba(5,12,26,0.75); display:flex; align-items:center; justify-content:center; padding: 20px; z-index: 100; }
+.modal{ max-width: 440px; width: 100%; background: var(--navy-2); border: 1px solid var(--gold-dim); border-radius: var(--radius-lg); padding: 26px; box-shadow: var(--shadow-card); }
+.modal h3{ margin: 0 0 10px; font-size: 18px; color: var(--gold-light); }
+.modal p{ margin: 0 0 18px; font-size: 14px; line-height: 1.55; color: var(--cream-dim); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="Lelinha Gentil" class="logo">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" id="downloadBtn">Baixar PDF</button>
+      <button class="link-btn" id="refazerBtn">Refazer</button>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Caderno de atividades</div>
+    <h1>Storytelling que posiciona</h1>
+    <div class="rule"></div>
+  </div>
+
+  <div class="feedback-box hidden" id="comentarioBox">
+    <div class="label">Comentário da professora</div>
+    <div class="texto" id="comentarioTexto"></div>
+  </div>
+
+  <div class="cards-stack">
+
+    <!-- ABERTURA -->
+    <div class="card">
+      <p class="card-intro">Neste caderno você monta o seu Banco de Histórias: as histórias reais que você tem, a melhor delas lapidada com detalhe e a mesma história contada com a sua voz.
+Uma regra vale para tudo aqui: só história verdadeira. Você pode mudar o que identifica um cliente, mas nunca o que aconteceu.
+
+Use este caderno junto com o ebook Storytelling que posiciona. Cada exercício indica o capítulo do ebook que explica o que você vai fazer.</p>
+    </div>
+
+    <!-- EXERCÍCIO 1 -->
+    <div class="card" id="card_ex1">
+      <div class="roteiro-sub">Exercício 1: Minhas seis histórias</div>
+      <p class="card-intro">Você não tem uma história. Você tem várias, e cada tipo faz um trabalho diferente em quem assiste. Para cada tipo abaixo, leia a pergunta e anote uma história real em uma ou duas linhas. Só o essencial: o que aconteceu. Ainda não é para escrever bonito, é só para lembrar. Travou em algum tipo? Pule e volte depois.</p>
+      <div class="ebook-ref" style="margin-bottom:20px;">No ebook: capítulo Os seis tipos de história.</div>
+      <div id="ex1_campos"></div>
+      <div class="field">
+        <label>O tipo mais fácil para mim foi</label>
+        <div class="choice-group" id="grupo_ex1_mais_facil"></div>
+      </div>
+      <div class="field">
+        <label>O tipo mais difícil para mim foi</label>
+        <div class="choice-group" id="grupo_ex1_mais_dificil"></div>
+        <div class="ajuda">O mais difícil de contar costuma ser o mais raro de ver, e por isso o que as pessoas mais lembram.</div>
+      </div>
+    </div>
+
+    <!-- EXERCÍCIO 2 -->
+    <div class="card" id="card_ex2">
+      <div class="roteiro-sub">Exercício 2: Uma história com detalhe</div>
+      <p class="card-intro">Quem assiste não lembra de ideias. Lembra de cenas. Escolha uma das histórias do Exercício 1, a que mais te marcou, e reescreva colocando pelo menos dois destes quatro detalhes: quando (um momento específico), onde (um lugar que dá para ver), a fala exata (o que alguém disse, com as palavras dela) e um objeto ou número (algo que dá para tocar ou contar).</p>
+      <div class="ebook-ref" style="margin-bottom:20px;">No ebook: capítulo O detalhe que faz a história ser lembrada.</div>
+      <div class="field">
+        <label>Qual história você escolheu?</label>
+        <div class="choice-group" id="grupo_ex2_escolhida"></div>
+        <div class="ajuda">A que mais te marcou. Não pense muito.</div>
+      </div>
+      <div class="ref-box hidden" id="ref_ex2"><div class="ref-label" id="ref_ex2_label"></div><div class="ref-texto" id="ref_ex2_texto"></div></div>
+      <div class="field">
+        <label for="field_ex2_historia">Minha história com detalhe</label>
+        <textarea id="field_ex2_historia" class="grande"></textarea>
+        <div class="ajuda">Dica: a fala exata quase sempre é o detalhe mais forte. Se você lembra o que a pessoa disse, comece por ela.</div>
+      </div>
+      <div class="field">
+        <label>Quais detalhes você usou?</label>
+        <div class="choice-group" id="grupo_ex2_detalhes"></div>
+        <div class="ajuda">Marque pelo menos dois.</div>
+        <div class="aviso" id="aviso_ex2_detalhes"></div>
+      </div>
+      <div class="field">
+        <label>Conferência de cuidado</label>
+        <div class="check-list" id="lista_ex2_cuidado"></div>
+        <div class="ajuda">Ninguém pode ser reconhecido. Na dúvida, peça autorização ou escolha outra história.</div>
+      </div>
+      <div class="field">
+        <label for="field_ex2_primeira_frase">A primeira frase da nova versão</label>
+        <input type="text" id="field_ex2_primeira_frase">
+        <div class="ajuda">Leia sozinha: ela já dá vontade de ouvir o resto?</div>
+      </div>
+    </div>
+
+    <!-- EXERCÍCIO 3 -->
+    <div class="card" id="card_ex3">
+      <div class="roteiro-sub">Exercício 3: Na minha voz</div>
+      <p class="card-intro">O arquétipo não muda o que aconteceu. Ele decide três coisas: o foco (o que ganha destaque na cena), as palavras (o tom e o ritmo) e o final (a lição que a história deixa). Pegue a história do Exercício 2 e reescreva com a sua voz. Se você já tem o arquétipo, use o seu Brandbook, na parte da Voz da Marca. Se ainda não tem, use a sensação que você quer deixar em quem te encontra.</p>
+      <div class="ebook-ref" style="margin-bottom:20px;">No ebook: capítulo A mesma história, com a sua voz.</div>
+      <div class="ref-box" id="ref_ex3"><div class="ref-label">Sua história do Exercício 2</div><div class="ref-texto" id="ref_ex3_texto"></div></div>
+      <div class="field">
+        <label>Você já recebeu o seu arquétipo?</label>
+        <div class="choice-group" id="grupo_ex3_tem_arquetipo"></div>
+      </div>
+      <div class="field hidden" id="wrap_ex3_arquetipo">
+        <label for="field_ex3_arquetipo">Meu arquétipo principal</label>
+        <select id="field_ex3_arquetipo"></select>
+      </div>
+      <div class="field hidden" id="wrap_ex3_sensacao">
+        <label for="field_ex3_sensacao">A sensação que eu quero deixar em quem me encontra</label>
+        <input type="text" id="field_ex3_sensacao">
+        <div class="ajuda">Exemplos: segurança, acolhimento, admiração, coragem.</div>
+      </div>
+      <div class="field">
+        <label for="field_ex3_voz_olha">Para onde a minha voz olha nessa cena?</label>
+        <input type="text" id="field_ex3_voz_olha">
+        <div class="ajuda">Exemplo: o Sábio olha para a causa, o Governante para o controle, o Herói para a luta, o Cuidador para a pessoa.</div>
+      </div>
+      <div class="field">
+        <label for="field_ex3_historia">Minha história na minha voz</label>
+        <textarea id="field_ex3_historia" class="grande"></textarea>
+        <div class="ajuda">Ajuste o foco, as palavras e principalmente o final.</div>
+      </div>
+      <div class="field">
+        <div class="check-list" id="lista_ex3_fato"></div>
+        <div class="ajuda">Se você mudou alguma coisa do que aconteceu, volte. Inventar ou exagerar quebra a confiança que a história deveria construir.</div>
+        <div class="aviso" id="aviso_ex3_fato"></div>
+      </div>
+      <div class="field">
+        <label for="field_ex3_final">O final da minha história</label>
+        <input type="text" id="field_ex3_final">
+        <div class="ajuda">O final é o que fica. Ele precisa soar como você.</div>
+      </div>
+    </div>
+
+    <!-- TAREFA -->
+    <div class="card" id="card_tarefa">
+      <div class="roteiro-sub">Tarefa: Sua história vira vídeo</div>
+      <p class="card-intro">Monte o roteiro usando a história que você escreveu na sua voz, grave e publique. Durante a semana, volte aqui e anote o que ela gerou. Repare principalmente nas perguntas: elas mostram o que o seu público quer ouvir na próxima história.</p>
+      <div class="ebook-ref" style="margin-bottom:20px;">No ebook: capítulo Da história ao vídeo.</div>
+      <div class="field">
+        <label for="field_tarefa_link">Link do vídeo publicado</label>
+        <input type="url" id="field_tarefa_link" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label for="field_tarefa_data">Data em que publiquei</label>
+        <input type="date" id="field_tarefa_data">
+      </div>
+      <div class="field">
+        <label for="field_tarefa_comentarios">Comentários que me chamaram atenção</label>
+        <textarea id="field_tarefa_comentarios"></textarea>
+        <div class="ajuda">Copie as palavras de quem comentou, do jeito que escreveram.</div>
+      </div>
+      <div class="field">
+        <label for="field_tarefa_perguntas">Perguntas que apareceram</label>
+        <textarea id="field_tarefa_perguntas"></textarea>
+        <div class="ajuda">Nos comentários e no direct. Cada pergunta pode virar a próxima história.</div>
+      </div>
+      <div class="field">
+        <label for="field_tarefa_direct">Mensagens no direct</label>
+        <textarea id="field_tarefa_direct"></textarea>
+        <div class="ajuda">Sem nome de quem mandou. Anote só o que a pessoa disse ou perguntou.</div>
+      </div>
+      <div class="field">
+        <label for="field_tarefa_compartilhou">Quem compartilhou ou marcou alguém</label>
+        <input type="text" id="field_tarefa_compartilhou">
+        <div class="ajuda">Se a rede mostrar. Pode ser só a quantidade.</div>
+      </div>
+    </div>
+
+    <!-- BANCO DE HISTÓRIAS -->
+    <div class="card" id="card_banco">
+      <div class="roteiro-sub">Seu Banco de Histórias</div>
+      <p class="card-intro">Este é o seu Banco de Histórias. Toda vez que acontecer algo no seu trabalho que te fizer pensar “isso daria uma história”, anote aqui no mesmo dia, com a fala exata se tiver. Daqui a uma semana o detalhe some, e é o detalhe que faz a história.</p>
+      <div class="bloco-titulo" style="margin-top:6px;">Perguntas que puxam história</div>
+      <ol class="perguntas-fixas" id="perguntas_fixas"></ol>
+
+      <details class="resumo" id="resumo_banco">
+        <summary>O que você já escreveu nos exercícios</summary>
+        <div class="resumo-corpo" id="resumo_corpo"></div>
+      </details>
+
+      <div class="bloco-titulo">Histórias guardadas</div>
+      <div class="banco-lista" id="banco_lista"></div>
+
+      <div class="field">
+        <label for="field_banco_rascunho_texto">Nova história para o banco</label>
+        <textarea id="field_banco_rascunho_texto"></textarea>
+        <div class="ajuda">Anote o que aconteceu, quando, onde e a fala exata.</div>
+      </div>
+      <div class="field">
+        <label>Tipo dessa história</label>
+        <div class="choice-group" id="grupo_banco_rascunho_tipo"></div>
+      </div>
+      <div class="acoes">
+        <button class="primary" type="button" id="adicionarHistoriaBtn">Adicionar outra história</button>
+      </div>
+      <div class="status" id="bancoStatus"></div>
+    </div>
+
+  </div>
+
+  <p class="fechamento">Seu currículo diz o que você sabe.<br><b>Sua história diz por que confiar em você.</b></p>
+
+</div>
+
+<div class="save-status" id="saveStatus" role="status" aria-live="polite"></div>
+
+<div class="modal-fundo hidden" id="modalRefazer">
+  <div class="modal">
+    <h3>Refazer o caderno?</h3>
+    <p>As respostas dos Exercícios 1, 2 e 3 e da Tarefa vão ser apagadas para você começar de novo. As histórias guardadas no seu Banco de Histórias continuam aqui.</p>
+    <div class="acoes" style="margin-top:0;">
+      <button class="primary" type="button" id="confirmarRefazer">Sim, refazer</button>
+      <button type="button" id="cancelarRefazer">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+// Caderno "Storytelling que posiciona". Tabela no Supabase: storytelling (uma linha por aluno, respostas em jsonb).
+const TABELA = 'storytelling';
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+let currentUserId = null;
+let alunoNome = '';
+let alunoEmail = '';
+let respostas = {};
+
+// ---------------------------------------------------------------
+// CONTEÚDO
+// ---------------------------------------------------------------
+const TIPOS = [
+  { value: 'origem', label: 'Origem', campo: 'Origem (constrói identificação)', pergunta: 'O que aconteceu na sua vida que fez você escolher esse trabalho?' },
+  { value: 'virada', label: 'Virada', campo: 'Virada (constrói convicção)', pergunta: 'No que você acreditava no começo da carreira e hoje pensa diferente?' },
+  { value: 'erro', label: 'Erro', campo: 'Erro (constrói confiança)', pergunta: 'Qual erro seu hoje ajuda o seu cliente a não cometer o mesmo?',
+    cuidado: 'Cuidado: erro de escolha, de método ou de comunicação. Nunca um erro que exponha cliente ou paciente.' },
+  { value: 'bastidor', label: 'Bastidor', campo: 'Bastidor (constrói percepção de competência)', pergunta: 'O que você faz que o cliente nem imagina que dá trabalho?' },
+  { value: 'caso', label: 'Caso de cliente', campo: 'Caso de cliente (constrói prova)', pergunta: 'Qual atendimento mostra melhor como você trabalha?',
+    cuidado: 'Cuidado: sem nome e sem nenhum dado que identifique a pessoa. Conte o processo, nunca prometa o resultado.' },
+  { value: 'opiniao', label: 'Opinião', campo: 'Opinião (constrói posicionamento)', pergunta: 'O que todo mundo da sua área repete e você discorda?', extra: 'Conte a partir de uma situação real.' },
+];
+const TIPO_OPCOES = TIPOS.map(t => ({ value: t.value, label: t.label }));
+const DETALHE_OPCOES = [
+  { value: 'quando', label: 'Quando' },
+  { value: 'onde', label: 'Onde' },
+  { value: 'fala', label: 'A fala exata' },
+  { value: 'objeto', label: 'Um objeto ou número' },
+];
+const CUIDADO_OPCOES = [
+  { value: 'sem_nome', label: 'Não aparece nome nem apelido' },
+  { value: 'troquei', label: 'Troquei o que poderia identificar a pessoa' },
+  { value: 'cena', label: 'O detalhe vem da cena, não da vida privada do cliente' },
+  { value: 'sem_cliente', label: 'Esta história não envolve cliente' },
+];
+const SIM_AINDA_OPCOES = [ { value: 'sim', label: 'Sim' }, { value: 'nao', label: 'Ainda não' } ];
+const ARQUETIPOS = ['Inocente','Explorador','Sábio','Herói','Fora da Lei','Mago','Cara Comum','Amante','Bobo da Corte','Cuidador','Criador','Governante'];
+
+function rotulo(opcoes, valor){
+  const op = opcoes.find(o => o.value === valor);
+  return op ? op.label : '';
+}
+function rotulos(opcoes, valores){
+  return (valores || []).map(v => rotulo(opcoes, v)).filter(Boolean).join(', ');
+}
+
+// ---------------------------------------------------------------
+// COMPONENTES
+// ---------------------------------------------------------------
+function criarChoiceGroup(containerId, chave, opcoes, onSelect){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  opcoes.forEach(op => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice-btn';
+    btn.textContent = op.label;
+    if(respostas[chave] === op.value) btn.classList.add('selected');
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      respostas[chave] = op.value;
+      if(onSelect) onSelect(op.value);
+      salvarAgora();
+    });
+    container.appendChild(btn);
+  });
+}
+
+// Seleção múltipla em botões (salva um array de valores)
+function criarMultiGroup(containerId, chave, opcoes, onChange){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  opcoes.forEach(op => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice-btn multi';
+    btn.textContent = op.label;
+    if((respostas[chave] || []).includes(op.value)) btn.classList.add('selected');
+    btn.addEventListener('click', () => {
+      const atual = new Set(respostas[chave] || []);
+      if(atual.has(op.value)) atual.delete(op.value); else atual.add(op.value);
+      respostas[chave] = opcoes.map(o => o.value).filter(v => atual.has(v));
+      btn.classList.toggle('selected', atual.has(op.value));
+      if(onChange) onChange();
+      salvarAgora();
+    });
+    container.appendChild(btn);
+  });
+}
+
+// Caixas de marcar (salva um array de valores)
+function criarCheckList(containerId, chave, opcoes, onChange){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  opcoes.forEach(op => {
+    const item = document.createElement('label');
+    item.className = 'check-item';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = (respostas[chave] || []).includes(op.value);
+    item.classList.toggle('marcado', cb.checked);
+    cb.addEventListener('change', () => {
+      const atual = new Set(respostas[chave] || []);
+      if(cb.checked) atual.add(op.value); else atual.delete(op.value);
+      respostas[chave] = opcoes.map(o => o.value).filter(v => atual.has(v));
+      item.classList.toggle('marcado', cb.checked);
+      if(onChange) onChange();
+      salvarAgora();
+    });
+    const span = document.createElement('span');
+    span.textContent = op.label;
+    item.appendChild(cb);
+    item.appendChild(span);
+    container.appendChild(item);
+  });
+}
+
+// ---------------------------------------------------------------
+// EXERCÍCIO 1: campos das seis histórias
+// ---------------------------------------------------------------
+function montarCamposEx1(){
+  document.getElementById('ex1_campos').innerHTML = TIPOS.map(t => `
+    <div class="field">
+      <label for="field_ex1_${t.value}">${escapeHtml(t.campo)}</label>
+      <textarea id="field_ex1_${t.value}"></textarea>
+      <div class="ajuda">${escapeHtml(t.pergunta)}${t.cuidado ? ' ' + escapeHtml(t.cuidado) : ''}${t.extra ? ' ' + escapeHtml(t.extra) : ''}</div>
+    </div>`).join('');
+}
+
+// ---------------------------------------------------------------
+// LIGAÇÕES ENTRE OS CARDS
+// ---------------------------------------------------------------
+function atualizarRefEx2(){
+  const tipo = respostas.ex2_escolhida;
+  const box = document.getElementById('ref_ex2');
+  if(!tipo){ box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  document.getElementById('ref_ex2_label').textContent = `Sua história de ${rotulo(TIPO_OPCOES, tipo)} (Exercício 1)`;
+  const txt = (respostas['ex1_' + tipo] || '').trim();
+  const el = document.getElementById('ref_ex2_texto');
+  el.textContent = txt || 'Você ainda não escreveu essa história no Exercício 1. Pode escrever direto aqui embaixo.';
+  el.classList.toggle('ref-vazio', !txt);
+}
+
+function atualizarRefEx3(){
+  const txt = (respostas.ex2_historia || '').trim();
+  const el = document.getElementById('ref_ex3_texto');
+  el.textContent = txt || 'Escreva primeiro a sua história com detalhe no Exercício 2. Ela aparece aqui para você reescrever olhando para ela.';
+  el.classList.toggle('ref-vazio', !txt);
+}
+
+function atualizarAvisoDetalhes(){
+  const n = (respostas.ex2_detalhes || []).length;
+  const mexeu = n > 0 || (respostas.ex2_historia || '').trim().length > 0;
+  document.getElementById('aviso_ex2_detalhes').textContent =
+    mexeu && n < 2 ? `${n === 0 ? 'Você ainda não marcou nenhum detalhe' : 'Você marcou só 1 detalhe'}. Volte na história e coloque pelo menos dois.` : '';
+}
+
+function aplicarVisibilidadeArquetipo(){
+  const v = respostas.ex3_tem_arquetipo;
+  document.getElementById('wrap_ex3_arquetipo').classList.toggle('hidden', v !== 'sim');
+  document.getElementById('wrap_ex3_sensacao').classList.toggle('hidden', v !== 'nao');
+}
+
+function atualizarAvisoFato(){
+  const marcou = (respostas.ex3_fato || []).includes('mesmo');
+  const escreveu = (respostas.ex3_historia || '').trim().length > 0;
+  document.getElementById('aviso_ex3_fato').textContent =
+    escreveu && !marcou ? 'Confirme que o fato continua exatamente o mesmo. Se mudou alguma coisa do que aconteceu, volte e corrija.' : '';
+}
+
+function itemResumo(k, v){
+  const t = (v || '').trim();
+  return `<div class="resumo-item"><div class="k">${escapeHtml(k)}</div><div class="v${t ? '' : ' vazio'}">${t ? escapeHtml(t) : 'ainda não escrito'}</div></div>`;
+}
+function atualizarResumo(){
+  const partes = TIPOS.map(t => itemResumo(`Exercício 1 · ${t.label}`, respostas['ex1_' + t.value]));
+  const escolhida = rotulo(TIPO_OPCOES, respostas.ex2_escolhida);
+  partes.push(itemResumo(`Exercício 2 · Com detalhe${escolhida ? ' (' + escolhida + ')' : ''}`, respostas.ex2_historia));
+  partes.push(itemResumo('Exercício 3 · Na minha voz', respostas.ex3_historia));
+  document.getElementById('resumo_corpo').innerHTML = partes.join('');
+}
+
+// ---------------------------------------------------------------
+// BANCO DE HISTÓRIAS
+// ---------------------------------------------------------------
+function formatarData(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  return isNaN(d) ? '' : d.toLocaleDateString('pt-BR');
+}
+
+function renderBanco(){
+  const lista = respostas.banco || [];
+  const el = document.getElementById('banco_lista');
+  if(!lista.length){
+    el.innerHTML = '<div class="ref-vazio" style="font-size:14px;">Nenhuma história guardada ainda. A primeira entra pelo campo abaixo.</div>';
+    return;
+  }
+  el.innerHTML = '';
+  lista.slice().reverse().forEach(h => {
+    const item = document.createElement('div');
+    item.className = 'banco-item';
+    item.innerHTML = `
+      <div class="topo">
+        <div>${h.tipo ? `<span class="tag">${escapeHtml(rotulo(TIPO_OPCOES, h.tipo))}</span>` : ''}<span class="data">${escapeHtml(formatarData(h.criadoEm))}</span></div>
+        <button type="button" class="btn-remover">Remover</button>
+      </div>
+      <div class="texto">${escapeHtml(h.texto)}</div>`;
+    const btn = item.querySelector('.btn-remover');
+    btn.addEventListener('click', () => {
+      if(btn.dataset.confirmar !== '1'){
+        btn.dataset.confirmar = '1';
+        btn.textContent = 'Confirmar remoção';
+        setTimeout(() => { btn.dataset.confirmar = ''; btn.textContent = 'Remover'; }, 4000);
+        return;
+      }
+      respostas.banco = (respostas.banco || []).filter(x => x.id !== h.id);
+      renderBanco();
+      salvarAgora();
+    });
+    el.appendChild(item);
+  });
+}
+
+document.getElementById('adicionarHistoriaBtn').addEventListener('click', () => {
+  const texto = (respostas.banco_rascunho_texto || '').trim();
+  const status = document.getElementById('bancoStatus');
+  if(!texto){
+    status.textContent = 'Escreva a história antes de adicionar.';
+    status.className = 'status error';
+    return;
+  }
+  respostas.banco = respostas.banco || [];
+  respostas.banco.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    texto,
+    tipo: respostas.banco_rascunho_tipo || null,
+    criadoEm: new Date().toISOString(),
+  });
+  respostas.banco_rascunho_texto = '';
+  respostas.banco_rascunho_tipo = null;
+  document.getElementById('field_banco_rascunho_texto').value = '';
+  criarChoiceGroup('grupo_banco_rascunho_tipo', 'banco_rascunho_tipo', TIPO_OPCOES);
+  renderBanco();
+  status.textContent = 'História guardada no seu banco. Pode anotar a próxima.';
+  status.className = 'status';
+  salvarAgora();
+});
+
+// ---------------------------------------------------------------
+// CAMPOS DE TEXTO
+// ---------------------------------------------------------------
+function wireTextFields(){
+  document.querySelectorAll('[id^="field_"]').forEach(el => {
+    const chave = el.id.replace('field_', '');
+    el.value = respostas[chave] || '';
+    const evento = el.tagName === 'SELECT' || el.type === 'date' ? 'change' : 'input';
+    el.addEventListener(evento, () => {
+      respostas[chave] = el.value;
+      if(evento === 'change') salvarAgora(); else agendarSalvar();
+      if(chave.startsWith('ex1_')) { atualizarRefEx2(); atualizarResumo(); }
+      if(chave === 'ex2_historia') { atualizarRefEx3(); atualizarAvisoDetalhes(); atualizarResumo(); }
+      if(chave === 'ex3_historia') { atualizarAvisoFato(); atualizarResumo(); }
+    });
+  });
+}
+
+// ---------------------------------------------------------------
+// SALVAMENTO (a cada ação do aluno)
+// ---------------------------------------------------------------
+let salvarTimer = null;
+let salvarPendente = false;
+let salvandoAgora = false;
+let salvarDenovo = false;
+let carregouOk = false;
+let statusTimer = null;
+
+function mostrarStatusSalvamento(texto, tipo){
+  const el = document.getElementById('saveStatus');
+  clearTimeout(statusTimer);
+  el.textContent = texto;
+  el.className = 'save-status' + (tipo ? ' ' + tipo : '');
+  if(tipo === 'ok') statusTimer = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+function agendarSalvar(){
+  if(!carregouOk) return;
+  salvarPendente = true;
+  mostrarStatusSalvamento('Salvando...');
+  clearTimeout(salvarTimer);
+  salvarTimer = setTimeout(salvarAgora, 700);
+}
+
+async function salvarAgora(){
+  if(!carregouOk) return;
+  clearTimeout(salvarTimer);
+  salvarPendente = false;
+  if(salvandoAgora){ salvarDenovo = true; return; }
+  salvandoAgora = true;
+  mostrarStatusSalvamento('Salvando...');
+  let falhou = false;
+  try{
+    const { error } = await supabaseClient.from(TABELA).upsert({
+      user_id: currentUserId,
+      respostas: { ...respostas }
+    }, { onConflict: 'user_id' });
+    if(error) throw error;
+  } catch(e){
+    falhou = true;
+    console.error('Não foi possível salvar', e);
+  }
+  salvandoAgora = false;
+  if(salvarDenovo){
+    salvarDenovo = false;
+    await salvarAgora();
+    return;
+  }
+  if(falhou) mostrarStatusSalvamento('Não foi possível salvar agora. Confira sua conexão, suas respostas continuam na tela.', 'erro');
+  else mostrarStatusSalvamento('Salvo automaticamente', 'ok');
+}
+
+function salvarSePendente(){ if(salvarPendente) salvarAgora(); }
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') salvarSePendente(); });
+window.addEventListener('pagehide', salvarSePendente);
+
+// ---------------------------------------------------------------
+// REFAZER (apaga os exercícios e a tarefa; o Banco de Histórias fica)
+// ---------------------------------------------------------------
+const modal = document.getElementById('modalRefazer');
+document.getElementById('refazerBtn').addEventListener('click', () => modal.classList.remove('hidden'));
+document.getElementById('cancelarRefazer').addEventListener('click', () => modal.classList.add('hidden'));
+modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.add('hidden'); });
+document.getElementById('confirmarRefazer').addEventListener('click', async () => {
+  const manter = { banco: respostas.banco || [], banco_rascunho_texto: respostas.banco_rascunho_texto || '', banco_rascunho_tipo: respostas.banco_rascunho_tipo || null };
+  respostas = manter;
+  modal.classList.add('hidden');
+  montarPagina();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  await salvarAgora();
+});
+
+// ---------------------------------------------------------------
+// PDF
+// ---------------------------------------------------------------
+function svgToPngDataUrl(url, width, height){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+// A fonte padrão do jsPDF não desenha emoji nem alguns símbolos: retira só no PDF
+const EXTRAS_PDF = '–—‘’“”•…€·';
+function limparPdf(s){
+  return Array.from(String(s || '')).filter(ch => ch === '\n' || ch.codePointAt(0) <= 255 || EXTRAS_PDF.includes(ch)).join('').replace(/ {2,}/g, ' ').trim();
+}
+
+async function gerarPdf(nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+  const r = respostas;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+  try{
+    const logoDataUrl = await svgToPngDataUrl('../assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.text('CADERNO DE ATIVIDADES', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text('Storytelling que posiciona', margin, y);
+  y += 8;
+  doc.setFontSize(12);
+  doc.text(`Aluno: ${limparPdf(nomeAluno)}`, margin, y);
+  y += 6.5;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){ doc.text(`Email: ${emailAluno}`, margin, y); y += 6; }
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  function checarQuebra(h){ if(y > pageHeight - h){ doc.addPage(); y = 22; } }
+  function escreverBloco(titulo, linhas){
+    checarQuebra(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(201, 162, 39);
+    doc.text(limparPdf(titulo), margin, y);
+    y += 8;
+    linhas.forEach(([label, valor]) => {
+      checarQuebra(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(15, 31, 61);
+      const labelLines = doc.splitTextToSize(limparPdf(label), maxWidth);
+      doc.text(labelLines, margin, y);
+      y += labelLines.length * 5.2 + 1;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(40, 40, 40);
+      doc.splitTextToSize(limparPdf(valor) || '(não preenchido)', maxWidth).forEach(line => {
+        checarQuebra(14);
+        doc.text(line, margin, y);
+        y += 5.2;
+      });
+      y += 5;
+    });
+    y += 3;
+  }
+
+  escreverBloco('EXERCÍCIO 1 · MINHAS SEIS HISTÓRIAS', [
+    ...TIPOS.map(t => [t.campo + ':', r['ex1_' + t.value]]),
+    ['O tipo mais fácil para mim foi:', rotulo(TIPO_OPCOES, r.ex1_mais_facil)],
+    ['O tipo mais difícil para mim foi:', rotulo(TIPO_OPCOES, r.ex1_mais_dificil)],
+  ]);
+  escreverBloco('EXERCÍCIO 2 · UMA HISTÓRIA COM DETALHE', [
+    ['Qual história você escolheu?', rotulo(TIPO_OPCOES, r.ex2_escolhida)],
+    ['Minha história com detalhe:', r.ex2_historia],
+    ['Quais detalhes você usou?', rotulos(DETALHE_OPCOES, r.ex2_detalhes)],
+    ['Conferência de cuidado:', rotulos(CUIDADO_OPCOES, r.ex2_cuidado)],
+    ['A primeira frase da nova versão:', r.ex2_primeira_frase],
+  ]);
+  const linhasEx3 = [['Você já recebeu o seu arquétipo?', rotulo(SIM_AINDA_OPCOES, r.ex3_tem_arquetipo)]];
+  if(r.ex3_tem_arquetipo === 'sim') linhasEx3.push(['Meu arquétipo principal:', r.ex3_arquetipo]);
+  if(r.ex3_tem_arquetipo === 'nao') linhasEx3.push(['A sensação que eu quero deixar em quem me encontra:', r.ex3_sensacao]);
+  linhasEx3.push(
+    ['Para onde a minha voz olha nessa cena?', r.ex3_voz_olha],
+    ['Minha história na minha voz:', r.ex3_historia],
+    ['O fato continua exatamente o mesmo:', (r.ex3_fato || []).includes('mesmo') ? 'Sim' : 'Não confirmado'],
+    ['O final da minha história:', r.ex3_final],
+  );
+  escreverBloco('EXERCÍCIO 3 · NA MINHA VOZ', linhasEx3);
+  escreverBloco('TAREFA · SUA HISTÓRIA VIRA VÍDEO', [
+    ['Link do vídeo publicado:', r.tarefa_link],
+    ['Data em que publiquei:', r.tarefa_data ? r.tarefa_data.split('-').reverse().join('/') : ''],
+    ['Comentários que me chamaram atenção:', r.tarefa_comentarios],
+    ['Perguntas que apareceram:', r.tarefa_perguntas],
+    ['Mensagens no direct:', r.tarefa_direct],
+    ['Quem compartilhou ou marcou alguém:', r.tarefa_compartilhou],
+  ]);
+  const banco = r.banco || [];
+  escreverBloco('SEU BANCO DE HISTÓRIAS', banco.length
+    ? banco.map((h, i) => [`História ${i + 1}${h.tipo ? ' · ' + rotulo(TIPO_OPCOES, h.tipo) : ''}${h.criadoEm ? ' · ' + formatarData(h.criadoEm) : ''}`, h.texto])
+    : [['Histórias guardadas:', '']]);
+
+  checarQuebra(24);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(12);
+  doc.setTextColor(15, 31, 61);
+  doc.text('Seu currículo diz o que você sabe. Sua história diz por que confiar em você.', pageWidth / 2, y + 4, { align: 'center', maxWidth });
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`storytelling-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+document.getElementById('downloadBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('downloadBtn');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+  try{
+    await gerarPdf(alunoNome, alunoEmail);
+  } catch(e){
+    console.error(e);
+    alert('Não foi possível gerar o PDF. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+// ---------------------------------------------------------------
+// MONTAGEM DA PÁGINA
+// ---------------------------------------------------------------
+function montarPagina(){
+  montarCamposEx1();
+  const sel = document.getElementById('field_ex3_arquetipo');
+  sel.innerHTML = '<option value="">Escolha...</option>' + ARQUETIPOS.map(a => `<option value="${a}">${a}</option>`).join('');
+  document.getElementById('perguntas_fixas').innerHTML = TIPOS.map(t => `<li><b>${escapeHtml(t.label)}:</b> ${escapeHtml(t.pergunta.charAt(0).toLowerCase() + t.pergunta.slice(1))}</li>`).join('');
+
+  // Recria os campos de texto para limpar os eventos antigos (o Refazer chama montarPagina de novo)
+  document.querySelectorAll('[id^="field_"]').forEach(el => { const novo = el.cloneNode(true); el.replaceWith(novo); });
+  wireTextFields();
+
+  criarChoiceGroup('grupo_ex1_mais_facil', 'ex1_mais_facil', TIPO_OPCOES);
+  criarChoiceGroup('grupo_ex1_mais_dificil', 'ex1_mais_dificil', TIPO_OPCOES);
+
+  criarChoiceGroup('grupo_ex2_escolhida', 'ex2_escolhida', TIPO_OPCOES, atualizarRefEx2);
+  criarMultiGroup('grupo_ex2_detalhes', 'ex2_detalhes', DETALHE_OPCOES, atualizarAvisoDetalhes);
+  criarCheckList('lista_ex2_cuidado', 'ex2_cuidado', CUIDADO_OPCOES);
+
+  criarChoiceGroup('grupo_ex3_tem_arquetipo', 'ex3_tem_arquetipo', SIM_AINDA_OPCOES, aplicarVisibilidadeArquetipo);
+  criarCheckList('lista_ex3_fato', 'ex3_fato', [{ value: 'mesmo', label: 'O fato continua exatamente o mesmo' }], atualizarAvisoFato);
+
+  criarChoiceGroup('grupo_banco_rascunho_tipo', 'banco_rascunho_tipo', TIPO_OPCOES);
+
+  atualizarRefEx2();
+  atualizarRefEx3();
+  atualizarAvisoDetalhes();
+  aplicarVisibilidadeArquetipo();
+  atualizarAvisoFato();
+  atualizarResumo();
+  renderBanco();
+}
+
+async function carregarDados(){
+  try{
+    const { data, error } = await supabaseClient
+      .from(TABELA)
+      .select('*')
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    if(error) throw error;
+    carregouOk = true;
+    if(!data) return;
+    respostas = data.respostas || {};
+    if(data.comentario_professor){
+      document.getElementById('comentarioTexto').textContent = data.comentario_professor;
+      document.getElementById('comentarioBox').classList.remove('hidden');
+    }
+  } catch(e){
+    console.error('Não foi possível carregar as respostas salvas', e);
+    mostrarStatusSalvamento('Não foi possível carregar suas respostas salvas. Recarregue a página antes de continuar, pra não perder nada.', 'erro');
+  }
+}
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  currentUserId = result.session.user.id;
+  alunoNome = result.profile.nome || '';
+  alunoEmail = result.profile.email || '';
+  await carregarDados();
+  montarPagina();
+})();
+</script>
+
+</body>
+</html>
