@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anatomia Viral</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --green: #3E8E5A;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+*{ box-sizing: border-box; }
+html,body{
+  margin:0; padding:0;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+.app{ max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; min-height: 100vh; width: 100%; }
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.brand{ font-weight: 700; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-light); }
+.link-btn{
+  font-family:'Poppins', sans-serif; font-weight: 500; font-size: 13px;
+  color: var(--gold-light); border: 1px solid var(--gold-dim); border-radius: var(--radius-pill);
+  padding: 8px 16px; cursor: pointer; background: var(--navy-2); text-decoration: none; transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+.link-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+.masthead{ text-align:center; margin-bottom: 32px; }
+.eyebrow{ font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-weight:700; font-size: clamp(26px, 4.4vw, 36px); margin: 0 0 10px; }
+.masthead .quote{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.5; max-width: 560px; margin: 0 auto; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.cards-stack{ display:flex; flex-direction:column; gap: 28px; }
+.card{ border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--navy-2); box-shadow: var(--shadow-card); padding: 32px; }
+.roteiro-sub{ font-weight: 700; font-size: 17px; letter-spacing: 0.02em; color: var(--gold-light); margin: 0 0 10px; }
+.card-intro{ color: var(--cream-dim); font-size: 14px; line-height: 1.55; margin: 0 0 18px; white-space: pre-line; }
+.bloco-titulo{ font-weight: 600; font-size: 14.5px; color: var(--gold-light); margin: 26px 0 8px; }
+.bloco-sub{ color: var(--cream-dim); font-size: 13px; line-height: 1.5; margin: 0 0 12px; }
+.parte-titulo{ font-weight: 700; font-size: 15px; color: var(--cream); margin: 0 0 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+.parte-titulo.primeira{ border-top: 0; padding-top: 0; }
+
+.callout{ margin: 0 0 16px; padding: 14px 16px; border-left: 3px solid var(--gold-dim); background: rgba(201,162,39,0.05); border-radius: var(--radius-sm); font-size: 13.5px; line-height: 1.5; color: var(--cream-dim); }
+.callout strong{ color: var(--gold-light); }
+.callout.destaque{ border-left-color: var(--gold); background: rgba(201,162,39,0.10); color: var(--cream); }
+.callout.aviso{ border-left-color: var(--red); background: rgba(194,68,68,0.08); color: var(--cream); }
+
+.field{ margin-bottom: 18px; }
+.field:last-child{ margin-bottom: 0; }
+.field label{ display:block; font-weight: 500; font-size: 14px; color: var(--gold-light); margin-bottom: 8px; }
+.field .ajuda{ color: var(--cream-dim); font-size: 12.5px; line-height: 1.45; margin-top: 6px; }
+input[type=text], select, textarea{
+  width:100%; background: var(--navy-3); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 13px 15px; color: var(--cream); font-family:'Poppins', sans-serif; font-size: 15px; line-height: 1.55; resize: vertical;
+}
+select option{ background: var(--navy-3); color: var(--cream); }
+input[type=text]:focus, select:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
+textarea{ min-height: 90px; }
+textarea.grande{ min-height: 130px; }
+
+.choice-group{ display:flex; flex-wrap:wrap; gap: 10px; }
+.choice-btn{
+  padding: 10px 18px; min-width: 44px; text-align:center; border-radius: var(--radius-pill);
+  border: 1px solid var(--line); background: var(--navy-3); color: var(--cream);
+  font-family:'Poppins', sans-serif; font-weight: 500; font-size: 14px; cursor:pointer; transition: all .15s ease;
+}
+.choice-btn:hover{ border-color: var(--gold-dim); background: rgba(201,162,39,0.08); }
+.choice-btn.selected{ border-color: var(--gold); background: linear-gradient(180deg, rgba(201,162,39,0.16), rgba(201,162,39,0.05)); color: var(--gold-light); }
+
+/* Lista de modelos */
+.modelos{ display:flex; flex-direction:column; gap: 10px; margin-bottom: 18px; }
+.modelo{
+  text-align:left; width:100%; display:block; padding: 14px 16px; border-radius: var(--radius-md);
+  border: 1px solid var(--line); background: var(--navy-3); color: var(--cream); cursor:pointer; transition: all .15s ease;
+  font-family:'Poppins', sans-serif; font-weight: 400; font-size: 14px; line-height: 1.5;
+}
+.modelo:hover{ border-color: var(--gold-dim); background: rgba(201,162,39,0.07); }
+.modelo.selected{ border-color: var(--gold); background: linear-gradient(180deg, rgba(201,162,39,0.16), rgba(201,162,39,0.05)); }
+.modelo-topo{ display:flex; align-items:center; gap: 10px; margin-bottom: 6px; }
+.modelo-num{ font-weight: 700; font-size: 13px; color: var(--navy); background: var(--gold); border-radius: var(--radius-pill); min-width: 28px; padding: 2px 9px; text-align:center; }
+.chip{ display:inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gold-light); border: 1px solid var(--gold-dim); border-radius: var(--radius-pill); padding: 3px 10px; margin-right: 6px; }
+.modelo-texto{ color: var(--cream); font-weight: 500; }
+.modelo-ex{ color: var(--cream-dim); font-size: 13px; margin-top: 6px; font-style: italic; }
+
+/* Preenchimento */
+.fill-campo{ margin-bottom: 14px; }
+.frag{ font-size: 14px; line-height: 1.5; color: var(--cream-dim); margin-bottom: 6px; }
+.blank{ color: var(--gold-light); font-weight: 600; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px; text-decoration-thickness: 2px; }
+.preview-live{ margin: 16px 0 14px; padding: 16px 18px; border-radius: var(--radius-md); border: 1px solid var(--gold-dim); background: rgba(201,162,39,0.06); }
+.preview-label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.preview-texto{ font-size: 16px; line-height: 1.55; color: var(--cream); }
+.preview-texto .filled{ color: var(--gold-light); font-weight: 600; }
+.preview-texto .vazio{ color: rgba(244,239,227,0.4); }
+.modelo-sub{ font-weight: 600; font-size: 13px; color: var(--gold-light); margin: 6px 0 10px; }
+
+.acoes{ display:flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.msg{ font-size: 13px; color: var(--cream-dim); margin-top: 10px; min-height: 18px; }
+.msg.erro{ color: #E58B8B; }
+
+/* Salvas */
+.salvas{ margin-top: 20px; }
+.salvas-titulo{ font-weight: 600; font-size: 13.5px; color: var(--gold-light); margin-bottom: 10px; }
+.salva{ border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); padding: 14px 16px; margin-bottom: 10px; }
+.salva-texto{ font-size: 15px; line-height: 1.55; color: var(--cream); margin: 6px 0 12px; white-space: pre-wrap; }
+.salva .acoes button, .mini{ padding: 6px 14px; font-size: 12.5px; }
+.vazio-lista{ color: var(--cream-dim); font-size: 13px; font-style: italic; }
+.antes-depois{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 12px; }
+.ad-col{ border-radius: var(--radius-sm); padding: 12px 14px; background: rgba(15,31,61,0.5); border: 1px solid var(--line); }
+.ad-col .rot{ font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 6px; }
+.ad-col .txt{ font-size: 14.5px; line-height: 1.5; white-space: pre-wrap; }
+
+/* Filtros */
+.filtro{ margin-bottom: 16px; }
+.filtro .pergunta{ font-weight: 600; font-size: 14.5px; color: var(--cream); margin-bottom: 2px; }
+.filtro .dica{ color: var(--cream-dim); font-size: 12.5px; margin-bottom: 8px; }
+
+/* Gatilhos */
+.trig-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.trig-btn{
+  text-align:left; padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--navy-3);
+  color: var(--cream); cursor:pointer; font-family:'Poppins', sans-serif; font-weight: 400; font-size: 13px; line-height: 1.45; transition: all .15s ease;
+}
+.trig-btn strong{ display:block; font-size: 14.5px; color: var(--gold-light); margin-bottom: 3px; }
+.trig-btn:hover{ border-color: var(--gold-dim); background: rgba(201,162,39,0.07); }
+.trig-btn.selected{ border-color: var(--gold); background: linear-gradient(180deg, rgba(201,162,39,0.16), rgba(201,162,39,0.05)); }
+.grupo-modelos-titulo{ font-weight: 600; font-size: 13px; color: var(--gold-light); margin: 6px 0 8px; }
+
+/* Roteiro */
+.passo-expl{ color: var(--cream-dim); font-size: 12.5px; margin-top: 6px; line-height: 1.45; }
+.passo-nome{ color: var(--gold-light); font-weight: 700; font-size: 13.5px; margin-bottom: 4px; }
+.resultado-box{ border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); padding: 16px 18px; margin-bottom: 14px; }
+.resultado-box .passo{ margin-bottom: 14px; }
+.resultado-box .passo:last-child{ margin-bottom: 0; }
+.resultado-box .txt{ font-size: 15px; line-height: 1.55; white-space: pre-wrap; }
+.resultado-box .txt.vazio{ color: rgba(244,239,227,0.4); font-style: italic; }
+.puxar{ margin-top: 8px; }
+
+.feedback-box{ margin-bottom: 28px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 16px; }
+.feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 14.5px; line-height: 1.5; }
+
+.save-status{
+  position: fixed; right: 16px; bottom: 16px; z-index: 50; max-width: min(380px, calc(100vw - 32px));
+  padding: 9px 16px; border-radius: var(--radius-pill); background: var(--navy-2); border: 1px solid var(--gold-dim);
+  box-shadow: var(--shadow-card); font-size: 12.5px; line-height: 1.4; color: var(--cream-dim);
+}
+.save-status:empty{ display: none; }
+.save-status.ok{ border-color: var(--green); color: var(--cream); }
+.save-status.erro{ border-color: var(--red); background: rgba(194,68,68,0.92); color: #fff; border-radius: var(--radius-md); }
+
+.hidden{ display:none !important; }
+
+button{
+  font-family:'Poppins', sans-serif; font-weight: 500; font-size: 14.5px; padding: 11px 22px; border-radius: var(--radius-pill);
+  cursor:pointer; border: 1px solid var(--gold); background: transparent; color: var(--gold-light); transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; }
+button.primary:hover{ background: var(--gold-light); }
+button:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+@media (min-width: 1440px){ .app{ max-width: 960px; } }
+@media (max-width: 1024px){ .app{ padding: 28px 20px 70px; } }
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+  .antes-depois{ grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">Lelinha Gentil</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="link-btn" href="../evidencia.html">◂ Voltar às aulas</a>
+      <button class="link-btn" id="downloadBtn">Baixar PDF</button>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Caderno de atividades</div>
+    <h1>Anatomia Viral</h1>
+    <p class="quote">Monte suas headlines com os 7 gatilhos, passe pelos 4 filtros e escreva seu roteiro completo em 8 passos.</p>
+    <div class="rule"></div>
+  </div>
+
+  <div class="feedback-box hidden" id="comentarioBox">
+    <div class="label">Comentário da professora</div>
+    <div class="texto" id="comentarioTexto"></div>
+  </div>
+
+  <div class="cards-stack" id="stack">
+    <!-- Exercícios 1 a 5 são montados pelo JavaScript -->
+
+    <!-- EXERCÍCIO 6 -->
+    <div class="card" id="card_ex6">
+      <div class="roteiro-sub">Exercício 6 · Passe sua headline pelos 4 filtros</div>
+      <p class="card-intro">Escolha uma das headlines que você salvou nos exercícios anteriores, ou digite uma nova, e responda às 4 perguntas. Depois, use o gerador para sair daqui com várias headlines prontas para gravar.</p>
+
+      <div class="parte-titulo primeira">Parte 1 · Os 4 filtros</div>
+      <div id="filtros"></div>
+
+      <div class="parte-titulo" style="margin-top:30px;">Parte 2 · Gerador de headlines</div>
+      <p class="bloco-sub">Siga os passos na ordem. Cada headline que você salvar vai para a lista "Minhas headlines".</p>
+      <div id="gerador"></div>
+    </div>
+
+    <!-- EXERCÍCIO 7 -->
+    <div class="card" id="card_ex7">
+      <div class="roteiro-sub">Exercício 7 · Seu roteiro em 8 passos</div>
+      <p class="card-intro">Escreva seu roteiro completo. Pelo menos um CTA é obrigatório, sempre com motivo. Fale de você ou da sua empresa só no final.</p>
+      <div id="passos"></div>
+      <div class="callout aviso hidden" id="avisoCta">Coloque pelo menos um CTA. Escolha pelo objetivo do vídeo: salvar, compartilhar ou seguir.</div>
+
+      <div class="bloco-titulo">Roteiro por passos</div>
+      <div class="resultado-box" id="resPassos"></div>
+      <div class="acoes" style="margin-bottom:22px;"><button type="button" id="copiarPassos">Copiar</button></div>
+
+      <div class="bloco-titulo">Roteiro em texto corrido</div>
+      <p class="bloco-sub">Todos os passos juntos, sem os nomes, pronto para o teleprompter.</p>
+      <div class="resultado-box"><div class="txt" id="resCorrido"></div></div>
+      <div class="acoes"><button type="button" id="copiarCorrido">Copiar</button></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="save-status" id="saveStatus" role="status" aria-live="polite"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+const $ = (id) => document.getElementById(id);
+
+let currentUserId = null;
+let alunoNome = '';
+let alunoEmail = '';
+let respostas = {};
+
+// Tabela no Supabase onde esta atividade guarda as respostas (uma linha por aluno)
+const TABELA = 'evidencia_anatomia_viral';
+
+// ---------------------------------------------------------------
+// DADOS: gatilhos, grupos e modelos
+// ---------------------------------------------------------------
+const GATILHOS = [
+  { nome: 'Disrupção', def: 'A pessoa acha que sabe, e descobre que está errada.' },
+  { nome: 'Crença', def: 'A pessoa concorda primeiro, e depois vê o problema.' },
+  { nome: 'Mistério', def: 'Abre uma lacuna que só fecha assistindo até o fim.' },
+  { nome: 'Reconhecimento', def: 'A pessoa pensa: "isso é sobre mim".' },
+  { nome: 'Recompensa', def: 'Promete um ganho prático, claro e específico.' },
+  { nome: 'Popularidade', def: 'Aproveita uma atenção que já existe: assunto do momento ou referência conhecida.' },
+  { nome: 'Autoridade', def: 'Dá peso ao que você diz: sua experiência ou uma fonte verdadeira.' },
+];
+
+const GRUPOS = {
+  1: { titulo: 'Disrupção e Crença: quebrando o óbvio', instrucao: 'Pense numa certeza do seu público que você sabe que está errada. Escolha um modelo deste grupo e escreva a sua headline.' },
+  2: { titulo: 'Mistério: a lacuna que só fecha assistindo', instrucao: 'Pense num erro que o seu cliente comete sem saber. Escolha um modelo deste grupo e escreva a sua headline.' },
+  3: { titulo: 'Recompensa: o ganho que vale a atenção', instrucao: 'Pense numa coisa útil que você ensina e que o seu cliente consegue aplicar sozinho. Escolha um modelo deste grupo e escreva a sua headline.' },
+  4: { titulo: 'Reconhecimento: a pessoa se vê na frase', instrucao: 'Pense no seu cliente ideal, não num cliente qualquer. Escolha um modelo deste grupo e escreva uma headline que faça exatamente ele pensar "isso sou eu".' },
+  5: { titulo: 'Popularidade e Autoridade: o peso da referência', instrucao: 'Pense num conhecimento que levou anos para você construir, ou num assunto que está em alta e tem ligação com a sua área. Escolha um modelo deste grupo e escreva a sua headline.' },
+};
+
+// g = grupo (exercício), gat = gatilho, m = modelo com [campos], ex = exemplo
+const MODELOS = [
+  { n: 1, g: 1, gat: 'Disrupção', m: '[Fato] não aconteceu por [causa óbvia]. Aconteceu porque [causa real].', ex: 'Seu cliente não sumiu por causa do preço. Sumiu porque nunca entendeu o valor do que você entrega.' },
+  { n: 2, g: 1, gat: 'Disrupção', m: '[Ameaça] não escolhe [critério óbvio]. Escolhe [critério real].', ex: 'O processo trabalhista não escolhe a empresa mais visada. Escolhe a que documenta pior.' },
+  { n: 3, g: 1, gat: 'Disrupção', m: 'O que causa [problema] não é [X]. É [Y].', ex: 'O que faz o paciente abandonar a dieta não é falta de força de vontade. É um plano que não cabe na rotina dele.' },
+  { n: 5, g: 1, gat: 'Disrupção', m: 'O que causa [problema] não é [X], não é [Y] e não é [Z]. É [causa real].', ex: 'O que afasta clientes de uma empresa não é o preço, não é a localização e não é o tamanho da equipe. É a demora para responder.' },
+  { n: 24, g: 1, gat: 'Disrupção', m: 'Evite [hábito] em [situação].', ex: 'Evite falar de preço nos primeiros minutos da conversa com um cliente novo.' },
+  { n: 25, g: 1, gat: 'Disrupção', m: 'Coisas que você acha normal, mas que [consequência negativa].', ex: 'Coisas que você acha normal no atendimento, mas que fazem o cliente confiar menos em você.' },
+  { n: 26, g: 1, gat: 'Disrupção', m: '[Situação dolorosa] acontece porque você [hábito].', ex: 'Seu cliente some depois da primeira reunião porque você faz isso sem perceber.' },
+  { n: 27, g: 1, gat: 'Disrupção', m: 'É assim que [cenário ruim] está acontecendo, silenciosamente.', ex: 'É assim que profissionais excelentes estão ficando invisíveis, silenciosamente.' },
+  { n: 33, g: 1, gat: 'Crença', m: 'Todo mundo sabe que [verdade aceita]. O problema é que [o que quase ninguém faz a respeito].', ex: 'Todo mundo sabe que prevenção custa menos que tratamento. O problema é que quase ninguém faz check-up antes de sentir alguma coisa.' },
+
+  { n: 8, g: 2, gat: 'Mistério', m: 'Você pode estar [erro comum] e não sabe.', ex: 'Você pode estar perdendo clientes no WhatsApp e não sabe.' },
+  { n: 9, g: 2, gat: 'Mistério', m: 'O que acontece quando [ação específica]?', ex: 'O que acontece quando uma nutricionista para de passar dieta e começa a ensinar o paciente a montar o prato?' },
+  { n: 10, g: 2, gat: 'Mistério', m: 'O [X] mais subestimado tem benefícios incríveis.', ex: 'O hábito mais subestimado de quem vende bem não tem nada a ver com falar bonito.' },
+  { n: 11, g: 2, gat: 'Mistério', m: 'Esse é o maior motivo de [algo acontecer].', ex: 'Esse é o maior motivo de profissionais brilhantes continuarem invisíveis no próprio mercado.' },
+  { n: 12, g: 2, gat: 'Mistério', m: 'Antes que [cenário ruim] aconteça, faça isso.', ex: 'Antes que o seu cliente ideal feche com o concorrente, faça isso.' },
+
+  { n: 4, g: 3, gat: 'Recompensa', m: 'Hábitos que eu recomendo / Hábitos que eu nunca recomendo [em situação].', ex: 'Hábitos que eu recomendo antes de uma reunião de vendas. Hábitos que eu nunca recomendo.' },
+  { n: 13, g: 3, gat: 'Recompensa', m: 'Fazer [X] gera [Y] de [N] formas diferentes.', ex: 'Organizar o caixa da sua empresa te dá tranquilidade de 3 formas diferentes.' },
+  { n: 14, g: 3, gat: 'Recompensa', m: 'Coisas que são uma verdadeira [transformação] em benefício de [público].', ex: 'Coisas simples que são uma verdadeira virada no atendimento de quem tem um negócio pequeno.' },
+  { n: 15, g: 3, gat: 'Recompensa', m: 'Quando [situação], faça isso, e não se assuste se [resultado].', ex: 'Quando um cliente disser que o seu preço está caro, faça essa pergunta, e não se assuste com a resposta.' },
+  { n: 16, g: 3, gat: 'Recompensa', m: '[Número] [coisas] para fazer em [tempo], para [benefício].', ex: '3 perguntas para fazer em 5 minutos antes de passar qualquer orçamento.' },
+
+  { n: 17, g: 4, gat: 'Reconhecimento', m: 'Esse vídeo é um alerta para [público].', ex: 'Esse vídeo é um alerta para todo empresário que ainda acha que competência garante contrato.' },
+  { n: 18, g: 4, gat: 'Reconhecimento', m: 'Toda pessoa que tem [característica] precisa saber disso.', ex: 'Todo dono de pequena empresa que faz tudo sozinho precisa saber disso.' },
+  { n: 19, g: 4, gat: 'Reconhecimento', m: 'Sinais que você é [perfil].', ex: 'Sinais que você é tecnicamente excelente, mas comercialmente invisível.' },
+  { n: 20, g: 4, gat: 'Reconhecimento', m: 'Se você tem [característica], [X] é obrigatório.', ex: 'Se você vende pelo WhatsApp, ter uma resposta pronta para "tá caro" é obrigatório.' },
+  { n: 21, g: 4, gat: 'Reconhecimento', m: '[Grupo A] tem isso. [Grupo B] tem isso.', ex: 'Profissional mediano tem currículo. Profissional de autoridade tem narrativa.' },
+  { n: 22, g: 4, gat: 'Reconhecimento', m: 'Enquanto [grupo] faz [X], é isso que [outro grupo] faz.', ex: 'Enquanto o vendedor comum discute preço, é isso que o vendedor de autoridade discute.' },
+  { n: 23, g: 4, gat: 'Reconhecimento', m: '[Número] [coisas] que você nunca deve [ação] se [característica].', ex: '3 frases que você nunca deve dizer numa negociação se quer ser levado a sério.' },
+
+  { n: 6, g: 5, gat: 'Popularidade', m: 'Todo mundo fala de [assunto em alta] como se fosse o problema. Não é.', ex: 'Todo mundo fala de inteligência artificial como se ela fosse roubar o seu emprego. Não é ela o problema.' },
+  { n: 7, g: 5, gat: 'Popularidade', m: '[Personagem conhecido] não fez [X] porque [crença comum], mas por um motivo que poucos entenderam.', ex: 'O violinista Joshua Bell não foi ignorado no metrô porque tocou mal. Foi por um motivo que poucos profissionais entenderam.' },
+  { n: 28, g: 5, gat: 'Popularidade', m: '[O concorrente] colocou a mão em [X] e isso mudou [Y].', ex: 'As grandes redes de clínica entenderam isso sobre atendimento, e o mercado mudou para quem ficou para trás.' },
+  { n: 29, g: 5, gat: 'Autoridade', m: 'Sabia que [fato contraintuitivo]? Vou te explicar.', ex: 'Sabia que cobrar barato demais pode fazer o cliente confiar menos em você? Vou te explicar.' },
+  { n: 30, g: 5, gat: 'Autoridade', m: 'Eu demorei [tempo longo] para entender isso sobre [tema] e vou te ensinar em [tempo curto].', ex: 'Eu demorei 15 anos para entender isso sobre vendas, e vou te ensinar em 1 minuto.' },
+  { n: 31, g: 5, gat: 'Autoridade', m: 'Situações em que você tem permissão para quebrar a regra.', ex: '3 situações em que você tem permissão para não dar desconto, mesmo quando o cliente pede.' },
+  { n: 32, g: 5, gat: 'Autoridade', m: 'Como [profissão], preciso te alertar sobre [risco].', ex: 'Como advogada, preciso te alertar sobre essa cláusula comum em contrato de aluguel.' },
+];
+const modeloPor = (n) => MODELOS.find(m => m.n === n);
+
+const PASSOS = [
+  { n: 1, nome: 'Headline', expl: 'A headline que passou pelos 4 filtros.' },
+  { n: 2, nome: 'Intensificador de mistério', expl: 'Uma frase que atrasa a resposta e segura a curiosidade.' },
+  { n: 3, nome: 'CTA de salvamento (opcional)', expl: 'Peça para salvar, com motivo. Ex.: "Salva para consultar antes do próximo orçamento."', cta: true },
+  { n: 4, nome: 'Conteúdo de impacto', expl: 'O que você entrega neste vídeo: a dica, a explicação, o passo a passo. Muda a cada vídeo.' },
+  { n: 5, nome: 'CTA de compartilhamento (opcional)', expl: 'Peça para compartilhar, com motivo. Ex.: "Manda para aquele amigo que..."', cta: true },
+  { n: 6, nome: 'Narrativa central', expl: 'Aquilo em que você acredita. É a mesma em todos os vídeos. Use a sua frase de convicção.' },
+  { n: 7, nome: 'Assinatura', expl: 'Quem você é, o que faz e para quem, em uma frase.' },
+  { n: 8, nome: 'CTA de seguir (opcional)', expl: 'Peça para seguir, com motivo. Ex.: "Me segue para aprender a..."', cta: true },
+];
+
+const FILTROS = [
+  { chave: 'f1', pergunta: 'Ela é específica?', dica: 'Número, situação, momento, nada de frase óbvia.' },
+  { chave: 'f2', pergunta: 'Ela posiciona você?', dica: 'Defende uma crença ou ataca um erro comum, e não é só isca.' },
+  { chave: 'f3', pergunta: 'A pessoa pensa "isso é sobre mim"?', dica: 'Mexe com algo importante e vale parar para ouvir.' },
+  { chave: 'f4', pergunta: 'Ela filtra o seu público?', dica: 'Chama quem é seu cliente e afasta quem não é.' },
+];
+const SIM_NAO = [{ value: 'sim', label: 'Sim' }, { value: 'nao', label: 'Não' }];
+
+// ---------------------------------------------------------------
+// UTILITÁRIOS
+// ---------------------------------------------------------------
+function novoId(){ return 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function segmentos(texto){
+  const re = /\[([^\]]+)\]/g;
+  const out = [];
+  let last = 0, m;
+  while((m = re.exec(texto))){
+    if(m.index > last) out.push({ t: 'txt', v: texto.slice(last, m.index) });
+    out.push({ t: 'blank', v: m[1] });
+    last = m.index + m[0].length;
+  }
+  if(last < texto.length) out.push({ t: 'txt', v: texto.slice(last) });
+  return out;
+}
+
+function textoModelo(n, valores){
+  const segs = segmentos(modeloPor(n).m);
+  let i = 0, completo = true;
+  const texto = segs.map(s => {
+    if(s.t === 'txt') return s.v;
+    const v = ((valores || [])[i++] || '').trim();
+    if(!v) completo = false;
+    return v || '[' + s.v + ']';
+  }).join('');
+  return { texto, completo };
+}
+
+function htmlPreviewModelo(n, valores){
+  const segs = segmentos(modeloPor(n).m);
+  let i = 0;
+  return segs.map(s => {
+    if(s.t === 'txt') return escapeHtml(s.v);
+    const v = ((valores || [])[i++] || '').trim();
+    return v ? `<span class="filled">${escapeHtml(v)}</span>` : `<span class="vazio">[${escapeHtml(s.v)}]</span>`;
+  }).join('');
+}
+
+async function copiar(texto, btn){
+  try{
+    await navigator.clipboard.writeText(texto);
+  } catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); } catch(_){}
+    ta.remove();
+  }
+  if(btn){
+    if(!btn.dataset.orig) btn.dataset.orig = btn.textContent;
+    btn.textContent = 'Copiado!';
+    setTimeout(() => { btn.textContent = btn.dataset.orig; }, 1500);
+  }
+}
+
+function tagsHtml(gatilhos){
+  return (gatilhos || []).map(g => `<span class="chip">${escapeHtml(g)}</span>`).join('');
+}
+
+function botoesEscolha(container, opcoes, atual, onPick){
+  container.innerHTML = '';
+  opcoes.forEach(op => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'choice-btn' + (atual === op.value ? ' selected' : '');
+    b.textContent = op.label;
+    b.addEventListener('click', () => onPick(op.value));
+    container.appendChild(b);
+  });
+}
+
+function todasHeadlines(){ return respostas.headlines || []; }
+
+// ---------------------------------------------------------------
+// PREENCHIMENTO DOS ESPAÇOS (usado nos exercícios 1 a 5 e no gerador)
+// ---------------------------------------------------------------
+function montarPreencher(el, nums, vals, onChange){
+  el.innerHTML = '';
+  const previewBox = document.createElement('div');
+  previewBox.className = 'preview-live';
+  previewBox.innerHTML = '<div class="preview-label">Sua headline</div><div class="preview-texto"></div>';
+  const previewTexto = previewBox.querySelector('.preview-texto');
+
+  function atualizar(){
+    previewTexto.innerHTML = nums.map(n => htmlPreviewModelo(n, vals[n])).join(' ');
+  }
+
+  nums.forEach(n => {
+    if(!Array.isArray(vals[n])) vals[n] = [];
+    if(nums.length > 1){
+      const sub = document.createElement('div');
+      sub.className = 'modelo-sub';
+      sub.textContent = 'Modelo ' + n + ' · ' + modeloPor(n).gat;
+      el.appendChild(sub);
+    }
+    let antes = '', idx = 0;
+    segmentos(modeloPor(n).m).forEach(s => {
+      if(s.t === 'txt'){ antes += s.v; return; }
+      const i = idx++;
+      const wrap = document.createElement('div');
+      wrap.className = 'fill-campo';
+      const frag = document.createElement('div');
+      frag.className = 'frag';
+      frag.innerHTML = escapeHtml(antes) + `<span class="blank">${escapeHtml(s.v)}</span>`;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = vals[n][i] || '';
+      input.placeholder = s.v;
+      input.addEventListener('input', () => {
+        vals[n][i] = input.value;
+        atualizar();
+        onChange();
+      });
+      wrap.appendChild(frag);
+      wrap.appendChild(input);
+      el.appendChild(wrap);
+      antes = '';
+    });
+  });
+  el.appendChild(previewBox);
+  atualizar();
+
+  return {
+    texto: () => nums.map(n => textoModelo(n, vals[n]).texto).join(' '),
+    completo: () => nums.length > 0 && nums.every(n => textoModelo(n, vals[n]).completo),
+    limpar: () => { nums.forEach(n => { vals[n] = []; }); },
+  };
+}
+
+// ---------------------------------------------------------------
+// LISTA DE HEADLINES SALVAS (com Copiar e Remover)
+// ---------------------------------------------------------------
+function renderListaHeadlines(container, filtro, vazioTexto){
+  container.innerHTML = '';
+  const itens = todasHeadlines().filter(filtro);
+  if(itens.length === 0){
+    container.innerHTML = `<div class="vazio-lista">${escapeHtml(vazioTexto)}</div>`;
+    return;
+  }
+  itens.forEach(h => {
+    const div = document.createElement('div');
+    div.className = 'salva';
+    div.innerHTML = `<div>${tagsHtml(h.gatilhos)}</div><div class="salva-texto">${escapeHtml(h.texto)}</div><div class="acoes"><button type="button" class="mini cp">Copiar</button><button type="button" class="mini rm">Remover</button></div>`;
+    div.querySelector('.cp').onclick = (e) => copiar(h.texto, e.target);
+    div.querySelector('.rm').onclick = () => {
+      if(!confirm('Remover esta headline?')) return;
+      respostas.headlines = todasHeadlines().filter(x => x.id !== h.id);
+      salvarAgora();
+      atualizarDependentes();
+    };
+    container.appendChild(div);
+  });
+}
+
+// Quando a lista de headlines muda, atualiza tudo que depende dela
+let refreshers = [];
+function atualizarDependentes(){ refreshers.forEach(fn => fn()); }
+
+// ---------------------------------------------------------------
+// EXERCÍCIOS 1 A 5
+// ---------------------------------------------------------------
+function montarGrupo(g){
+  const info = GRUPOS[g];
+  const modelos = MODELOS.filter(m => m.g === g);
+  const chaveDraft = 'draft_g' + g;
+  if(!respostas[chaveDraft]) respostas[chaveDraft] = { sel: null, vals: {} };
+  const draft = respostas[chaveDraft];
+  if(!draft.vals) draft.vals = {};
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="roteiro-sub">Exercício ${g} · ${escapeHtml(info.titulo)}</div>
+    <p class="card-intro">${escapeHtml(info.instrucao)}</p>
+    <div class="bloco-sub">Toque em um modelo para escolher.</div>
+    <div class="modelos"></div>
+    <div class="fill"></div>
+    <div class="acoes hidden"><button type="button" class="primary salvar">Salvar headline</button><button type="button" class="copiar">Copiar</button></div>
+    <div class="msg"></div>
+    <div class="salvas"><div class="salvas-titulo">Headlines que você salvou neste exercício</div><div class="lista"></div></div>`;
+
+  const listaModelos = card.querySelector('.modelos');
+  const fillEl = card.querySelector('.fill');
+  const acoes = card.querySelector('.acoes');
+  const msg = card.querySelector('.msg');
+  let preench = null;
+
+  function renderModelos(){
+    listaModelos.innerHTML = '';
+    modelos.forEach(m => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'modelo' + (draft.sel === m.n ? ' selected' : '');
+      b.innerHTML = `<div class="modelo-topo"><span class="modelo-num">${m.n}</span><span class="chip">${escapeHtml(m.gat)}</span></div><div class="modelo-texto">${escapeHtml(m.m)}</div><div class="modelo-ex">Exemplo: ${escapeHtml(m.ex)}</div>`;
+      b.addEventListener('click', () => {
+        draft.sel = m.n;
+        msg.textContent = '';
+        renderModelos();
+        renderFill();
+        salvarAgora();
+      });
+      listaModelos.appendChild(b);
+    });
+  }
+
+  function renderFill(){
+    if(!draft.sel){ fillEl.innerHTML = ''; acoes.classList.add('hidden'); preench = null; return; }
+    acoes.classList.remove('hidden');
+    preench = montarPreencher(fillEl, [draft.sel], draft.vals, () => { msg.textContent = ''; agendarSalvar(); });
+  }
+
+  card.querySelector('.copiar').onclick = (e) => {
+    if(!preench) return;
+    copiar(preench.texto(), e.target);
+  };
+  card.querySelector('.salvar').onclick = () => {
+    if(!preench) return;
+    if(!preench.completo()){
+      msg.textContent = 'Preencha todos os espaços antes de salvar.';
+      msg.className = 'msg erro';
+      return;
+    }
+    const m = modeloPor(draft.sel);
+    respostas.headlines = todasHeadlines().concat([{ id: novoId(), origem: 'g' + g, modelos: [m.n], gatilhos: [m.gat], texto: preench.texto() }]);
+    preench.limpar();
+    renderFill();
+    msg.textContent = 'Headline salva. Você pode escrever outra com o mesmo modelo ou escolher outro.';
+    msg.className = 'msg';
+    salvarAgora();
+    atualizarDependentes();
+  };
+
+  const lista = card.querySelector('.lista');
+  refreshers.push(() => renderListaHeadlines(lista, h => h.origem === 'g' + g, 'Nenhuma headline salva ainda.'));
+
+  renderModelos();
+  renderFill();
+  return card;
+}
+
+// ---------------------------------------------------------------
+// EXERCÍCIO 6 · PARTE 1: OS 4 FILTROS
+// ---------------------------------------------------------------
+function renderFiltros(){
+  const root = $('filtros');
+  root.innerHTML = '';
+
+  // escolher uma salva
+  const f1 = document.createElement('div');
+  f1.className = 'field';
+  f1.innerHTML = '<label>Escolha uma headline que você salvou</label>';
+  const sel = document.createElement('select');
+  sel.innerHTML = '<option value="">Selecione...</option>' + todasHeadlines().map(h => `<option value="${escapeHtml(h.id)}">${escapeHtml(h.texto.length > 90 ? h.texto.slice(0, 90) + '…' : h.texto)}</option>`).join('');
+  sel.addEventListener('change', () => {
+    const h = todasHeadlines().find(x => x.id === sel.value);
+    if(h){
+      respostas.f_texto = h.texto;
+      ta.value = h.texto;
+      agendarSalvar();
+    }
+  });
+  f1.appendChild(sel);
+  root.appendChild(f1);
+
+  const f2 = document.createElement('div');
+  f2.className = 'field';
+  f2.innerHTML = '<label>Ou digite uma nova</label>';
+  const ta = document.createElement('textarea');
+  ta.value = respostas.f_texto || '';
+  ta.placeholder = 'A headline que vai passar pelos filtros';
+  ta.addEventListener('input', () => { respostas.f_texto = ta.value; agendarSalvar(); });
+  f2.appendChild(ta);
+  root.appendChild(f2);
+
+  // as 4 perguntas
+  FILTROS.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'filtro';
+    div.innerHTML = `<div class="pergunta">${escapeHtml(f.pergunta)}</div><div class="dica">${escapeHtml(f.dica)}</div><div class="choice-group"></div>`;
+    botoesEscolha(div.querySelector('.choice-group'), SIM_NAO, respostas[f.chave], (v) => {
+      respostas[f.chave] = v;
+      salvarAgora();
+      renderFiltros();
+    });
+    root.appendChild(div);
+  });
+
+  const temNao = FILTROS.some(f => respostas[f.chave] === 'nao');
+  if(temNao){
+    const f3 = document.createElement('div');
+    f3.className = 'field';
+    f3.innerHTML = '<label>Reescreva sua headline</label>';
+    const ta2 = document.createElement('textarea');
+    ta2.value = respostas.f_reescrita || '';
+    ta2.addEventListener('input', () => { respostas.f_reescrita = ta2.value; agendarSalvar(); });
+    f3.appendChild(ta2);
+    root.appendChild(f3);
+  }
+
+  const acoes = document.createElement('div');
+  acoes.className = 'acoes';
+  acoes.innerHTML = '<button type="button" class="primary">Salvar antes e depois</button>';
+  const msg = document.createElement('div');
+  msg.className = 'msg';
+  acoes.querySelector('button').onclick = () => {
+    const antes = (respostas.f_texto || '').trim();
+    if(!antes){ msg.textContent = 'Escolha ou digite uma headline.'; msg.className = 'msg erro'; return; }
+    if(FILTROS.some(f => !respostas[f.chave])){ msg.textContent = 'Responda Sim ou Não nas 4 perguntas.'; msg.className = 'msg erro'; return; }
+    const depois = temNao ? (respostas.f_reescrita || '').trim() : antes;
+    if(!depois){ msg.textContent = 'Reescreva a headline antes de salvar.'; msg.className = 'msg erro'; return; }
+    respostas.filtros_salvos = (respostas.filtros_salvos || []).concat([{
+      id: novoId(), antes, depois, filtros: FILTROS.map(f => respostas[f.chave]),
+    }]);
+    ['f_texto','f_reescrita','f1','f2','f3','f4'].forEach(k => { delete respostas[k]; });
+    salvarAgora();
+    renderFiltros();
+    renderFiltrosSalvos();
+    atualizarDependentes();
+  };
+  root.appendChild(acoes);
+  root.appendChild(msg);
+
+  const salvos = document.createElement('div');
+  salvos.className = 'salvas';
+  salvos.id = 'filtrosSalvos';
+  root.appendChild(salvos);
+  renderFiltrosSalvos();
+}
+
+function renderFiltrosSalvos(){
+  const box = $('filtrosSalvos');
+  if(!box) return;
+  const itens = respostas.filtros_salvos || [];
+  box.innerHTML = '<div class="salvas-titulo">Antes e depois que você salvou</div>';
+  if(itens.length === 0){ box.innerHTML += '<div class="vazio-lista">Nada salvo ainda.</div>'; return; }
+  itens.forEach(it => {
+    const div = document.createElement('div');
+    div.className = 'salva';
+    div.innerHTML = `<div class="antes-depois"><div class="ad-col"><div class="rot">Antes</div><div class="txt">${escapeHtml(it.antes)}</div></div><div class="ad-col"><div class="rot">Depois</div><div class="txt">${escapeHtml(it.depois)}</div></div></div><div class="acoes"><button type="button" class="mini cp">Copiar</button><button type="button" class="mini rm">Remover</button></div>`;
+    div.querySelector('.cp').onclick = (e) => copiar('Antes: ' + it.antes + '\nDepois: ' + it.depois, e.target);
+    div.querySelector('.rm').onclick = () => {
+      if(!confirm('Remover este antes e depois?')) return;
+      respostas.filtros_salvos = (respostas.filtros_salvos || []).filter(x => x.id !== it.id);
+      salvarAgora();
+      renderFiltrosSalvos();
+      atualizarDependentes();
+    };
+    box.appendChild(div);
+  });
+}
+
+// ---------------------------------------------------------------
+// EXERCÍCIO 6 · PARTE 2: GERADOR DE HEADLINES
+// ---------------------------------------------------------------
+function renderGerador(){
+  if(!respostas.ger) respostas.ger = { g1: null, g2: null, g2_ok: null, g2_msg: false, sel: [], vals: {}, regua: null };
+  const g = respostas.ger;
+  if(!g.vals) g.vals = {};
+  if(!Array.isArray(g.sel)) g.sel = [];
+  const root = $('gerador');
+  root.innerHTML = '';
+
+  function titulo(txt, sub){
+    const d = document.createElement('div');
+    d.innerHTML = `<div class="bloco-titulo">${escapeHtml(txt)}</div>${sub ? `<div class="bloco-sub">${escapeHtml(sub)}</div>` : ''}`;
+    root.appendChild(d);
+  }
+  function gridGatilhos(excluir, atual, onPick){
+    const grid = document.createElement('div');
+    grid.className = 'trig-grid';
+    GATILHOS.filter(t => t.nome !== excluir).forEach(t => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'trig-btn' + (atual === t.nome ? ' selected' : '');
+      b.innerHTML = `<strong>${escapeHtml(t.nome)}</strong>${escapeHtml(t.def)}`;
+      b.addEventListener('click', () => onPick(t.nome));
+      grid.appendChild(b);
+    });
+    root.appendChild(grid);
+  }
+  function rerender(){ salvarAgora(); renderGerador(); }
+
+  // Passo 1
+  titulo('1. Escolha um gatilho', 'Obrigatório. Só dá para escolher um nesse passo.');
+  gridGatilhos(null, g.g1, (nome) => {
+    g.g1 = nome;
+    if(g.g2 === nome){ g.g2 = null; g.g2_ok = null; g.g2_msg = false; }
+    g.sel = []; g.vals = {}; g.regua = null;
+    rerender();
+  });
+  if(!g.g1){ renderMinhas(); return; }
+
+  // Passo 2
+  titulo('2. Quer combinar com um segundo gatilho? (opcional)');
+  gridGatilhos(g.g1, g.g2, (nome) => {
+    if(g.g2 === nome){ g.g2 = null; g.g2_ok = null; g.g2_msg = false; }
+    else { g.g2 = nome; g.g2_ok = null; g.g2_msg = false; }
+    g.sel = []; g.vals = {}; g.regua = null;
+    rerender();
+  });
+  if(g.g2 && g.g2_ok !== 'sim'){
+    const q = document.createElement('div');
+    q.className = 'callout destaque';
+    q.innerHTML = '<strong>Esse segundo gatilho tem uma função diferente do primeiro?</strong><br><span style="color:var(--cream-dim)">Exemplo: Reconhecimento diz com quem você fala. Mistério diz por que a pessoa precisa ficar. Se os dois fazem a mesma coisa, o segundo só deixa a frase mais longa.</span><div class="choice-group" style="margin-top:12px;"></div>';
+    botoesEscolha(q.querySelector('.choice-group'), SIM_NAO, g.g2_ok, (v) => {
+      if(v === 'sim'){ g.g2_ok = 'sim'; }
+      else { g.g2 = null; g.g2_ok = null; g.g2_msg = true; }
+      g.sel = []; g.vals = {}; g.regua = null;
+      rerender();
+    });
+    root.appendChild(q);
+  }
+  if(g.g2_msg && !g.g2){
+    const m = document.createElement('div');
+    m.className = 'callout destaque';
+    m.textContent = 'Fique com um gatilho só. Ele já funciona.';
+    root.appendChild(m);
+  }
+  if(g.g2 && g.g2_ok !== 'sim'){ renderMinhas(); return; }
+
+  // Passo 3
+  const triggers = g.g2 ? [g.g1, g.g2] : [g.g1];
+  g.sel = g.sel.filter(n => triggers.includes(modeloPor(n).gat));
+  titulo('3. Escolha o modelo', triggers.length > 1 ? 'Escolha um modelo de cada gatilho para juntar os dois na mesma frase. Se preferir, fique com um só.' : 'Toque em um modelo para escolher.');
+  triggers.forEach(t => {
+    if(triggers.length > 1){
+      const h = document.createElement('div');
+      h.className = 'grupo-modelos-titulo';
+      h.textContent = t;
+      root.appendChild(h);
+    }
+    const lista = document.createElement('div');
+    lista.className = 'modelos';
+    MODELOS.filter(m => m.gat === t).forEach(m => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'modelo' + (g.sel.includes(m.n) ? ' selected' : '');
+      b.innerHTML = `<div class="modelo-topo"><span class="modelo-num">${m.n}</span><span class="chip">${escapeHtml(m.gat)}</span></div><div class="modelo-texto">${escapeHtml(m.m)}</div><div class="modelo-ex">Exemplo: ${escapeHtml(m.ex)}</div>`;
+      b.addEventListener('click', () => {
+        if(g.sel.includes(m.n)) g.sel = g.sel.filter(n => n !== m.n);
+        else g.sel = g.sel.filter(n => modeloPor(n).gat !== t).concat([m.n]);
+        g.regua = null;
+        rerender();
+      });
+      lista.appendChild(b);
+    });
+    root.appendChild(lista);
+  });
+
+  const nums = triggers.map(t => g.sel.find(n => modeloPor(n).gat === t)).filter(Boolean);
+  if(nums.length === 0){ renderMinhas(); return; }
+
+  // Passo 4
+  titulo('4. Preencha os espaços');
+  const fillEl = document.createElement('div');
+  root.appendChild(fillEl);
+  const preench = montarPreencher(fillEl, nums, g.vals, () => { msg.textContent = ''; agendarSalvar(); });
+
+  // Passo 5
+  titulo('5. A régua do tamanho');
+  const rq = document.createElement('div');
+  rq.className = 'filtro';
+  rq.innerHTML = '<div class="pergunta">Dá para ler essa headline na tela em 4 a 5 segundos?</div><div class="dica">A headline vai escrita na tela nos primeiros 4 a 5 segundos do vídeo.</div><div class="choice-group"></div>';
+  root.appendChild(rq);
+  const reguaMsg = document.createElement('div');
+  reguaMsg.className = 'callout aviso' + (g.regua === 'nao' ? '' : ' hidden');
+  reguaMsg.textContent = 'Está longa. Corte o que não muda o sentido.';
+  botoesEscolha(rq.querySelector('.choice-group'), SIM_NAO, g.regua, (v) => {
+    g.regua = v;
+    rerender();
+  });
+  root.appendChild(reguaMsg);
+
+  const acoes = document.createElement('div');
+  acoes.className = 'acoes';
+  acoes.innerHTML = '<button type="button" class="primary salvar">Salvar</button><button type="button" class="copiar">Copiar</button>';
+  const msg = document.createElement('div');
+  msg.className = 'msg';
+  acoes.querySelector('.copiar').onclick = (e) => copiar(preench.texto(), e.target);
+  acoes.querySelector('.salvar').onclick = () => {
+    if(!preench.completo()){ msg.textContent = 'Preencha todos os espaços antes de salvar.'; msg.className = 'msg erro'; return; }
+    if(!g.regua){ msg.textContent = 'Responda a pergunta da régua do tamanho.'; msg.className = 'msg erro'; return; }
+    const gat = [...new Set(nums.map(n => modeloPor(n).gat))];
+    respostas.headlines = todasHeadlines().concat([{ id: novoId(), origem: 'gerador', modelos: nums.slice(), gatilhos: gat, texto: preench.texto() }]);
+    g.vals = {}; g.regua = null;
+    salvarAgora();
+    renderGerador();
+    atualizarDependentes();
+  };
+  root.appendChild(acoes);
+  root.appendChild(msg);
+
+  renderMinhas();
+}
+
+function renderMinhas(){
+  const root = $('gerador');
+  const wrap = document.createElement('div');
+  wrap.className = 'salvas';
+  wrap.innerHTML = '<div class="salvas-titulo">Minhas headlines</div><div class="lista"></div>';
+  root.appendChild(wrap);
+  renderListaHeadlines(wrap.querySelector('.lista'), h => h.origem === 'gerador', 'As headlines que você salvar aqui aparecem nesta lista.');
+}
+
+// ---------------------------------------------------------------
+// EXERCÍCIO 7 · ROTEIRO EM 8 PASSOS
+// ---------------------------------------------------------------
+function textoPasso(n){ return ((respostas['roteiro_p' + n]) || '').trim(); }
+
+function montarPassos(){
+  const root = $('passos');
+  root.innerHTML = '';
+  PASSOS.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'field';
+    div.innerHTML = `<label for="roteiro_p${p.n}">${p.n}. ${escapeHtml(p.nome)}</label>`;
+    const ta = document.createElement('textarea');
+    ta.id = 'roteiro_p' + p.n;
+    ta.className = p.n === 4 || p.n === 6 ? 'grande' : '';
+    ta.value = respostas['roteiro_p' + p.n] || '';
+    ta.addEventListener('input', () => { respostas['roteiro_p' + p.n] = ta.value; atualizarRoteiro(); agendarSalvar(); });
+    div.appendChild(ta);
+    const expl = document.createElement('div');
+    expl.className = 'passo-expl';
+    expl.textContent = p.expl;
+    div.appendChild(expl);
+    if(p.n === 1){
+      const puxar = document.createElement('div');
+      puxar.className = 'puxar';
+      puxar.innerHTML = '<button type="button" class="mini">Puxar uma headline salva</button><div class="lista-puxar hidden" style="margin-top:10px;"></div>';
+      const lista = puxar.querySelector('.lista-puxar');
+      puxar.querySelector('button').onclick = () => {
+        if(!lista.classList.contains('hidden')){ lista.classList.add('hidden'); return; }
+        lista.innerHTML = '';
+        const vistos = new Set();
+        const opcoes = [];
+        (respostas.filtros_salvos || []).forEach(f => { if(!vistos.has(f.depois)){ vistos.add(f.depois); opcoes.push({ texto: f.depois, rot: 'Passou pelos filtros' }); } });
+        todasHeadlines().forEach(h => { if(!vistos.has(h.texto)){ vistos.add(h.texto); opcoes.push({ texto: h.texto, rot: (h.gatilhos || []).join(' + ') }); } });
+        if(opcoes.length === 0){ lista.innerHTML = '<div class="vazio-lista">Você ainda não salvou nenhuma headline.</div>'; }
+        opcoes.forEach(o => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'modelo';
+          b.innerHTML = `<div class="modelo-topo"><span class="chip">${escapeHtml(o.rot)}</span></div><div class="modelo-texto">${escapeHtml(o.texto)}</div>`;
+          b.onclick = () => {
+            respostas.roteiro_p1 = o.texto;
+            ta.value = o.texto;
+            lista.classList.add('hidden');
+            atualizarRoteiro();
+            agendarSalvar();
+          };
+          lista.appendChild(b);
+        });
+        lista.classList.remove('hidden');
+      };
+      div.appendChild(puxar);
+    }
+    root.appendChild(div);
+  });
+}
+
+function roteiroPorPassosTexto(){
+  return PASSOS.map(p => `${p.n}. ${p.nome}\n${textoPasso(p.n)}`).join('\n\n');
+}
+function roteiroCorrido(){
+  return PASSOS.map(p => textoPasso(p.n)).filter(Boolean).join('\n\n');
+}
+
+function atualizarRoteiro(){
+  const algum = PASSOS.some(p => textoPasso(p.n));
+  const temCta = PASSOS.filter(p => p.cta).some(p => textoPasso(p.n));
+  $('avisoCta').classList.toggle('hidden', !algum || temCta);
+  $('resPassos').innerHTML = PASSOS.map(p => {
+    const t = textoPasso(p.n);
+    return `<div class="passo"><div class="passo-nome">${p.n}. ${escapeHtml(p.nome)}</div><div class="txt${t ? '' : ' vazio'}">${t ? escapeHtml(t) : '(ainda não preenchido)'}</div></div>`;
+  }).join('');
+  $('resCorrido').textContent = roteiroCorrido() || '(seu roteiro aparece aqui conforme você escreve)';
+}
+
+$('copiarPassos').addEventListener('click', (e) => copiar(roteiroPorPassosTexto(), e.target));
+$('copiarCorrido').addEventListener('click', (e) => copiar(roteiroCorrido(), e.target));
+
+// ---------------------------------------------------------------
+// SALVAMENTO
+// ---------------------------------------------------------------
+let salvarTimer = null;
+let salvarPendente = false;
+let salvandoAgora = false;
+let salvarDenovo = false;
+let carregouOk = false;
+let statusTimer = null;
+
+function mostrarStatusSalvamento(texto, tipo){
+  const el = $('saveStatus');
+  clearTimeout(statusTimer);
+  el.textContent = texto;
+  el.className = 'save-status' + (tipo ? ' ' + tipo : '');
+  if(tipo === 'ok') statusTimer = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+function agendarSalvar(){
+  if(!carregouOk) return;
+  salvarPendente = true;
+  mostrarStatusSalvamento('Salvando...');
+  clearTimeout(salvarTimer);
+  salvarTimer = setTimeout(salvarAgora, 700);
+}
+
+async function salvarAgora(){
+  if(!carregouOk) return;
+  clearTimeout(salvarTimer);
+  salvarPendente = false;
+  if(salvandoAgora){ salvarDenovo = true; return; }
+  salvandoAgora = true;
+  mostrarStatusSalvamento('Salvando...');
+  let falhou = false;
+  try{
+    const { error } = await supabaseClient.from(TABELA).upsert({
+      user_id: currentUserId,
+      respostas: JSON.parse(JSON.stringify(respostas))
+    }, { onConflict: 'user_id' });
+    if(error) throw error;
+  } catch(e){
+    falhou = true;
+    console.error('Não foi possível salvar', e);
+  }
+  salvandoAgora = false;
+  if(salvarDenovo){
+    salvarDenovo = false;
+    await salvarAgora();
+    return;
+  }
+  if(falhou) mostrarStatusSalvamento('Não foi possível salvar agora. Confira sua conexão, suas respostas continuam na tela.', 'erro');
+  else mostrarStatusSalvamento('Salvo automaticamente', 'ok');
+}
+
+function salvarSePendente(){ if(salvarPendente) salvarAgora(); }
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') salvarSePendente(); });
+window.addEventListener('pagehide', salvarSePendente);
+
+// ---------------------------------------------------------------
+// PDF
+// ---------------------------------------------------------------
+function blocosAnatomia(r){
+  const headlines = r.headlines || [];
+  const blocos = [];
+  [1,2,3,4,5].forEach(g => {
+    const hs = headlines.filter(h => h.origem === 'g' + g);
+    blocos.push([`EXERCÍCIO ${g} · ${GRUPOS[g].titulo.toUpperCase()}`,
+      hs.length ? hs.map((h, i) => [`Headline ${i + 1} (${(h.gatilhos || []).join(' + ')}):`, h.texto]) : [['', '(nenhuma headline salva)']]]);
+  });
+  const fs = r.filtros_salvos || [];
+  const linhas6 = [];
+  fs.forEach((f, i) => {
+    linhas6.push([`Antes ${i + 1}:`, f.antes]);
+    linhas6.push([`Depois ${i + 1}:`, f.depois]);
+  });
+  const gers = headlines.filter(h => h.origem === 'gerador');
+  gers.forEach((h, i) => linhas6.push([`Minha headline ${i + 1} (${(h.gatilhos || []).join(' + ')}):`, h.texto]));
+  blocos.push(['EXERCÍCIO 6 · OS 4 FILTROS E O GERADOR', linhas6.length ? linhas6 : [['', '(nada salvo)']]]);
+  blocos.push(['EXERCÍCIO 7 · SEU ROTEIRO EM 8 PASSOS', PASSOS.map(p => [`${p.n}. ${p.nome}:`, (r['roteiro_p' + p.n] || '').trim()])]);
+  const corrido = PASSOS.map(p => (r['roteiro_p' + p.n] || '').trim()).filter(Boolean).join('\n\n');
+  blocos.push(['ROTEIRO EM TEXTO CORRIDO', [['', corrido]]]);
+  return blocos;
+}
+
+async function gerarPdfAnatomia(nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+  doc.setTextColor(231, 206, 124);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('LELINHA GENTIL', pageWidth / 2, 15, { align: 'center' });
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18);
+  doc.text('ANATOMIA VIRAL', pageWidth / 2, 25, { align: 'center' });
+
+  let y = 50;
+  doc.setTextColor(15, 31, 61);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeAluno || ''}`, margin, y);
+  y += 7;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(60, 60, 60);
+  if(emailAluno){ doc.text(`Email: ${emailAluno}`, margin, y); y += 6; }
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  function checarQuebra(alt){ if(y > pageHeight - alt){ doc.addPage(); y = 22; } }
+  function escreverBloco(titulo, linhas){
+    checarQuebra(24);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(201, 162, 39);
+    doc.splitTextToSize(titulo, maxWidth).forEach(l => { doc.text(l, margin, y); y += 6; });
+    y += 2;
+    linhas.forEach(([label, valor]) => {
+      checarQuebra(20);
+      if(label){
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(15, 31, 61);
+        const ll = doc.splitTextToSize(label, maxWidth);
+        doc.text(ll, margin, y); y += ll.length * 5.2 + 1;
+      }
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(40, 40, 40);
+      String(valor || '(não preenchido)').split('\n').forEach(par => {
+        doc.splitTextToSize(par || ' ', maxWidth).forEach(line => { checarQuebra(14); doc.text(line, margin, y); y += 5.2; });
+      });
+      y += 5;
+    });
+    y += 3;
+  }
+
+  blocosAnatomia(respostas).forEach(([t, l]) => escreverBloco(t, l));
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`anatomia-viral-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+$('downloadBtn').addEventListener('click', async () => {
+  const btn = $('downloadBtn');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+  try{
+    await gerarPdfAnatomia(alunoNome, alunoEmail);
+  } catch(e){
+    console.error(e);
+    alert('Não foi possível gerar o PDF. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+// ---------------------------------------------------------------
+// MONTAGEM DA PÁGINA
+// ---------------------------------------------------------------
+function montarPagina(){
+  if(!Array.isArray(respostas.headlines)) respostas.headlines = [];
+  const stack = $('stack');
+  const ex6 = $('card_ex6');
+  [1,2,3,4,5].forEach(g => stack.insertBefore(montarGrupo(g), ex6));
+
+  renderFiltros();
+  renderGerador();
+  montarPassos();
+  atualizarRoteiro();
+
+  // Quando a lista de headlines muda: atualiza as listas de cada exercício e o seletor do Exercício 6
+  refreshers.push(() => {
+    const atual = respostas.f_texto;
+    renderFiltros();
+    if(atual !== undefined) respostas.f_texto = atual;
+  });
+  atualizarDependentes();
+}
+
+async function carregarDados(){
+  try{
+    const { data, error } = await supabaseClient
+      .from(TABELA)
+      .select('*')
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    if(error) throw error;
+    carregouOk = true;
+    if(!data) return;
+    respostas = data.respostas || {};
+    if(data.comentario_professor){
+      $('comentarioTexto').textContent = data.comentario_professor;
+      $('comentarioBox').classList.remove('hidden');
+    }
+  } catch(e){
+    console.error('Não foi possível carregar as respostas salvas', e);
+    mostrarStatusSalvamento('Não foi possível carregar suas respostas salvas. Recarregue a página antes de continuar, pra não perder nada.', 'erro');
+  }
+}
+
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  if(result.profile.role !== 'admin' && !result.profile.evidencia_habilitado){ window.location.href = '../inicio.html'; return; }
+  currentUserId = result.session.user.id;
+  alunoNome = result.profile.nome || '';
+  alunoEmail = result.profile.email || '';
+  await carregarDados();
+  montarPagina();
+})();
+</script>
+
+</body>
+</html>
