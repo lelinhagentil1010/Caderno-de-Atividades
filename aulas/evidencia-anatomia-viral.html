@@ -130,6 +130,10 @@ textarea.grande{ min-height: 130px; }
 .preview-texto{ font-size: 16px; line-height: 1.55; color: var(--cream); }
 .preview-texto .filled{ color: var(--gold-light); font-weight: 600; }
 .preview-texto .vazio{ color: rgba(244,239,227,0.4); }
+.preview-texto[contenteditable="true"]{ outline: none; cursor: text; border-radius: var(--radius-sm); padding: 6px 8px; margin: -6px -8px; transition: background .15s ease, box-shadow .15s ease; }
+.preview-texto[contenteditable="true"]:focus{ background: rgba(201,162,39,0.08); box-shadow: var(--shadow-glow); }
+.preview-dica{ font-size: 12.5px; color: var(--cream-dim); margin-top: 10px; line-height: 1.45; }
+.preview-dica button{ padding: 3px 12px; font-size: 12px; margin-left: 6px; }
 .modelo-sub{ font-weight: 600; font-size: 13px; color: var(--gold-light); margin: 6px 0 10px; }
 
 .acoes{ display:flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
@@ -454,12 +458,35 @@ function montarPreencher(el, nums, vals, onChange){
   el.innerHTML = '';
   const previewBox = document.createElement('div');
   previewBox.className = 'preview-live';
-  previewBox.innerHTML = '<div class="preview-label">Sua headline</div><div class="preview-texto"></div>';
+  previewBox.innerHTML = '<div class="preview-label">Sua headline</div><div class="preview-texto" contenteditable="true" spellcheck="true"></div><div class="preview-dica"></div>';
   const previewTexto = previewBox.querySelector('.preview-texto');
+  const dica = previewBox.querySelector('.preview-dica');
+  const temAjuste = () => typeof vals._texto === 'string';
 
+  // Enquanto o aluno não mexe no texto, ele acompanha os campos.
+  // Se ele ajustar o texto à mão (preposição, verbo...), o texto dele passa a valer.
   function atualizar(){
-    previewTexto.innerHTML = nums.map(n => htmlPreviewModelo(n, vals[n])).join(' ');
+    if(temAjuste()){
+      if(document.activeElement !== previewTexto) previewTexto.textContent = vals._texto;
+      dica.innerHTML = 'Você ajustou o texto. <button type="button" class="mini">Voltar ao texto automático</button>';
+      dica.querySelector('button').onclick = () => { delete vals._texto; previewTexto.blur(); atualizar(); onChange(); };
+    } else {
+      previewTexto.innerHTML = nums.map(n => htmlPreviewModelo(n, vals[n])).join(' ');
+      dica.textContent = 'Toque no texto para ajustar a frase: preposição, verbo, o que fizer sentido.';
+    }
   }
+  previewTexto.addEventListener('input', () => {
+    vals._texto = previewTexto.textContent;
+    dica.innerHTML = 'Você ajustou o texto. <button type="button" class="mini">Voltar ao texto automático</button>';
+    dica.querySelector('button').onclick = () => { delete vals._texto; previewTexto.blur(); atualizar(); onChange(); };
+    onChange();
+  });
+  previewTexto.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const t = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, t.replace(/s+/g, ' '));
+  });
+  previewTexto.addEventListener('keydown', (e) => { if(e.key === 'Enter') e.preventDefault(); });
 
   nums.forEach(n => {
     if(!Array.isArray(vals[n])) vals[n] = [];
@@ -484,7 +511,7 @@ function montarPreencher(el, nums, vals, onChange){
       input.placeholder = s.v;
       input.addEventListener('input', () => {
         vals[n][i] = input.value;
-        atualizar();
+        if(!temAjuste()) atualizar();
         onChange();
       });
       wrap.appendChild(frag);
@@ -497,9 +524,11 @@ function montarPreencher(el, nums, vals, onChange){
   atualizar();
 
   return {
-    texto: () => nums.map(n => textoModelo(n, vals[n]).texto).join(' '),
-    completo: () => nums.length > 0 && nums.every(n => textoModelo(n, vals[n]).completo),
-    limpar: () => { nums.forEach(n => { vals[n] = []; }); },
+    texto: () => temAjuste() ? vals._texto.trim() : nums.map(n => textoModelo(n, vals[n]).texto).join(' '),
+    completo: () => temAjuste()
+      ? vals._texto.trim().length > 0 && !/[[^]]+]/.test(vals._texto)
+      : nums.length > 0 && nums.every(n => textoModelo(n, vals[n]).completo),
+    limpar: () => { nums.forEach(n => { vals[n] = []; }); delete vals._texto; },
   };
 }
 
@@ -569,6 +598,7 @@ function montarGrupo(g){
       b.className = 'modelo' + (draft.sel === m.n ? ' selected' : '');
       b.innerHTML = `<div class="modelo-topo"><span class="modelo-num">${m.n}</span><span class="chip">${escapeHtml(m.gat)}</span></div><div class="modelo-texto">${escapeHtml(m.m)}</div><div class="modelo-ex">Exemplo: ${escapeHtml(m.ex)}</div>`;
       b.addEventListener('click', () => {
+        if(draft.sel !== m.n) delete draft.vals._texto;
         draft.sel = m.n;
         msg.textContent = '';
         renderModelos();
@@ -815,6 +845,7 @@ function renderGerador(){
       b.addEventListener('click', () => {
         if(g.sel.includes(m.n)) g.sel = g.sel.filter(n => n !== m.n);
         else g.sel = g.sel.filter(n => modeloPor(n).gat !== t).concat([m.n]);
+        delete g.vals._texto;
         g.regua = null;
         rerender();
       });
