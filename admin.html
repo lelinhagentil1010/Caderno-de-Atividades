@@ -267,11 +267,18 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
   .alunos-toolbar{ flex-direction: column; }
   .alunos-toolbar button{ width: 100%; }
 }
+.online-bar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px; padding:10px 16px; border:1px solid var(--line); border-radius:var(--radius-pill); background:var(--navy-2); font-size:13px; color:var(--cream-dim); }
+.online-bar .dot{ width:9px; height:9px; border-radius:50%; background:#3E8E5A; box-shadow:0 0 0 3px rgba(62,142,90,0.25); flex:none; }
+.online-bar.vazia .dot{ background:rgba(244,239,227,0.3); box-shadow:none; }
+.online-bar strong{ color:var(--gold-light); font-weight:600; }
+.online-chip{ border:1px solid var(--gold-dim); border-radius:var(--radius-pill); padding:3px 11px; color:var(--cream); background:rgba(201,162,39,0.08); }
+.online-chip small{ color:var(--cream-dim); margin-left:6px; }
 </style>
 </head>
 <body>
 
 <div class="app">
+  <div class="online-bar vazia" id="onlineBar"><span class="dot"></span><span id="onlineTexto">Nenhum aluno online agora</span></div>
   <div class="topbar">
     <img src="assets/logo.svg" alt="ÊNFASE" class="logo">
     <div class="actions">
@@ -3132,6 +3139,29 @@ document.addEventListener('click', (e) => {
     document.getElementById('notifDropdown').classList.add('hidden');
   }
 });
+
+// ---------------------------------------------------------------
+// ALUNOS ONLINE (Realtime Presence, canal "caderno-online")
+// ---------------------------------------------------------------
+(async function iniciarOnline(){
+  try{
+    const { session, profile } = await getSessionAndProfile();
+    if(!session || !profile || profile.role !== 'admin') return;
+    const bar = document.getElementById('onlineBar');
+    const texto = document.getElementById('onlineTexto');
+    const canal = supabaseClient.channel('caderno-online');
+    function atualizar(){
+      const estado = canal.presenceState();
+      const alunos = Object.keys(estado).map(k => estado[k][0]).filter(Boolean)
+        .sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
+      bar.classList.toggle('vazia', alunos.length === 0);
+      if(alunos.length === 0){ texto.textContent = 'Nenhum aluno online agora'; return; }
+      texto.innerHTML = '<strong>' + alunos.length + (alunos.length === 1 ? ' aluno online' : ' alunos online') + ':</strong> ' +
+        alunos.map(a => '<span class="online-chip">' + escapeHtml(a.nome) + '<small>' + escapeHtml(a.pagina || '') + '</small></span>').join(' ');
+    }
+    canal.on('presence', { event: 'sync' }, atualizar).subscribe();
+  } catch(e){ console.error('Não foi possível iniciar a lista de alunos online', e); }
+})();
 </script>
 
 </body>
