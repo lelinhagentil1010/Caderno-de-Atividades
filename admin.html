@@ -672,10 +672,12 @@ async function carregarAdmins(){
           <div class="email">${escapeHtml(p.email || '')}</div>
         </div>
         <div class="actions">
+          <button class="small resetar-admin">Resetar senha</button>
           ${souEu ? '' : '<button class="small reject rebaixar">Rebaixar para aluno</button>'}
         </div>
       </div>
     `;
+    card.querySelector('.resetar-admin').onclick = () => abrirModalAluno(p);
     if(!souEu){
       card.querySelector('.rebaixar').onclick = (e) => rebaixarAdmin(p, e.target);
     }
@@ -770,6 +772,8 @@ function abrirModalAluno(p){
   document.getElementById('verAlunoCaderno').checked = !!p.caderno_habilitado;
   document.getElementById('verAlunoEvidencia').checked = !!p.evidencia_habilitado;
   document.getElementById('resetBox').style.display = 'none';
+  // administradores só podem ter a senha resetada aqui (sem excluir pelo modal)
+  document.getElementById('btnExcluirModal').style.display = p.role === 'admin' ? 'none' : '';
   document.getElementById('modalAluno').classList.remove('hidden');
 }
 
