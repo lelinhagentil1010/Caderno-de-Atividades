@@ -368,9 +368,19 @@ async function doLogin(){
   }
   status.textContent = 'Entrando...';
   status.className = 'status';
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+  let { error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+  // Senha colada com espaço ou quebra de linha no começo ou no fim (comum ao copiar a senha provisória)
+  if(error && senha !== senha.trim()){
+    ({ error } = await supabaseClient.auth.signInWithPassword({ email, password: senha.trim() }));
+  }
   if(error){
-    status.textContent = 'Email ou senha incorretos.';
+    console.error('Falha no login', error.status, error.code, error.message);
+    const texto = String(error.message || '').toLowerCase();
+    if(texto.includes('not confirmed')) status.textContent = 'Este email ainda não foi confirmado. Procure o email de confirmação na caixa de entrada e no spam.';
+    else if(error.status === 429 || texto.includes('rate limit') || texto.includes('too many')) status.textContent = 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.';
+    else if(texto.includes('banned') || texto.includes('suspended')) status.textContent = 'Esta conta está bloqueada. Fale com a professora.';
+    else if(error.status >= 500 || texto.includes('fetch') || texto.includes('network')) status.textContent = 'Não foi possível conectar agora. Confira sua internet e tente de novo.';
+    else status.textContent = 'Email ou senha incorretos.';
     status.className = 'status error';
     return;
   }
