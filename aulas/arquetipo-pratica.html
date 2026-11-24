@@ -115,6 +115,8 @@ textarea.longo{ min-height: 170px; }
 .quatro{ display:flex; flex-direction:column; gap: 12px; }
 .quatro .item{ padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); line-height: 1.5; }
 .quatro .item strong{ color: var(--gold-light); }
+.pergunta-final{ display:flex; flex-direction:column; gap: 8px; margin-bottom: 10px; }
+.pergunta-final textarea{ min-height: 80px; }
 
 .pedido{ white-space: pre-wrap; font-size: 14px; line-height: 1.55; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); margin-bottom: 12px; }
 details.instrucao{ border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); padding: 12px 16px; margin-bottom: 12px; }
@@ -522,9 +524,14 @@ function renderTela(){
       card.appendChild(elHtml('div', 'card-intro', t.texto.map(p => `<p>${escapeHtml(p)}</p>`).join('')));
     }
     if(t.quatro){
-      card.appendChild(elHtml('div', 'card-intro', '<p>Consulte estas quatro perguntas antes de postar.</p>'));
+      card.appendChild(elHtml('div', 'card-intro', '<p>Consulte estas quatro perguntas antes de postar e escreva a sua resposta para cada uma.</p>'));
       const q = elHtml('div', 'quatro');
-      QUATRO.forEach((x, i) => q.appendChild(elHtml('div', 'item', `${i + 1}. <strong>${escapeHtml(x[0])}</strong> ${escapeHtml(x[1])}`)));
+      QUATRO.forEach((x, i) => {
+        const bloco = elHtml('div', 'pergunta-final');
+        bloco.appendChild(elHtml('div', 'item', `${i + 1}. <strong>${escapeHtml(x[0])}</strong> ${escapeHtml(x[1])}`));
+        bloco.appendChild(montarTextarea('final_' + (i + 1), false));
+        q.appendChild(bloco);
+      });
       card.appendChild(q);
     }
     (t.campos || []).forEach(c => card.appendChild(montarCampo(c)));
@@ -757,6 +764,12 @@ function blocosPdf(r){
       ['Se o meu resultado é 50/50: qual sensação o meu cliente precisa sentir primeiro?', r.ex3_empate],
       ['Uma atitude real do meu trabalho que prova o meu principal:', r.ex3_atitude],
       ['Uma atitude que seria a minha sombra: o que eu nunca faria:', r.ex3_sombra],
+    ]],
+    ['ANTES DE POSTAR · AS QUATRO PERGUNTAS DO ARQUÉTIPO', [
+      ['1. Como eu falo: essa frase tem a voz do meu principal?', r.final_1],
+      ['2. Como eu apareço: a roupa, a cor e o cenário são os meus?', r.final_2],
+      ['3. Como eu ajo: essa atitude prova o meu arquétipo?', r.final_3],
+      ['4. O que eu nunca faria: isso é o meu arquétipo ou é a minha sombra?', r.final_4],
     ]],
   ];
 }
