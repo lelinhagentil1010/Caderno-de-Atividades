@@ -393,6 +393,7 @@ button.primary:disabled{ opacity: .45; cursor:not-allowed; transform:none; box-s
         <option value="storytelling:storytelling">Storytelling que posiciona</option>
         <option value="evidpublico:pesquisa">Evidência · Público e Pesquisa de Conteúdo</option>
         <option value="evidanatomia:viral">Evidência · Anatomia Viral</option>
+        <option value="arqpratica:pratica">Arquétipo na prática</option>
       </select>
     </div>
     <div id="respostasList"></div>
@@ -430,6 +431,7 @@ function onAulaSelectChange(){
   else if(tipo === 'storytelling') carregarStorytelling();
   else if(tipo === 'evidpublico') carregarEvidPublicoPesquisa();
   else if(tipo === 'evidanatomia') carregarEvidAnatomiaViral();
+  else if(tipo === 'arqpratica') carregarArquetipoPratica();
   else if(tipo === 'analise4') carregarAnaliseHeadlineAula4();
   else if(tipo === 'avatar') carregarAvatarEspecialista();
   else if(tipo === 'arquetipo') carregarArquetipoRespostas();
@@ -1861,6 +1863,176 @@ async function gerarPdfEvidAnatomiaViral(r, nomeAluno, emailAluno){
 
   const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   doc.save(`anatomia-viral-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+// ---------------------------------------------------------------
+// ARQUÉTIPO NA PRÁTICA (tabela arquetipo_pratica)
+// ---------------------------------------------------------------
+function arqPraticaBlocos(r){
+  const arq = (a, p) => [r[a], (r[p] !== undefined && String(r[p]).trim() !== '') ? '(' + String(r[p]).trim() + '%)' : ''].filter(Boolean).join(' ');
+  return [
+    ['ARQUÉTIPOS (DO BRANDBOOK)', [
+      ['Meu arquétipo principal:', arq('arq_principal', 'arq_pct_principal')],
+      ['Meu arquétipo secundário:', arq('arq_secundario', 'arq_pct_secundario')],
+    ]],
+    ['EXERCÍCIO 1 · COMO O MEU ARQUÉTIPO FALA', [
+      ['Tema do vídeo:', r.ex1_tema],
+      ['A primeira frase depois da headline:', r.ex1_frase],
+      ['A minha assinatura antes:', r.ex1_assin_antes],
+      ['A minha assinatura nova:', r.ex1_assin_nova],
+    ]],
+    ['EXERCÍCIO 2 · COMO O MEU ARQUÉTIPO APARECE', [
+      ['As três cores da minha paleta:', [r.ex2_cor1, r.ex2_cor2, r.ex2_cor3].filter(Boolean).join(', ')],
+      ['A minha peça-assinatura:', r.ex2_peca],
+      ['Uma peça ou cor que sai:', r.ex2_sai],
+      ['O cenário onde eu gravo: o que fica:', r.ex2_cen_fica],
+      ['O cenário onde eu gravo: o que sai:', r.ex2_cen_sai],
+      ['A expressão na foto do perfil:', r.ex2_expressao],
+      ['A minha foto de perfil atual conversa com isso?', r.ex2_foto],
+      ['O que muda:', r.ex2_muda],
+    ]],
+    ['EXERCÍCIO 3 · QUEM LIDERA EM MIM', [
+      ['O que o meu cliente sente comigo (o meu principal):', r.ex3_principal],
+      ['Como eu entrego (o meu secundário):', r.ex3_secundario],
+      ['Se o meu resultado é 50/50: qual sensação o meu cliente precisa sentir primeiro?', r.ex3_empate],
+      ['Uma atitude real do meu trabalho que prova o meu principal:', r.ex3_atitude],
+      ['Uma atitude que seria a minha sombra: o que eu nunca faria:', r.ex3_sombra],
+    ]],
+  ];
+}
+
+async function carregarArquetipoPratica(){
+  const el = document.getElementById('respostasList');
+  el.innerHTML = '<div class="empty">Carregando...</div>';
+
+  const { data, error } = await supabaseClient
+    .from('arquetipo_pratica')
+    .select('*')
+    .order('updated_at', { ascending: false });
+
+  if(error){ el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
+  if(!data || data.length === 0){ el.innerHTML = '<div class="empty">Nenhum aluno começou essa atividade ainda.</div>'; return; }
+
+  const userIds = [...new Set(data.map(r => r.user_id))];
+  const { data: perfis } = await supabaseClient.from('profiles').select('id,nome,email').in('id', userIds);
+  const perfilMap = Object.fromEntries((perfis || []).map(p => [p.id, p]));
+
+  el.innerHTML = '';
+  data.forEach(r => {
+    const perfil = perfilMap[r.user_id] || {};
+    const respostas = r.respostas || {};
+    const linhas = arqPraticaBlocos(respostas).map(([titulo, itens]) => {
+      const corpo = itens
+        .filter(([, valor]) => valor)
+        .map(([rotulo, valor]) => `<div class="texto" style="margin-top:8px; font-style:normal; white-space:pre-wrap;"><strong style="color:var(--gold-light);">${escapeHtml(rotulo)}</strong> ${escapeHtml(String(valor))}</div>`)
+        .join('');
+      return corpo ? `<div style="margin-top:16px; font-weight:600; color:var(--gold-light); font-size:12.5px; letter-spacing:.04em;">${escapeHtml(titulo)}</div>${corpo}` : '';
+    }).join('');
+    const card = document.createElement('div');
+    card.className = 'resp-group collapsed';
+    card.innerHTML = `
+      <div class="resp-group-header" onclick="toggleRespGroup(this)">
+        <div>
+          <div class="nome">${escapeHtml(perfil.nome || perfil.email || '(desconhecido)')}</div>
+          ${perfil.nome ? `<div class="email">${escapeHtml(perfil.email || '')}</div>` : ''}
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="resp-count">Atualizado ${formatDate(r.updated_at)}</div>
+          <span class="resp-toggle-icon">▾</span>
+        </div>
+      </div>
+      <div class="resp-items">
+        <div class="resp-item">
+          <button class="small baixar-pdf-arq-pratica">Baixar PDF</button>
+          ${linhas || '<div class="texto" style="font-style:italic; margin-top:10px;">Ainda sem respostas preenchidas.</div>'}
+          <div class="field" style="margin-top:14px; margin-bottom:0;">
+            <label>Correção / comentário</label>
+            <textarea class="comentario-input" rows="3">${escapeHtml(r.comentario_professor || '')}</textarea>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="small salvar-comentario">Salvar comentário</button>
+          </div>
+        </div>
+      </div>
+    `;
+    card.querySelector('.baixar-pdf-arq-pratica').onclick = async (e) => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Gerando...';
+      try{
+        await gerarPdfArquetipoPratica(respostas, perfil.nome || perfil.email, perfil.email);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Baixar PDF';
+      }
+    };
+    card.querySelector('.salvar-comentario').onclick = async (e) => {
+      const btn = e.target;
+      const textarea = card.querySelector('.comentario-input');
+      btn.disabled = true;
+      btn.textContent = 'Salvando...';
+      const { error } = await supabaseClient
+        .from('arquetipo_pratica')
+        .update({ comentario_professor: textarea.value })
+        .eq('user_id', r.user_id);
+      btn.disabled = false;
+      btn.textContent = error ? 'Erro, tentar de novo' : 'Salvo!';
+      if(!error) setTimeout(() => { btn.textContent = 'Salvar comentário'; }, 1500);
+    };
+    el.appendChild(card);
+  });
+}
+
+async function gerarPdfArquetipoPratica(r, nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+  try{
+    const logoDataUrl = await svgToPngDataUrl('assets/logo.svg', 900, 260);
+    const logoW = 64;
+    const logoH = logoW * (260 / 900);
+    doc.addImage(logoDataUrl, 'PNG', (pageWidth - logoW) / 2, (36 - logoH) / 2, logoW, logoH);
+  } catch(e){
+    doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+    doc.text('ARQUÉTIPO NA PRÁTICA', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  doc.setTextColor(15, 31, 61); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeAluno || ''}`, margin, y); y += 7;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(60, 60, 60);
+  if(emailAluno){ doc.text(`Email: ${emailAluno}`, margin, y); y += 6; }
+  doc.text(`Arquétipo na prática · gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  const quebra = (alt) => { if(y > pageHeight - alt){ doc.addPage(); y = 22; } };
+  arqPraticaBlocos(r).forEach(([titulo, linhas]) => {
+    quebra(24);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(201, 162, 39);
+    doc.splitTextToSize(titulo, maxWidth).forEach(l => { doc.text(l, margin, y); y += 6; });
+    y += 2;
+    linhas.forEach(([label, valor]) => {
+      quebra(20);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(15, 31, 61);
+      const ll = doc.splitTextToSize(label, maxWidth);
+      doc.text(ll, margin, y); y += ll.length * 5.2 + 1;
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 40, 40);
+      String(valor || '(não preenchido)').split('\n').forEach(par => {
+        doc.splitTextToSize(par || ' ', maxWidth).forEach(line => { quebra(14); doc.text(line, margin, y); y += 5.2; });
+      });
+      y += 5;
+    });
+    y += 3;
+  });
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`arquetipo-na-pratica-${nomeArquivo || 'aluno'}.pdf`);
 }
 
 // ---------------------------------------------------------------

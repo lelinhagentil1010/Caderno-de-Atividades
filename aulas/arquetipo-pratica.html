@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquétipo na prática</title>
+
+<link rel="manifest" href="../manifest.json">
+<meta name="theme-color" content="#0F1F3D">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Caderno de Atividades">
+<link rel="icon" href="../icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap');
+
+:root{
+  --navy: #0F1F3D;
+  --navy-2: #142647;
+  --navy-3: #1B2F57;
+  --gold: #C9A227;
+  --gold-light: #E7CE7C;
+  --gold-dim: rgba(201,162,39,0.35);
+  --cream: #F4EFE3;
+  --cream-dim: rgba(244,239,227,0.82);
+  --line: rgba(201,162,39,0.16);
+  --red: #C24444;
+  --green: #3E8E5A;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-card: 0 10px 30px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 0 1px rgba(201,162,39,0.12), 0 8px 24px rgba(201,162,39,0.10);
+}
+*{ box-sizing: border-box; }
+html,body{
+  margin:0; padding:0;
+  background-color: #0F1F3D;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 50% -10%, rgba(201,162,39,0.14), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,162,39,0.08), transparent 55%);
+  color: var(--cream);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15.5px;
+  min-height:100vh;
+  width: 100%;
+}
+.app{ max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; min-height: 100vh; width: 100%; }
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.logo{ height: 30px; width: auto; display:block; }
+.link-btn{
+  font-family:'Poppins', sans-serif; font-weight: 500; font-size: 13px;
+  color: var(--gold-light); border: 1px solid var(--gold-dim); border-radius: var(--radius-pill);
+  padding: 8px 16px; cursor: pointer; background: var(--navy-2); text-decoration: none; transition: all .18s ease;
+}
+.link-btn:hover{ border-color: var(--gold); background: rgba(201,162,39,0.1); }
+.link-btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+
+.masthead{ text-align:center; margin-bottom: 26px; }
+.eyebrow{ font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; font-size: 12px; color: var(--gold-light); margin-bottom: 14px; }
+.masthead h1{ font-weight:700; font-size: clamp(26px, 4.4vw, 36px); margin: 0 0 10px; }
+.rule{ width: 64px; height:1px; background: var(--gold); margin: 22px auto 0; opacity: 0.6; }
+
+.steps{ display:flex; gap: 8px; flex-wrap: wrap; justify-content:center; margin-bottom: 26px; }
+.step-pill{
+  font-family:'Poppins', sans-serif; font-weight: 500; font-size: 12.5px; padding: 8px 14px; border-radius: var(--radius-pill);
+  border: 1px solid var(--line); background: var(--navy-2); color: var(--cream-dim); cursor: pointer; transition: all .15s ease;
+}
+.step-pill:hover{ border-color: var(--gold-dim); }
+.step-pill.active{ border-color: var(--gold); background: linear-gradient(180deg, rgba(201,162,39,0.18), rgba(201,162,39,0.06)); color: var(--gold-light); }
+
+.card{ border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--navy-2); box-shadow: var(--shadow-card); padding: 32px; }
+.roteiro-sub{ font-weight: 700; font-size: 18px; letter-spacing: 0.01em; color: var(--gold-light); margin: 0 0 12px; }
+.card-intro{ color: var(--cream-dim); font-size: 14.5px; line-height: 1.6; margin: 0 0 20px; }
+.card-intro p{ margin: 0 0 10px; }
+.card-intro p:last-child{ margin-bottom: 0; }
+
+.callout{ margin: 0 0 16px; padding: 14px 16px; border-left: 3px solid var(--gold-dim); background: rgba(201,162,39,0.05); border-radius: var(--radius-sm); font-size: 13.5px; line-height: 1.5; color: var(--cream-dim); }
+.callout strong{ color: var(--gold-light); }
+
+.field{ margin-bottom: 20px; }
+.field label{ display:block; font-weight: 500; font-size: 14px; color: var(--gold-light); margin-bottom: 6px; }
+.field .ajuda{ color: var(--cream-dim); font-size: 12.5px; line-height: 1.45; margin-bottom: 8px; }
+input[type=text], input[type=number], select, textarea{
+  width:100%; background: var(--navy-3); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 13px 15px; color: var(--cream); font-family:'Poppins', sans-serif; font-size: 15px; line-height: 1.55; resize: vertical;
+}
+select option{ background: var(--navy-3); color: var(--cream); }
+input:focus, select:focus, textarea:focus{ outline: none; border-color: var(--gold); box-shadow: var(--shadow-glow); }
+input::placeholder, textarea::placeholder{ color: rgba(244,239,227,0.32); }
+textarea{ min-height: 100px; }
+textarea.longo{ min-height: 170px; }
+.linha-cores{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.linha-arq{ display:grid; grid-template-columns: 1fr 130px; gap: 10px; }
+
+.choice-group{ display:flex; flex-wrap:wrap; gap: 10px; }
+.choice-btn{
+  padding: 10px 18px; min-width: 44px; text-align:center; border-radius: var(--radius-pill);
+  border: 1px solid var(--line); background: var(--navy-3); color: var(--cream);
+  font-family:'Poppins', sans-serif; font-weight: 500; font-size: 14px; cursor:pointer; transition: all .15s ease;
+}
+.choice-btn:hover{ border-color: var(--gold-dim); background: rgba(201,162,39,0.08); }
+.choice-btn.selected{ border-color: var(--gold); background: linear-gradient(180deg, rgba(201,162,39,0.16), rgba(201,162,39,0.05)); color: var(--gold-light); }
+
+.nav-acoes{ display:flex; justify-content:space-between; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
+.acoes{ display:flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+
+.quatro{ display:flex; flex-direction:column; gap: 12px; }
+.quatro .item{ padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); line-height: 1.5; }
+.quatro .item strong{ color: var(--gold-light); }
+
+.pedido{ white-space: pre-wrap; font-size: 14px; line-height: 1.55; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); margin-bottom: 12px; }
+details.instrucao{ border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--navy-3); padding: 12px 16px; margin-bottom: 12px; }
+details.instrucao summary{ cursor:pointer; color: var(--gold-light); font-weight: 500; font-size: 14px; }
+details.instrucao pre{ white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.55; color: var(--cream-dim); margin: 12px 0 0; max-height: 360px; overflow:auto; }
+.passo-titulo{ font-weight: 600; font-size: 14.5px; color: var(--cream); margin: 22px 0 8px; }
+.passo-titulo span{ color: var(--gold-light); }
+
+.feedback-box{ margin-bottom: 28px; border: 1px solid var(--gold-dim); border-radius: var(--radius-md); background: rgba(201,162,39,0.06); padding: 16px; }
+.feedback-box .label{ font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 8px; }
+.feedback-box .texto{ white-space: pre-wrap; color: var(--cream); font-size: 14.5px; line-height: 1.5; }
+
+.save-status{
+  position: fixed; right: 16px; bottom: 16px; z-index: 50; max-width: min(380px, calc(100vw - 32px));
+  padding: 9px 16px; border-radius: var(--radius-pill); background: var(--navy-2); border: 1px solid var(--gold-dim);
+  box-shadow: var(--shadow-card); font-size: 12.5px; line-height: 1.4; color: var(--cream-dim);
+}
+.save-status:empty{ display: none; }
+.save-status.ok{ border-color: var(--green); color: var(--cream); }
+.save-status.erro{ border-color: var(--red); background: rgba(194,68,68,0.92); color: #fff; border-radius: var(--radius-md); }
+
+.hidden{ display:none !important; }
+
+button{
+  font-family:'Poppins', sans-serif; font-weight: 500; font-size: 14.5px; padding: 11px 22px; border-radius: var(--radius-pill);
+  cursor:pointer; border: 1px solid var(--gold); background: transparent; color: var(--gold-light); transition: all .18s ease;
+}
+button:hover{ background: rgba(201,162,39,0.12); }
+button.primary{ background: var(--gold); color: var(--navy); font-weight: 600; }
+button.primary:hover{ background: var(--gold-light); }
+button:disabled{ opacity: 0.4; cursor: not-allowed; }
+button.mini{ padding: 6px 14px; font-size: 12.5px; }
+
+@media (min-width: 1440px){ .app{ max-width: 960px; } }
+@media (max-width: 1024px){ .app{ padding: 28px 20px 70px; } }
+@media (max-width: 560px){
+  .app{ padding: 24px 16px 60px; }
+  .card{ padding: 22px 18px; }
+  .linha-cores, .linha-arq{ grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <img src="../assets/logo.svg" alt="Lelinha Gentil" class="logo">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <a class="link-btn" href="../dashboard.html">◂ Voltar às aulas</a>
+      <button class="link-btn" id="downloadBtn">Baixar PDF</button>
+      <button class="link-btn" id="refazerBtn">Refazer</button>
+      <button class="link-btn" onclick="logout('../index.html')">Sair</button>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="eyebrow">Caderno de atividades</div>
+    <h1>Arquétipo na prática</h1>
+    <div class="rule"></div>
+  </div>
+
+  <div class="feedback-box hidden" id="comentarioBox">
+    <div class="label">Comentário da professora</div>
+    <div class="texto" id="comentarioTexto"></div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+  <div id="tela"></div>
+
+</div>
+
+<div class="save-status" id="saveStatus" role="status" aria-live="polite"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script src="../js/presence.js"></script>
+<script>
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+const $ = (id) => document.getElementById(id);
+
+let currentUserId = null;
+let alunoNome = '';
+let alunoEmail = '';
+let respostas = {};
+
+// Tabela no Supabase onde esta atividade guarda as respostas (uma linha por aluno)
+const TABELA = 'arquetipo_pratica';
+
+// ---------------------------------------------------------------
+// CONTEÚDO
+// ---------------------------------------------------------------
+const ARQUETIPOS = ['Inocente','Explorador','Sábio','Cara Comum','Amante','Bobo da Corte','Herói','Fora da Lei','Mago','Cuidador','Criador','Governante'];
+const TIPOS_TEXTO = ['Headline','Frase de abertura','Narrativa central','Assinatura','Legenda','Roteiro curto'];
+
+// tipos de campo: text, textarea, longo, select, number, arq (arquétipo + porcentagem), cores, choice
+const TELAS = [
+  {
+    id: 'abertura', nav: 'Início', titulo: 'Arquétipo na prática',
+    texto: [
+      'Deixe o seu Brandbook aberto ao lado. Você vai precisar de quatro partes dele: a combinação de arquétipos, a paleta de cores, a Voz da Marca e a sombra.',
+      'Para cada exercício, pense nas quatro perguntas que usamos para ler as marcas: como eu falo, como eu apareço, como eu ajo e o que eu nunca faria.',
+      'Se você ainda não recebeu o seu Brandbook, acompanhe a aula e volte a estes exercícios depois da sua sessão de entrega.',
+    ],
+    campos: [
+      { tipo: 'arq', id: 'arq_principal', pct: 'arq_pct_principal', label: 'Meu arquétipo principal', ajuda: 'Como está no seu Brandbook', labelPct: 'Porcentagem' },
+      { tipo: 'arq', id: 'arq_secundario', pct: 'arq_pct_secundario', label: 'Meu arquétipo secundário', ajuda: 'Como está no seu Brandbook', labelPct: 'Porcentagem' },
+    ],
+  },
+  {
+    id: 'ex1', nav: 'Exercício 1', titulo: 'Exercício 1 · Como o meu arquétipo fala (10 min)',
+    texto: ['A Nike convoca. A Johnson & Johnson acolhe. As duas querem o bem do cliente, mas cada uma fala com a voz do seu arquétipo. A headline continua seguindo os gatilhos de atenção; a voz do arquétipo entra no que vem depois dela.'],
+    campos: [
+      { tipo: 'text', id: 'ex1_tema', label: 'Tema do vídeo', ajuda: 'Um tema que você já gravou ou quer gravar' },
+      { tipo: 'textarea', id: 'ex1_frase', label: 'A primeira frase depois da headline', ajuda: 'Escreva na voz do seu arquétipo principal. Ex. de Herói: Saiu da dieta? Recomeçar não é fracassar. Um prato de cada vez, e você chega lá.' },
+      { tipo: 'text', id: 'ex1_assin_antes', label: 'A minha assinatura antes', ajuda: 'Como você encerra e se apresenta hoje' },
+      { tipo: 'textarea', id: 'ex1_assin_nova', label: 'A minha assinatura nova', ajuda: 'Reescreva com a Voz da Marca do seu Brandbook' },
+    ],
+    botoesAssistente: true,
+  },
+  {
+    id: 'ex2', nav: 'Exercício 2', titulo: 'Exercício 2 · Como o meu arquétipo aparece (8 min)',
+    texto: ['A Disney cuida para que nada fora do lugar apareça. O Google tira tudo o que atrapalha. A sua imagem também precisa ser coerente com o seu arquétipo, sempre dentro da sua profissão, sem virar personagem.'],
+    campos: [
+      { tipo: 'cores', id: 'ex2_cores', ids: ['ex2_cor1','ex2_cor2','ex2_cor3'], label: 'As três cores da minha paleta', ajuda: 'Copie do seu Brandbook' },
+      { tipo: 'text', id: 'ex2_peca', label: 'A minha peça-assinatura', ajuda: 'Uma peça que você vai repetir até virar marca: um blazer, um colar, um relógio, um óculos' },
+      { tipo: 'text', id: 'ex2_sai', label: 'Uma peça ou cor que sai', ajuda: 'Algo que você usa hoje e que desmente o seu arquétipo' },
+      { tipo: 'text', id: 'ex2_cen_fica', label: 'O cenário onde eu gravo: o que fica' },
+      { tipo: 'text', id: 'ex2_cen_sai', label: 'O cenário onde eu gravo: o que sai' },
+      { tipo: 'text', id: 'ex2_expressao', label: 'A expressão na foto do perfil', ajuda: 'Ex.: postura firme e olhar determinado; sorriso acolhedor e gesto aberto' },
+      { tipo: 'choice', id: 'ex2_foto', label: 'A minha foto de perfil atual conversa com isso?', opcoes: ['Sim','Em parte','Não'] },
+      { tipo: 'textarea', id: 'ex2_muda', label: 'O que muda' },
+    ],
+  },
+  {
+    id: 'ex3', nav: 'Exercício 3', titulo: 'Exercício 3 · Quem lidera em mim (8 min)',
+    texto: ['O arquétipo principal é a promessa: o que o cliente sente com você. O secundário é a entrega: como você faz. No empate 50/50, lidera o arquétipo cuja sensação o seu cliente precisa sentir primeiro para confiar em você. Para descobrir, olhe como o cliente chega, o que o seu Caderno de Identidade diz sobre o medo real dele, e o que os clientes que já fecharam disseram que os fez confiar. Decida uma vez e escreva.'],
+    campos: [
+      { tipo: 'textarea', id: 'ex3_principal', label: 'O que o meu cliente sente comigo (o meu principal)' },
+      { tipo: 'textarea', id: 'ex3_secundario', label: 'Como eu entrego (o meu secundário)' },
+      { tipo: 'text', id: 'ex3_empate', label: 'Se o meu resultado é 50/50: qual sensação o meu cliente precisa sentir primeiro?', ajuda: 'Deixe em branco se o seu resultado não é empate' },
+      { tipo: 'textarea', id: 'ex3_atitude', label: 'Uma atitude real do meu trabalho que prova o meu principal', ajuda: 'Uma atitude, não uma frase. Ex.: eu ligo para o paciente no dia seguinte à consulta' },
+      { tipo: 'textarea', id: 'ex3_sombra', label: 'Uma atitude que seria a minha sombra: o que eu nunca faria', ajuda: 'Use a sombra do seu Brandbook' },
+    ],
+  },
+  { id: 'final', nav: 'Antes de postar', titulo: 'As quatro perguntas do arquétipo', quatro: true },
+  { id: 'assistente', nav: 'Assistente de voz', assistente: true },
+];
+
+const QUATRO = [
+  ['Como eu falo:', 'essa frase tem a voz do meu principal?'],
+  ['Como eu apareço:', 'a roupa, a cor e o cenário são os meus?'],
+  ['Como eu ajo:', 'essa atitude prova o meu arquétipo?'],
+  ['O que eu nunca faria:', 'isso é o meu arquétipo ou é a minha sombra?'],
+];
+
+// Instrução fixa do assistente (a mesma para todos os alunos)
+const INSTRUCAO_IA = `Você é o assistente de voz do arquétipo do método de Lelinha Gentil. Você ajuda profissionais (nutricionistas, médicos, advogados, esteticistas, consultores, donos de empresa) a reescrever os próprios textos na voz do arquétipo de marca que eles receberam no Brandbook.
+
+O QUE VOCÊ RECEBE
+O arquétipo principal e o secundário do aluno, com as porcentagens; o tipo de texto (headline, frase de abertura, narrativa central, assinatura, legenda ou roteiro curto); sobre o que ele fala e para quem; palavras que ele quer manter; e o texto dele.
+
+COMO REESCREVER
+1. Mantenha o que o aluno quis dizer. Você muda a voz, não o conteúdo.
+2. O arquétipo principal lidera: ele decide a promessa, o tom geral e como o texto termina. O secundário só tempera: aparece num detalhe, numa palavra, no jeito de entregar. Se os dois tiverem a mesma porcentagem, use o primeiro informado como principal.
+3. Se o tipo de texto for headline: mantenha o gatilho de atenção que a headline já usa (disrupção, mistério, crença, reconhecimento, recompensa, popularidade ou autoridade) e mantenha a estrutura dela. Ajuste só as palavras e o tom para a voz do arquétipo. Nunca transforme uma headline em frase morna para ficar com a voz do arquétipo.
+4. Se o tipo for assinatura: o profissional diz quem é e o que a pessoa encontra no perfil dele, em uma ou duas frases curtas.
+5. Se o tipo for narrativa central: é a crença que o profissional repete em todo vídeo para reforçar o posicionamento. Uma ou duas frases.
+6. Mantenha as palavras que o aluno pediu para manter.
+7. Texto curto, falado, em português do Brasil, como a pessoa falaria olhando para a câmera.
+
+REGRAS QUE NUNCA PODEM SER QUEBRADAS
+- Nunca invente fatos, números, casos, histórias, títulos, prêmios ou resultados que o aluno não escreveu. Se faltar uma informação para a frase ficar boa, faça uma pergunta curta em vez de inventar.
+- Nunca prometa resultado, cura, prazo ou garantia. Isso vale para todas as profissões e principalmente para médicos e profissionais de saúde. Prefira "pode", "começa", "caminho", "acompanhamento".
+- Nunca use a sombra do arquétipo (lista abaixo).
+- Nunca ataque colegas, concorrentes ou a própria profissão, mesmo no arquétipo Fora da Lei.
+- Não use travessão. Não use anglicismos quando existir palavra em português. Não use a palavra "template": use "modelo".
+- Não diga ao aluno que o arquétipo dele está errado nem sugira outro arquétipo. O arquétipo vem do Brandbook e não se discute.
+
+COMO RESPONDER
+Responda sempre neste formato:
+1. O seu texto na voz do seu arquétipo: [texto reescrito]
+2. O que mudou e por quê: [até três linhas, explicando a palavra, o tom ou o final que mudou e por que isso é do arquétipo dele]
+3. Uma segunda opção: [outra versão, um pouco diferente]
+
+REFERÊNCIA DOS 12 ARQUÉTIPOS
+
+INOCENTE
+Voz: simples e otimista. Como termina: termina com leveza e esperança.
+Usa: simples, leve, dá para fazer, confie, bem-feito.
+Evita: medo, ameaça, ninguém te conta, termo agressivo.
+Sombra a evitar: Evita conflitos, nega problemas. No texto, ela aparece assim: Só mostra o lado bonito, nunca toma posição e foge da pergunta difícil.
+
+EXPLORADOR
+Voz: livre, mostra outro caminho. Como termina: termina abrindo um caminho novo.
+Usa: descobri, caminho, outro jeito, fui ver de perto, liberdade.
+Evita: sempre foi assim, o seguro é, não arrisque.
+Sombra a evitar: A liberdade vira fuga, dificuldade de criar raízes. No texto, ela aparece assim: Muda de assunto e de formato toda semana. Ninguém sabe o que esperar dele.
+
+SÁBIO
+Voz: claro, explica o porquê. Como termina: termina com clareza: agora você sabe por quê.
+Usa: entenda, por que, a pergunta certa é, em três etapas, o que a pesquisa mostra.
+Evita: milagre, segredo, acho que, exagero sem base.
+Sombra a evitar: Pensa demais e age de menos; usa o conhecimento para criar distância. No texto, ela aparece assim: Conteúdo longo, termo difícil, corrige o seguidor. Ou não posta porque ainda está estudando.
+
+CARA COMUM
+Voz: próximo, fala como gente. Como termina: termina com proximidade: a gente está junto.
+Usa: a gente, igual você, no dia a dia, na real, eu também.
+Evita: exclusivo, para poucos, termo técnico sem tradução.
+Sombra a evitar: Apaga a própria individualidade para ser aceito. No texto, ela aparece assim: Copia o que todo mundo do nicho posta. A pessoa assiste e não lembra quem falou.
+
+AMANTE
+Voz: sensorial, cuida do detalhe. Como termina: termina com a sensação, o prazer, o cuidado.
+Usa: sinta, detalhe, cuidado, experiência, beleza, especial.
+Evita: barato, rápido e prático, tanto faz, qualquer um.
+Sombra a evitar: Busca aprovação em excesso; depende do outro para se validar. No texto, ela aparece assim: Posta para agradar, mede o próprio valor pelas curtidas e muda de opinião conforme o comentário.
+
+BOBO DA CORTE
+Voz: leve, usa humor a serviço do tema. Como termina: termina com leveza, sem perder a mensagem.
+Usa: imagina, olha isso, quem nunca, a vida é assim.
+Evita: tom solene, discurso de ordem, sermão.
+Sombra a evitar: Transforma tudo em piada; foge de assuntos difíceis. No texto, ela aparece assim: A graça substitui o tema. A pessoa ri e não lembra o que você ensinou.
+
+HERÓI
+Voz: firme, convoca para a ação. Como termina: termina com força: você também consegue.
+Usa: desafio, disciplina, vai, você consegue, enfrente.
+Evita: não tem jeito, desisti, reclamação, vitimismo.
+Sombra a evitar: Determinação vira obsessão; precisa vencer o tempo todo. No texto, ela aparece assim: Só mostra conquista e esforço. O discurso de sem desculpas faz o cliente se sentir fraco.
+
+FORA DA LEI
+Voz: provoca e questiona a regra, nunca ataca pessoas. Como termina: termina com a provocação: não precisa ser assim.
+Usa: chega de, não precisa ser assim, o que ninguém questiona, quebre.
+Evita: como manda o protocolo, todo mundo faz assim, sempre foi assim.
+Sombra a evitar: Contestação vira destruição; oposição só para confrontar. No texto, ela aparece assim: Ataca colegas e a própria profissão para gerar comentário.
+
+MAGO
+Voz: encanta e mostra o depois, sem prometer resultado. Como termina: termina com o depois: imagina como fica.
+Usa: transforme, imagine, é possível, o que muda quando.
+Evita: garantido, milagre, resultado certo, sem esforço.
+Sombra a evitar: Cria expectativas irreais; promete transformações impossíveis. No texto, ela aparece assim: Antes e depois milagroso, promessa de resultado.
+
+CUIDADOR
+Voz: acolhe antes de explicar. Como termina: termina com acolhimento: você não está sozinho.
+Usa: estou aqui, com calma, você não está sozinho, com segurança.
+Evita: você errou, culpa, julgamento, tom de bronca.
+Sombra a evitar: Esquece de si; o cuidado vira controle. No texto, ela aparece assim: Tom de culpa (você está se descuidando) e consulta de graça na caixa de mensagens.
+
+CRIADOR
+Voz: autoral, faz do seu jeito. Como termina: termina com o que é único e autoral.
+Usa: criei, do zero, do meu jeito, o processo, a ideia nasceu.
+Evita: igual a todo mundo, genérico, copiei.
+Sombra a evitar: Perfeccionismo; nunca considera o trabalho pronto. No texto, ela aparece assim: Grava, regrava e não publica. Some por semanas.
+
+GOVERNANTE
+Voz: seguro, dá direção e estrutura. Como termina: termina com direção: o próximo passo é este.
+Usa: o caminho é, decida, padrão, estrutura, responsabilidade.
+Evita: acho que, talvez, desculpa incomodar, tanto faz.
+Sombra a evitar: Liderança vira autoritarismo, controle e rigidez. No texto, ela aparece assim: Fala de cima para baixo e dá ordem em vez de orientação.`;
+
+// ---------------------------------------------------------------
+// UTILITÁRIOS
+// ---------------------------------------------------------------
+async function copiar(texto, btn){
+  try{
+    await navigator.clipboard.writeText(texto);
+  } catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); } catch(_){}
+    ta.remove();
+  }
+  if(btn){
+    if(!btn.dataset.orig) btn.dataset.orig = btn.textContent;
+    btn.textContent = 'Copiado!';
+    setTimeout(() => { btn.textContent = btn.dataset.orig; }, 1500);
+  }
+}
+
+function elHtml(tag, cls, html){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(html != null) e.innerHTML = html;
+  return e;
+}
+
+function montarSelect(id, opcoes, vazio){
+  const sel = document.createElement('select');
+  sel.id = 'field_' + id;
+  sel.innerHTML = `<option value="">${escapeHtml(vazio || 'Selecione...')}</option>` + opcoes.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
+  sel.value = respostas[id] || '';
+  sel.addEventListener('change', () => { respostas[id] = sel.value; agendarSalvar(); });
+  return sel;
+}
+function montarInput(id, tipo, placeholder){
+  const inp = document.createElement('input');
+  inp.type = tipo; inp.id = 'field_' + id;
+  if(placeholder) inp.placeholder = placeholder;
+  if(tipo === 'number'){ inp.min = '0'; inp.max = '100'; inp.inputMode = 'numeric'; }
+  inp.value = respostas[id] || '';
+  inp.addEventListener('input', () => { respostas[id] = inp.value; agendarSalvar(); });
+  return inp;
+}
+function montarTextarea(id, longo){
+  const ta = document.createElement('textarea');
+  ta.id = 'field_' + id;
+  if(longo) ta.className = 'longo';
+  ta.value = respostas[id] || '';
+  ta.addEventListener('input', () => { respostas[id] = ta.value; agendarSalvar(); });
+  return ta;
+}
+
+function montarCampo(c){
+  const wrap = elHtml('div', 'field');
+  wrap.appendChild(elHtml('label', null, escapeHtml(c.label)));
+  if(c.ajuda) wrap.appendChild(elHtml('div', 'ajuda', escapeHtml(c.ajuda)));
+  if(c.tipo === 'text') wrap.appendChild(montarInput(c.id, 'text'));
+  else if(c.tipo === 'textarea') wrap.appendChild(montarTextarea(c.id, false));
+  else if(c.tipo === 'arq'){
+    const linha = elHtml('div', 'linha-arq');
+    linha.appendChild(montarSelect(c.id, ARQUETIPOS, 'Selecione o arquétipo'));
+    linha.appendChild(montarInput(c.pct, 'number', '% do Brandbook'));
+    wrap.appendChild(linha);
+  } else if(c.tipo === 'cores'){
+    const linha = elHtml('div', 'linha-cores');
+    c.ids.forEach((id, i) => linha.appendChild(montarInput(id, 'text', 'Cor ' + (i + 1))));
+    wrap.appendChild(linha);
+  } else if(c.tipo === 'choice'){
+    const g = elHtml('div', 'choice-group');
+    c.opcoes.forEach(op => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'choice-btn' + (respostas[c.id] === op ? ' selected' : '');
+      b.textContent = op;
+      b.addEventListener('click', () => {
+        respostas[c.id] = respostas[c.id] === op ? '' : op;
+        g.querySelectorAll('.choice-btn').forEach(x => x.classList.toggle('selected', x.textContent === respostas[c.id]));
+        salvarAgora();
+      });
+      g.appendChild(b);
+    });
+    wrap.appendChild(g);
+  }
+  return wrap;
+}
+
+// ---------------------------------------------------------------
+// TELAS
+// ---------------------------------------------------------------
+let telaAtual = 0;
+
+function renderSteps(){
+  const box = $('steps');
+  box.innerHTML = '';
+  TELAS.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'step-pill' + (i === telaAtual ? ' active' : '');
+    b.textContent = t.nav;
+    b.addEventListener('click', () => irPara(i));
+    box.appendChild(b);
+  });
+}
+
+function irPara(i){
+  telaAtual = Math.max(0, Math.min(TELAS.length - 1, i));
+  respostas._tela = telaAtual;
+  agendarSalvar();
+  renderTela();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderNav(card){
+  const nav = elHtml('div', 'nav-acoes');
+  const volta = document.createElement('button');
+  volta.type = 'button'; volta.textContent = 'Voltar';
+  volta.disabled = telaAtual === 0;
+  volta.addEventListener('click', () => irPara(telaAtual - 1));
+  nav.appendChild(volta);
+  if(telaAtual < TELAS.length - 1){
+    const prox = document.createElement('button');
+    prox.type = 'button'; prox.className = 'primary'; prox.textContent = 'Avançar';
+    prox.addEventListener('click', () => irPara(telaAtual + 1));
+    nav.appendChild(prox);
+  }
+  card.appendChild(nav);
+}
+
+function renderTela(){
+  renderSteps();
+  const t = TELAS[telaAtual];
+  const root = $('tela');
+  root.innerHTML = '';
+  const card = elHtml('div', 'card');
+
+  if(t.assistente){ renderAssistente(card); }
+  else {
+    card.appendChild(elHtml('div', 'roteiro-sub', escapeHtml(t.titulo)));
+    if(t.texto){
+      card.appendChild(elHtml('div', 'card-intro', t.texto.map(p => `<p>${escapeHtml(p)}</p>`).join('')));
+    }
+    if(t.quatro){
+      card.appendChild(elHtml('div', 'card-intro', '<p>Consulte estas quatro perguntas antes de postar.</p>'));
+      const q = elHtml('div', 'quatro');
+      QUATRO.forEach((x, i) => q.appendChild(elHtml('div', 'item', `${i + 1}. <strong>${escapeHtml(x[0])}</strong> ${escapeHtml(x[1])}`)));
+      card.appendChild(q);
+    }
+    (t.campos || []).forEach(c => card.appendChild(montarCampo(c)));
+    if(t.botoesAssistente){
+      const ac = elHtml('div', 'acoes');
+      const b1 = document.createElement('button');
+      b1.type = 'button'; b1.textContent = 'Ajustar a frase com o assistente de voz';
+      b1.addEventListener('click', () => abrirAssistente('Frase de abertura', respostas.ex1_frase));
+      const b2 = document.createElement('button');
+      b2.type = 'button'; b2.textContent = 'Ajustar a assinatura com o assistente de voz';
+      b2.addEventListener('click', () => abrirAssistente('Assinatura', respostas.ex1_assin_nova));
+      ac.appendChild(b1); ac.appendChild(b2);
+      card.appendChild(ac);
+    }
+  }
+  renderNav(card);
+  root.appendChild(card);
+}
+
+// ---------------------------------------------------------------
+// ASSISTENTE DE VOZ DO ARQUÉTIPO
+// Hoje o aluno copia a instrução e o pedido e cola num projeto do Claude.
+// ---------------------------------------------------------------
+function abrirAssistente(tipo, texto){
+  respostas.as_tipo = tipo;
+  respostas.as_texto = texto || '';
+  salvarAgora();
+  irPara(TELAS.findIndex(t => t.assistente));
+}
+
+function pedidoAssistente(){
+  const pct = (v) => (v !== undefined && String(v).trim() !== '') ? ` (${String(v).trim()}%)` : '';
+  return [
+    `Arquétipo principal: ${respostas.as_principal || ''}${pct(respostas.as_pct_principal)}`,
+    `Arquétipo secundário: ${respostas.as_secundario || ''}${pct(respostas.as_pct_secundario)}`,
+    `Tipo de texto: ${respostas.as_tipo || ''}`,
+    `Sobre o que fala e para quem: ${respostas.as_sobre || ''}`,
+    `Palavras que devem ser mantidas: ${(respostas.as_manter || '').trim() || 'nenhuma'}`,
+    'Texto do aluno:',
+    respostas.as_texto || '',
+  ].join('\n');
+}
+
+function renderAssistente(card){
+  // Arquétipos vêm da tela de abertura; ficam editáveis aqui
+  [['as_principal','arq_principal'],['as_pct_principal','arq_pct_principal'],['as_secundario','arq_secundario'],['as_pct_secundario','arq_pct_secundario']].forEach(([a, o]) => {
+    if(!respostas[a] && respostas[o]) respostas[a] = respostas[o];
+  });
+
+  card.appendChild(elHtml('div', 'roteiro-sub', 'Assistente de voz do arquétipo'));
+  card.appendChild(elHtml('div', 'card-intro', '<p>Escreva o seu texto do jeito que ele saiu. O assistente devolve na voz do seu arquétipo, sem mudar o que você quis dizer. A headline mantém o gatilho de atenção; o que muda é o tom.</p>'));
+
+  const f1 = elHtml('div', 'field');
+  f1.appendChild(elHtml('label', null, 'Meu arquétipo principal'));
+  const l1 = elHtml('div', 'linha-arq');
+  l1.appendChild(montarSelect('as_principal', ARQUETIPOS, 'Selecione o arquétipo'));
+  l1.appendChild(montarInput('as_pct_principal', 'number', '% do Brandbook'));
+  f1.appendChild(l1);
+  card.appendChild(f1);
+
+  const f2 = elHtml('div', 'field');
+  f2.appendChild(elHtml('label', null, 'Meu arquétipo secundário'));
+  const l2 = elHtml('div', 'linha-arq');
+  l2.appendChild(montarSelect('as_secundario', ARQUETIPOS, 'Selecione o arquétipo'));
+  l2.appendChild(montarInput('as_pct_secundario', 'number', '% do Brandbook'));
+  f2.appendChild(l2);
+  card.appendChild(f2);
+
+  const f3 = elHtml('div', 'field');
+  f3.appendChild(elHtml('label', null, 'O que você quer ajustar?'));
+  f3.appendChild(montarSelect('as_tipo', TIPOS_TEXTO, 'Selecione'));
+  card.appendChild(f3);
+
+  const f4 = elHtml('div', 'field');
+  f4.appendChild(elHtml('label', null, 'Sobre o que você fala e para quem'));
+  f4.appendChild(elHtml('div', 'ajuda', 'Ex.: nutricionista, para mulheres que vivem começando dieta. Fica salvo para as próximas vezes.'));
+  f4.appendChild(montarInput('as_sobre', 'text'));
+  card.appendChild(f4);
+
+  const f5 = elHtml('div', 'field');
+  f5.appendChild(elHtml('label', null, 'O seu texto'));
+  f5.appendChild(montarTextarea('as_texto', true));
+  card.appendChild(f5);
+
+  const f6 = elHtml('div', 'field');
+  f6.appendChild(elHtml('label', null, 'Quer manter alguma palavra? (opcional)'));
+  f6.appendChild(montarInput('as_manter', 'text'));
+  card.appendChild(f6);
+
+  // Passos para usar
+  card.appendChild(elHtml('div', 'passo-titulo', '<span>Passo 1</span> · Copie a instrução e cole num projeto do Claude'));
+  card.appendChild(elHtml('div', 'ajuda', 'Você faz isso uma vez só. Depois, é só usar o Passo 2 sempre que quiser ajustar um texto.'));
+  const det = elHtml('details', 'instrucao');
+  det.innerHTML = '<summary>Ver a instrução</summary>';
+  const pre = document.createElement('pre');
+  pre.textContent = INSTRUCAO_IA;
+  det.appendChild(pre);
+  card.appendChild(det);
+  const cpI = document.createElement('button');
+  cpI.type = 'button'; cpI.className = 'primary'; cpI.textContent = 'Copiar instrução';
+  cpI.addEventListener('click', () => copiar(INSTRUCAO_IA, cpI));
+  card.appendChild(cpI);
+
+  card.appendChild(elHtml('div', 'passo-titulo', '<span>Passo 2</span> · Copie o seu pedido e cole no mesmo projeto'));
+  const ped = elHtml('div', 'pedido');
+  ped.textContent = pedidoAssistente();
+  card.appendChild(ped);
+  const cpP = document.createElement('button');
+  cpP.type = 'button'; cpP.className = 'primary'; cpP.textContent = 'Copiar pedido';
+  cpP.addEventListener('click', () => copiar(pedidoAssistente(), cpP));
+  card.appendChild(cpP);
+
+  // O pedido acompanha o que o aluno digita
+  card.addEventListener('input', () => { ped.textContent = pedidoAssistente(); });
+  card.addEventListener('change', () => { ped.textContent = pedidoAssistente(); });
+}
+
+// ---------------------------------------------------------------
+// SALVAMENTO
+// ---------------------------------------------------------------
+let salvarTimer = null;
+let salvarPendente = false;
+let salvandoAgora = false;
+let salvarDenovo = false;
+let carregouOk = false;
+let statusTimer = null;
+
+function mostrarStatusSalvamento(texto, tipo){
+  const el = $('saveStatus');
+  clearTimeout(statusTimer);
+  el.textContent = texto;
+  el.className = 'save-status' + (tipo ? ' ' + tipo : '');
+  if(tipo === 'ok') statusTimer = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+function agendarSalvar(){
+  if(!carregouOk) return;
+  salvarPendente = true;
+  mostrarStatusSalvamento('Salvando...');
+  clearTimeout(salvarTimer);
+  salvarTimer = setTimeout(salvarAgora, 700);
+}
+
+async function salvarAgora(){
+  if(!carregouOk) return;
+  clearTimeout(salvarTimer);
+  salvarPendente = false;
+  if(salvandoAgora){ salvarDenovo = true; return; }
+  salvandoAgora = true;
+  mostrarStatusSalvamento('Salvando...');
+  let falhou = false;
+  try{
+    const { error } = await supabaseClient.from(TABELA).upsert({
+      user_id: currentUserId,
+      respostas: { ...respostas }
+    }, { onConflict: 'user_id' });
+    if(error) throw error;
+  } catch(e){
+    falhou = true;
+    console.error('Não foi possível salvar', e);
+  }
+  salvandoAgora = false;
+  if(salvarDenovo){
+    salvarDenovo = false;
+    await salvarAgora();
+    return;
+  }
+  if(falhou) mostrarStatusSalvamento('Não foi possível salvar agora. Confira sua conexão, suas respostas continuam na tela.', 'erro');
+  else mostrarStatusSalvamento('Salvo automaticamente', 'ok');
+}
+
+function salvarSePendente(){ if(salvarPendente) salvarAgora(); }
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') salvarSePendente(); });
+window.addEventListener('pagehide', salvarSePendente);
+
+// ---------------------------------------------------------------
+// REFAZER
+// ---------------------------------------------------------------
+$('refazerBtn').addEventListener('click', async () => {
+  if(!carregouOk) return;
+  if(!confirm('Refazer apaga todas as suas respostas, e não dá para desfazer. Quer mesmo começar de novo?')) return;
+  const btn = $('refazerBtn');
+  btn.disabled = true;
+  btn.textContent = 'Apagando...';
+  clearTimeout(salvarTimer);
+  salvarPendente = false;
+  carregouOk = false;
+  try{
+    const { error } = await supabaseClient.from(TABELA).upsert({ user_id: currentUserId, respostas: {} }, { onConflict: 'user_id' });
+    if(error) throw error;
+    window.location.reload();
+  } catch(e){
+    console.error('Não foi possível refazer', e);
+    carregouOk = true;
+    btn.disabled = false;
+    btn.textContent = 'Refazer';
+    mostrarStatusSalvamento('Não foi possível apagar agora. Confira sua conexão e tente de novo.', 'erro');
+  }
+});
+
+// ---------------------------------------------------------------
+// PDF
+// ---------------------------------------------------------------
+function blocosPdf(r){
+  const arq = (a, p) => [r[a], (r[p] !== undefined && String(r[p]).trim() !== '') ? `(${String(r[p]).trim()}%)` : ''].filter(Boolean).join(' ');
+  return [
+    ['ARQUÉTIPOS (DO BRANDBOOK)', [
+      ['Meu arquétipo principal:', arq('arq_principal', 'arq_pct_principal')],
+      ['Meu arquétipo secundário:', arq('arq_secundario', 'arq_pct_secundario')],
+    ]],
+    ['EXERCÍCIO 1 · COMO O MEU ARQUÉTIPO FALA', [
+      ['Tema do vídeo:', r.ex1_tema],
+      ['A primeira frase depois da headline:', r.ex1_frase],
+      ['A minha assinatura antes:', r.ex1_assin_antes],
+      ['A minha assinatura nova:', r.ex1_assin_nova],
+    ]],
+    ['EXERCÍCIO 2 · COMO O MEU ARQUÉTIPO APARECE', [
+      ['As três cores da minha paleta:', [r.ex2_cor1, r.ex2_cor2, r.ex2_cor3].filter(Boolean).join(', ')],
+      ['A minha peça-assinatura:', r.ex2_peca],
+      ['Uma peça ou cor que sai:', r.ex2_sai],
+      ['O cenário onde eu gravo: o que fica:', r.ex2_cen_fica],
+      ['O cenário onde eu gravo: o que sai:', r.ex2_cen_sai],
+      ['A expressão na foto do perfil:', r.ex2_expressao],
+      ['A minha foto de perfil atual conversa com isso?', r.ex2_foto],
+      ['O que muda:', r.ex2_muda],
+    ]],
+    ['EXERCÍCIO 3 · QUEM LIDERA EM MIM', [
+      ['O que o meu cliente sente comigo (o meu principal):', r.ex3_principal],
+      ['Como eu entrego (o meu secundário):', r.ex3_secundario],
+      ['Se o meu resultado é 50/50: qual sensação o meu cliente precisa sentir primeiro?', r.ex3_empate],
+      ['Uma atitude real do meu trabalho que prova o meu principal:', r.ex3_atitude],
+      ['Uma atitude que seria a minha sombra: o que eu nunca faria:', r.ex3_sombra],
+    ]],
+  ];
+}
+
+async function svgToPngDataUrl(url, width, height){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function gerarPdf(nomeAluno, emailAluno){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const maxWidth = pageWidth - margin * 2;
+
+  doc.setFillColor(15, 31, 61);
+  doc.rect(0, 0, pageWidth, 36, 'F');
+  try{
+    const logo = await svgToPngDataUrl('../assets/logo.svg', 900, 260);
+    const lw = 64, lh = lw * (260 / 900);
+    doc.addImage(logo, 'PNG', (pageWidth - lw) / 2, (36 - lh) / 2, lw, lh);
+  } catch(e){
+    doc.setTextColor(255,255,255); doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+    doc.text('ARQUÉTIPO NA PRÁTICA', pageWidth / 2, 22, { align: 'center' });
+  }
+
+  let y = 50;
+  doc.setTextColor(15, 31, 61); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+  doc.text(`Aluno: ${nomeAluno || ''}`, margin, y); y += 7;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.setTextColor(60, 60, 60);
+  if(emailAluno){ doc.text(`Email: ${emailAluno}`, margin, y); y += 6; }
+  doc.text(`Arquétipo na prática · gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, y);
+  y += 12;
+
+  const quebra = (alt) => { if(y > pageHeight - alt){ doc.addPage(); y = 22; } };
+  function bloco(titulo, linhas){
+    quebra(24);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(201, 162, 39);
+    doc.splitTextToSize(titulo, maxWidth).forEach(l => { doc.text(l, margin, y); y += 6; });
+    y += 2;
+    linhas.forEach(([label, valor]) => {
+      quebra(20);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(15, 31, 61);
+      const ll = doc.splitTextToSize(label, maxWidth);
+      doc.text(ll, margin, y); y += ll.length * 5.2 + 1;
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 40, 40);
+      String(valor || '(não preenchido)').split('\n').forEach(par => {
+        doc.splitTextToSize(par || ' ', maxWidth).forEach(line => { quebra(14); doc.text(line, margin, y); y += 5.2; });
+      });
+      y += 5;
+    });
+    y += 3;
+  }
+  blocosPdf(respostas).forEach(([t, l]) => bloco(t, l));
+
+  const nomeArquivo = (nomeAluno || 'aluno').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  doc.save(`arquetipo-na-pratica-${nomeArquivo || 'aluno'}.pdf`);
+}
+
+$('downloadBtn').addEventListener('click', async () => {
+  const btn = $('downloadBtn');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+  try{
+    await gerarPdf(alunoNome, alunoEmail);
+  } catch(e){
+    console.error(e);
+    alert('Não foi possível gerar o PDF. Tente novamente.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+async function carregarDados(){
+  try{
+    const { data, error } = await supabaseClient
+      .from(TABELA)
+      .select('*')
+      .eq('user_id', currentUserId)
+      .maybeSingle();
+    if(error) throw error;
+    carregouOk = true;
+    if(!data) return;
+    respostas = data.respostas || {};
+    if(typeof respostas._tela === 'number') telaAtual = Math.max(0, Math.min(TELAS.length - 1, respostas._tela));
+    if(data.comentario_professor){
+      $('comentarioTexto').textContent = data.comentario_professor;
+      $('comentarioBox').classList.remove('hidden');
+    }
+  } catch(e){
+    console.error('Não foi possível carregar as respostas salvas', e);
+    mostrarStatusSalvamento('Não foi possível carregar suas respostas salvas. Recarregue a página antes de continuar, pra não perder nada.', 'erro');
+  }
+}
+
+(async function init(){
+  const result = await requireApprovedSession('../index.html');
+  if(!result) return;
+  currentUserId = result.session.user.id;
+  alunoNome = result.profile.nome || '';
+  alunoEmail = result.profile.email || '';
+  await carregarDados();
+  renderTela();
+})();
+</script>
+
+</body>
+</html>
