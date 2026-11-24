@@ -227,6 +227,7 @@ button:disabled{ opacity: 0.4; cursor: not-allowed; }
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <a class="link-btn" href="../evidencia.html">◂ Voltar às aulas</a>
       <button class="link-btn" id="downloadBtn">Baixar PDF</button>
+      <button class="link-btn" id="refazerBtn">Refazer</button>
       <button class="link-btn" onclick="logout('../index.html')">Sair</button>
     </div>
   </div>
@@ -1007,6 +1008,31 @@ document.getElementById('downloadBtn').addEventListener('click', async () => {
   } finally {
     btn.disabled = false;
     btn.textContent = original;
+  }
+});
+
+// ---------------------------------------------------------------
+// REFAZER: apaga todas as respostas e recomeça do zero
+// ---------------------------------------------------------------
+document.getElementById('refazerBtn').addEventListener('click', async () => {
+  if(!carregouOk) return;
+  if(!confirm('Refazer a atividade apaga todas as suas respostas, e não dá para desfazer. Quer mesmo começar de novo?')) return;
+  const btn = document.getElementById('refazerBtn');
+  btn.disabled = true;
+  btn.textContent = 'Apagando...';
+  clearTimeout(salvarTimer);
+  salvarPendente = false;
+  carregouOk = false; // trava o salvamento automático enquanto limpa
+  try{
+    const { error } = await supabaseClient.from(TABELA).upsert({ user_id: currentUserId, respostas: {} }, { onConflict: 'user_id' });
+    if(error) throw error;
+    window.location.reload();
+  } catch(e){
+    console.error('Não foi possível refazer', e);
+    carregouOk = true;
+    btn.disabled = false;
+    btn.textContent = 'Refazer';
+    mostrarStatusSalvamento('Não foi possível apagar agora. Confira sua conexão e tente de novo.', 'erro');
   }
 });
 
